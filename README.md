@@ -1,4 +1,4 @@
-This GITHub repository is sto store the code and animations for a Skyrim project for Pole Dance animations.
+This GITHub repository is to store the code and animations for a Skyrim project for Pole Dance animations.
 
 Members of te project are, right now:
 * CPU
