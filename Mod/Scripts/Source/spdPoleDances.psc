@@ -2,11 +2,31 @@ Scriptname spdPoleDances Extends Quest
 
 ; function to set/delete a pole (as Static object)
 
-; Function to make an actor to dance (specified time? Specified starting pose?)
 
-; Registry for dances, poses, actors, threads
+; Hooks (global and per-thread)
 
-; Thread system to allow to dance async, using probably events like sexlab
 
-spdDance[] dancesRegistry
-spPose[] posesRegistry
+spdRegistry registry
+
+Function doInit()
+	; if currentV != getVersion do update
+	
+	currentVersion = getVersion()
+endFunction
+
+spdThread Function start(...)
+; Start by just an actor
+; Actor and length
+; actor and pole
+; actor lenght and pole
+; sequence of dances
+; Hooks
+; Starting pose?
+endFunction
+
+
+int currentVersion
+
+int Function getVersion()
+	return 1
+endFunction

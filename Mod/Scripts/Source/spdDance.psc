@@ -4,7 +4,7 @@ string _name
 string _animEvent
 string _startPoseName
 spdPose _startPose
-string _endPose
+spdPose _endPose
 float _length
 bool _cyclic
 
@@ -33,6 +33,12 @@ float Property endHKX
 endProperty
 
 float Property startHKX
+	float function get()
+		return _startPose
+	endFunction
+endProperty
+
+spdPose Property startPose
 	float function get()
 		return _startPose
 	endFunction

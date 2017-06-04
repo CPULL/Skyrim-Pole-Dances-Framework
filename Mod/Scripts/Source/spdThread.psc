@@ -21,14 +21,11 @@ endEvent
 state waiting
 	string function start(Actor a, ObjectReference pole = none, float time = -1.0)
 		dancer = a
-		; validate the actor
-		if  registry.validateActor(dancer)
+		; validate the actor and lock the actor and add it to the actors registry
+		if  registry.allocateActor(dancer)
 			return "The actor is not good: " + a
 		endIf
 		
-		; Lock the actor and add it to the actors registry
-		registry.allocateActor(dancer)
-
 		; Find a start position if missing
 		if startPose==none
 			startPose = registry.findRandomStartPose()
@@ -164,14 +161,13 @@ state ending
 	event OnUpdate()
 		; Stop the anim
 		
-		; Get the endAnim that starts with the endPosition of the curretn anim (if any)
+		; Get the endAnim that starts with the endPose of the curretn anim (if any)
 		if currentDance
-			spdPosition endPosition = registry.getPosition(currentDance.endPose)
-			if spdPose
+			if currentDance.endPose
 				; Play it
-				Debug.sendAnimationEvent(dancer, spdPose.endHKX)
+				Debug.sendAnimationEvent(dancer, currentDance.endPose.endHKX)
 				; Wait for the lenght
-				Utility.wait(spdPose.endTime)
+				Utility.wait(currentDance.endPose.endTime)
 			endIf
 		endIf
 		
@@ -230,3 +226,15 @@ state ending
 	endFunction
 
 endState
+
+
+
+
+
+
+Function sendEvent(string eventName, string danceName = "")
+	; Check if we have global hooks
+	; Send the global event with the id of the thread and the name of the dance and the actor
+	; Check if we have local hooks
+	; Send the local event with the id of the thread and the name of the dance and the actor
+endFunction
