@@ -5,7 +5,7 @@ This GITHub repository is to store the code and animations for a Skyrim project 
 Members of te project are, right now:
 * CPU
 * Komotor
-* Anubis (not yet joined)
+* Anubis
 * Rydin
 
 The mod is a framework for Pole Dances.
