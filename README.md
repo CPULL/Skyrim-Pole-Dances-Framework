@@ -7,6 +7,7 @@ Members of te project are, right now:
 * Komotor
 * Anubis
 * Rydin
+* FunnyBizness
 
 The mod is a framework for Pole Dances.
 A set of sub-animations will be defined, adn the framework will allow playing them in the game with limited Papyrus actions.
