@@ -2,7 +2,8 @@ Scriptname spdDance Extends ReferenceAlias
 
 string _name
 string _animEvent
-string _startPose
+string _startPoseName
+spdPose _startPose
 string _endPose
 float _length
 bool _cyclic
@@ -14,10 +15,17 @@ string Property name
 endProperty
 
 string Property hkx
-	int function get()
+	string function get()
 		return _animEvent
 	endFunction
 endProperty
+
+float Property duration
+	float function get()
+		return _lengtht
+	endFunction
+endProperty
+
 
 
 Function init(string name, string hkx, string sp, string ep, float len, bool cyclic)
