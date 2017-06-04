@@ -8,6 +8,8 @@ float duration
 float totalTime
 spdDance[] nextDances
 spdDance currentDance
+float currentAnimSpentTime
+bool currentAnimStarted
 ObjectReference refPole
 bool poleCreated
 
@@ -17,17 +19,26 @@ event OnUpdate()
 endEvent
 
 state waiting
-	function start(Actor a, ObjectReference pole = none, float time = -1.0)
+	string function start(Actor a, ObjectReference pole = none, float time = -1.0)
 		dancer = a
-		; TODO validate the actor
-		; TODO lock the actor
-		; TODO add it to the actors registry
-		; TODO make it walk close to the pole (add a temporary marker)
+		; validate the actor
+		if  registry.validateActor(dancer)
+			return "The actor is not good: " + a
+		endIf
 		
-		; TODO Find all anims that can start with the specified position
+		; Lock the actor and add it to the actors registry
+		registry.allocateActor(dancer)
+
+		; Find a start position if missing
 		if startPose==none
 			startPose = registry.findRandomStartPose()
 		endIf
+		
+		; Make it walk close to the pole (add a temporary marker)
+		; TODO we may need to split this in a new state, not sure
+		
+		
+		; Find all anims that can start with the specified position
 		nextDances = registry.findDance(startPose)
 		if nextDances==none || nextDances.length==0
 			if startPose
@@ -54,8 +65,13 @@ state waiting
 		
 		startTime = utility.getSystemRealTime()
 		duration = 0.0
+		currentAnimStarted = false
 		RegisterForSingleUpdate(0.1)
 		goToState("playing")
+		
+		sendEvent("PoleDanceStarted")
+		
+		return ""
 	endFunction
 	
 	string functtion setStartPose(string pose)
@@ -71,46 +87,66 @@ state waiting
 	endEvent
 endState
 
+
+
+
+
 state playing
 
 	envent OnUpdate()
-		; Do the progresses
-		
-		
-		; TODO we need to cycle way faster than the full lenght, we need some bool to understand if we completed the anim or not
-		
-		
-		; pick one of the anim
+		; Do the progresses, currentAnimStarted checks if we already played the anim or not
 		if nextDances==none || nextDances.lenght == 0
 			; No more dances, we need to end
 			goToState("ending")
 			return;
 		endIf
+
+		float remainingTime = Utility.getSystemRealTime() - currentAnimStartTime
+		if remainingTime<0.05
+			; Calculate the next anim
+			nextDances = registry.findDance(currentDance.startPose)
+			if nextDances==none || nextDances.lenght==0
+				; We need to end
+				Utility.wait(dance.duration)
+				goToState("ending")
+			endIf
+			currentAnimStarted = false
 		
-		currentDance = nextDances[Utility.randomInt(0, nextDances.length - 1]
+		endIf
 		
-		; send the anim event
-		debug.sendAnimationEvent(dancer, currentDance.hkx)
 		
+		if currentAnimStarted
+			; Just wait
+			if remainingTime>5.0
+				RegisterForSingleUpdate(5.0)
+			else
+				RegisterForSingleUpdate(remainingTime)
+			endIf
+			return
+		
+		else
+			; pick one of the anim
+			currentDance = nextDances[Utility.randomInt(0, nextDances.length - 1]
+			
+			; send the anim event
+			debug.sendAnimationEvent(dancer, currentDance.hkx)
+			currentAnimSpentTime = 0.0
+			currentAnimStarted = true
+			currentAnimStartTime = Utility.getSystemRealTime()
+		
+			sendEvent("PoleDanceDance" currentDance.name)
+		endIf
+
 		; Check if we have to end (depending on the expected time)
 		durantion = Utility.getSystemRealTime() - startTime
 		if duration + currentDance.duration > totalTime
 			; We need to end
 			Utility.wait(dance.duration)
+			RegisterForSingleUpdate(0.05)
 			goToState("ending")
 		endIf
 			
-		; Calculate the next anim
-		nextDances = registry.findDance(currentDance.startPose)
-		if nextDances==none || nextDances.lenght==0
-			; We need to end
-			Utility.wait(dance.duration)
-			goToState("ending")
-		endIf
-			
-		
-		; wait for the lenght by invoking again the RegisterForSingleUpdate
-		RegisterForSingleUpdate(min(5.0, remainingTime))
+		RegisterForSingleUpdate(5.0)
 	endEvent
 
 
@@ -119,14 +155,76 @@ state playing
 	endFunction
 endState
 
+
+
+
 state ending
 	; Do what is needed to end the animation
 	
-	function stop()
-		; Release the actor
+	event OnUpdate()
+		; Stop the anim
 		
-		startPose = none
+		; Get the endAnim that starts with the endPosition of the curretn anim (if any)
+		if currentDance
+			spdPosition endPosition = registry.getPosition(currentDance.endPose)
+			if spdPose
+				; Play it
+				Debug.sendAnimationEvent(dancer, spdPose.endHKX)
+				; Wait for the lenght
+				Utility.wait(spdPose.endTime)
+			endIf
+		endIf
+		
+		; Release the actor
+		registry.releaseActor(dancer)
+	
+		sendEvent("PoleDanceEnded")
+		if poleCreated
+			refPole.disable(true)
+			Utility.wait(0.2)
+			refPole.Delete(true)
+		endIf
+		
 		dancer = none
+		startPose = none
+		startTime = 0.0
+		duration = 0.0
+		totalTime = 0.0
+		nextDances = new spdDance[0]
+		currentDance = none
+		currentAnimSpentTime = 0.0
+		currentAnimStarted = false
+		refPole = none
+		poleCreated = false
+		
+		goToState(waiting)
+	endEvent
+	
+	
+	function stop()
+		UnregisterForUpdates()
+		
+		sendEvent("PoleDanceStopped")
+		; Release the actor
+		registry.releaseActor(dancer)
+		
+		if poleCreated
+			refPole.disable(true)
+			Utility.wait(0.2)
+			refPole.Delete(true)
+		endIf
+		
+		dancer = none
+		startPose = none
+		startTime = 0.0
+		duration = 0.0
+		totalTime = 0.0
+		nextDances = new spdDance[0]
+		currentDance = none
+		currentAnimSpentTime = 0.0
+		currentAnimStarted = false
+		refPole = none
+		poleCreated = false
 		
 		goToState(waiting)
 	endFunction

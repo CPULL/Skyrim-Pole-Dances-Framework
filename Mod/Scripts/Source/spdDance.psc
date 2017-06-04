@@ -26,6 +26,18 @@ float Property duration
 	endFunction
 endProperty
 
+float Property endHKX
+	float function get()
+		return _endPose
+	endFunction
+endProperty
+
+float Property startHKX
+	float function get()
+		return _startPose
+	endFunction
+endProperty
+
 
 
 Function init(string name, string hkx, string sp, string ep, float len, bool cyclic)
