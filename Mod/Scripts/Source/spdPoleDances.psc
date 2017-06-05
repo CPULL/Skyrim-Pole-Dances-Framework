@@ -1,9 +1,5 @@
 Scriptname spdPoleDances Extends Quest
 
-; function to set/delete a pole (as Static object)
-
-
-; Hooks (global and per-thread)
 
 spdRegistry registry
 
@@ -21,7 +17,7 @@ Function doInit()
 	
 	registry.reInit() ; This will just check stuff, and call the mod event to have other mods to add their own dances
 	
-	int modEvId = ModEvent.Create(SkyrimPoleDancesInitialized)
+	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
 	ModEvent.pushInt(modEvId, currentVersion)
 	ModEvent.send(modEvId)
 endFunction
@@ -32,28 +28,102 @@ Function doUpdate()
 endFunction
 
 
-bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPosition="")
-	spdThread = setThread(dancer, pole, duration, startingPosition)
-	if !spdThread
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                             Threads and QuickStart                                                                     ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+
+bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
+	spdThread th = newThread(dancer, pole, duration, startingPose)
+	if !th
 		Debug.Trace("SPD: problems initializing a Pole Dance Thread.")
 		return true
 	endIf
-	if spdThread.start()
+	if th.start()
 		Debug.Trace("SPD: problems starting a Pole Dance Thread.")
 		return true
 	endIf
 	return false
 endFunction
 
-spdThread Function setThread(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPosition="")
-	return blahBlahBlah
+spdThread Function newThreadPose(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
+	spdThread th = registry.getThread()
+	th.initThread(dancer, pole, duration)
+	th.setStartPose(startingPose)
+	return th
 endFunction
 
-; TODO, give the ability to provide a set of dances, identified by names (array, or comma separated list)
+spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, float duration=-1.0, string dances)
+	spdThread th = registry.getThread()
+	th.initThread(dancer, pole, duration)
+	
+	string[] dcs = StringUtil.Split(dances, ",")
+	int count = 0
+	int i = 0
+	while i<dcs.length
+		spdDance d = registry.getDance(dcs[i])
+		if d
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	if count==0
+		Debug.Trace("SPD: could not find any valid dance in: " + dances)
+		return none
+	endIf
+	string[] dtu = Utility.CreateStringArray(count)
+	i=0
+	count=0
+	while i<dcs.length
+		spdDance d = registry.getDance(dcs[i])
+		if d
+			dtu[count] = d.name
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	th.setDances(dtu)
+	return th
+endFunction
 
-; ***********************************************************************************************************************************
-; ************************************************************** Hooks **************************************************************
-; ***********************************************************************************************************************************
+spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None, float duration=-1.0, string[] dances)
+	spdThread th = registry.getThread()
+	th.initThread(dancer, pole, duration)
+	th.setDances(dances)
+	return th
+endFunction
+
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                                Poles                                                                                   ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+
+Static Property mainPole
+Actor Property PlayerRef Auto
+
+ObjectReference Function placePole(ObjectReference location = None, float distance = 0.0, float rotation = 0.0)
+	ObjectRef re = location
+	if !ref
+		ref = PlayerRef
+	endIf
+	
+	float zAngle = ref.getAngleZ()
+	return location.placeAtMe(mainPole, Math.cos(zAngle + rotation) * distance, Math.sin(zAngle + rotation) * distance, ref.z, true)
+endFunction
+
+Function removePole(ObjectReference pole)
+	pole.disable(true)
+	pole.delete(true)
+endFunction
+
+
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                             Hooks Definition                                                                           ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
 
 ; Thread Hooks:
 ; 	<Hook>_DanceInit(tid, actor, pose)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole

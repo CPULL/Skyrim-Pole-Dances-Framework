@@ -7,6 +7,7 @@ spdRegistry Property registry Auto
 float startTime
 float duration
 float totalTime
+string[] danceList
 spdDance[] nextDances
 spdDance currentDance
 float currentAnimSpentTime
@@ -30,33 +31,12 @@ endEvent
 state waiting
 
 	; Split the start and the init functions
-
-	string function start(Actor a, ObjectReference pole = none, float time = -1.0)
+	function initThread(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPosition="")
 		dancer = a
 		; validate the actor and lock the actor and add it to the actors registry
 		if  registry.allocateActor(dancer)
 			return "The actor is not good: " + a
 		endIf
-		
-		; Find a start position if missing
-		if startPose==none
-			startPose = registry.findRandomStartPose()
-		endIf
-		
-		; Make it walk close to the pole (add a temporary marker)
-		; TODO we may need to split this in a new state, not sure
-		
-		
-		; Find all anims that can start with the specified position
-		nextDances = registry.findDance(startPose)
-		if nextDances==none || nextDances.length==0
-			if startPose
-				return "Could not find any valid Pole Dance (start position " + startPose.name + ")"
-			else
-				return "Could not find any valid Pole Dance (start position not defined)"
-			endIf
-		endIf
-		
 		if time==-1
 			totalTime = Utility.randomFloat(30.0, 60.0)
 		else
@@ -71,6 +51,33 @@ state waiting
 			refPole = pole
 			poleCreated = false
 		endIf
+		startPose = none
+		danceList = new string[0]
+	endFunction
+
+	string function start()
+		
+		; Find a start position if missing and there are no dances
+		if startPose==none && danceList.length==0
+			startPose = registry.findRandomStartPose()
+		endIf
+		
+		; Make it walk close to the pole (add a temporary marker)
+		; TODO we may need to split this in a new state, not sure
+		
+		
+		; Find all anims that can start with the specified position, in case we have one and not a dances list
+		if startPose && danceList.length==0
+			nextDances = registry.findDance(startPose)
+			if nextDances==none || nextDances.length==0
+				if startPose
+					return "Could not find any valid Pole Dance (start position " + startPose.name + ")"
+				else
+					return "Could not find any valid Pole Dance (start position not defined)"
+				endIf
+			endIf
+		endIf
+		
 		
 		startTime = utility.getSystemRealTime()
 		duration = 0.0
@@ -89,6 +96,10 @@ state waiting
 			return "Could not find pose with name \"" + pose + "\"."
 		endIf
 		startPose = res
+	endFunction
+	
+	function setDances(string[] names)
+		danceList = names
 	endFunction
 	
 	float function setDancesAsString(string sPose="", string dances)
