@@ -113,6 +113,13 @@ endFunction
 ; TODO
 
 
+bool Function useGlobalHook(string eventName)
+	; check if the hook is global and return yes/no
+endFunction
+
+Function registerForGlobalHooks(string eventName)
+	; just add a yes/no for each known event
+endFunction
 
 
 spdDaces[] Function allocateDances(int count)
