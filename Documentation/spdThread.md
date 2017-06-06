@@ -15,3 +15,8 @@ description
 **_Returns_**
 **TYPE or VALUE** when...
 
+
+
+
+
+addHook(string hookName, string eventName)

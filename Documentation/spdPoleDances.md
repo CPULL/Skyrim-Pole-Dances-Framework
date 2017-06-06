@@ -42,11 +42,17 @@ _None_ in case the thread cannot be allocated or initialized.
 ```
 spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, float duration=-1.0, string dances)
 ```
-Descr
+Allocates a new thread and initilize it with the dancer, a pole, the duration, and a set of dances (as comma separated list of dance names.)
 
 **_Parameters_**
+* _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
+* _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
+* _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
+* _String_ dances: a set of dance names, comma separated (e.g. "SoftMove,Twist,Twist,SoftMove,BendDown,SpeadLegs,BendUp,SoftMove")
 
 **_Returns_**
+An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
+_None_ in case the thread cannot be allocated or initialized.
 
 
 ```
@@ -55,8 +61,25 @@ spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None,
 Descr
 
 **_Parameters_**
+* _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
+* _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
+* _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
+* _String[]_ dances: a set of dance names, one for each entry of the array
+```
+String[] dances = new String[8]
+dances[0] = "SoftMove"
+dances[1] = "Twist"
+dances[2] = "Twist"
+dances[3] = "SoftMove"
+dances[4] = "BendDown"
+dances[5] = "SpeadLegs"
+dances[6] = "BendUp"
+dances[7] = "SoftMove"
+```
 
 **_Returns_**
+An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
+_None_ in case the thread cannot be allocated or initialized.
 
 
 
@@ -92,28 +115,3 @@ Function removePole(ObjectReference pole)
 endFunction
 
 
-; ****************************************************************************************************************************************************************
-; ************                                                                                                                                        ************
-; ************                                             Hooks Definition                                                                           ************
-; ************                                                                                                                                        ************
-; ****************************************************************************************************************************************************************
-
-; Thread Hooks:
-; 	<Hook>_DanceInit(tid, actor, pose)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
-; 	<Hook>_DanceStarting(tid, actor, dance, pose)	--> Sent when the Dance is starting and the initial animation is being played
-; 	<Hook>_DanceStarted(tid, actor, dance)			--> Sent when the very first dance is played
-; 	<Hook>_DanceChanged(tid, actor, dance)			--> Sent every time a dance is played
-;	<Hook>_PoseUsed(tid, actor, dance, pose)		--> Sent every time a pose is being used by an actor
-;	<Hook>_DanceEnding(tid, actor, dance, pose)		--> Sent when the last dance is completed and the ending anim is being played
-;	<Hook>_DanceEnded(tid, actor)					--> Sent when the dance is fully completed an dthe actor has been released
-; Global Hooks:
-; 	GlobalDanceInit(tid, actor, pose)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
-; 	GlobalDanceStarting(tid, actor, dance, pose)	--> Sent when the Dance is starting and the initial animation is being played
-; 	GlobalDanceStarted(tid, actor, dance)			--> Sent when the very first dance is played
-; 	GlobalDanceChanged(tid, actor, dance)			--> Sent every time a dance is played
-;	GlobalPoseUsed(tid, actor, dance, pose)			--> Sent every time a pose is being used by an actor
-;	GlobalDanceEnding(tid, actor, dance, pose)		--> Sent when the last dance is completed and the ending anim is being played
-;	GlobalDanceEnded(tid, actor)					--> Sent when the dance is fully completed an dthe actor has been released
-; System hooks
-;	SkyrimPoleDancesRegistryUpdated(version, registry)	--> Sent when the registry is being updated (to allow to add further dances)
-;	SkyrimPoleDancesInitialized(version)				--> Sent when the mod is fully initialized and can be used
