@@ -28,21 +28,16 @@ spdPoleDances spd = spdPoleDances.getInstance()
 
 **spdDance**: it is used to define the sub-dances
 
-**spdRegistry** (quest **spd**): it contains the registry for all items used by the framework, it is passed if you register for initialization events (to add your own poses and dances.)
-
-**spdPose**: it is use to define the _Poses_
-
-**spdDance**: it is used to define the sub-dances.
-
 **spdThread**: it is used to play a Pole Dance, handling all the actions and the events
 
 **spdActor**: it used to track extra information about an actor, to simplify the control of NPCs
 
 
 
-
-
+### Recommendations
 
 ***Do not call functions from internal components***
+They may be changed without any notice.
 
 ***Do not use any method or variable that strarts with an underscore \_***
+Whatever starts with an underscore is internal. If you use it, your mod may stop working when the framework will be updated.
