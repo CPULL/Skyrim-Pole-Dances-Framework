@@ -3,7 +3,7 @@ Main framework APIs
 
 
 ## QuickStart
-```
+```Papyrus
 bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
 ```
 This function is used to quickly start a pole dance with an actor.
@@ -23,7 +23,7 @@ Threads give you the full control of the Pole Dance performance.
 See [spdThread](spdThread.md) for further details.
 Threads can be initialized in three different ways, depending on how to find the sub-animations.
 
-```
+```Papyrus
 spdThread Function newThreadPose(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
 ```
 Allocates a new thread and initilize it with the dancer, a pole, the duration, and a starting pose. The sub-animations will be chosen randomly, starting from the starting pose (if any.)
@@ -39,7 +39,7 @@ An allocated and initialized _spdThread_ that can be used to start the Pole Danc
 _None_ in case the thread cannot be allocated or initialized.
 
 
-```
+```Papyrus
 spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, float duration=-1.0, string dances)
 ```
 Allocates a new thread and initilize it with the dancer, a pole, the duration, and a set of dances (as comma separated list of dance names.)
@@ -55,17 +55,17 @@ An allocated and initialized _spdThread_ that can be used to start the Pole Danc
 _None_ in case the thread cannot be allocated or initialized.
 
 
-```
+```Papyrus
 spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None, float duration=-1.0, string[] dances)
 ```
-Descr
+Allocates a new thread and initilize it with the dancer, a pole, the duration, and a set of dances (as array of strings of dance names.)
 
 **_Parameters_**
-* _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
-* _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
-* _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
-* _String[]_ dances: a set of dance names, one for each entry of the array
-```
+* `_Actor_ dancer`: is the actor that will perform the dance (_mandatory_)
+* `_ObjectReference_ pole`: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
+* `_Float_ duration`: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
+* `_String[]_ dances`: a set of dance names, one for each entry of the array
+```Papyrus
 String[] dances = new String[8]
 dances[0] = "SoftMove"
 dances[1] = "Twist"
