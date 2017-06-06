@@ -20,17 +20,17 @@ spdPoleDances spd = spdPoleDances.getInstance()
 
 ## Structure of the files
 
-**spdDoleDances** (quest **spd**): it is the main framework
+[spdDoleDances](spdDoleDances.md) (** (quest **spd**): it is the main framework
 
-**spdRegistry** (quest **spd**): it contains the registry for all items used by the framework, it is passed if you register for initialization events (to add your own poses and dances)
+[spdRegistry](spdRegistry.md) (quest **spd**): it contains the registry for all items used by the framework, it is passed if you register for initialization events (to add your own poses and dances)
 
-**spdPose**: it is use to define the _Poses_
+[spdPose](spdPose.md) (_internal_): it is use to define the _Poses_
 
-**spdDance**: it is used to define the sub-dances
+[spdDance](spdDance.md) (_internal_): it is used to define the sub-dances
 
-**spdThread**: it is used to play a Pole Dance, handling all the actions and the events
+[spdThread](spdThread.md) (ReferenceAlias of quest **spd**): it is used to play a Pole Dance, handling all the actions and the events
 
-**spdActor**: it used to track extra information about an actor, to simplify the control of NPCs
+[spdActor](spdActor.md) (_internal_): it used to track extra information about an actor, to simplify the control of NPCs
 
 
 
