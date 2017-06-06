@@ -1,5 +1,20 @@
 Scriptname spdThread
 
+; FIXME Re-set the events, right now they are not perfect in timing and parameters
+; FIXME Add the into anim and the exit anim
+; FIXME Add the walking to the pole
+; FIXME Handle the sequence of dances by poses or events
+; FIXME Add the code to handle the stripping
+; FIXME Add a method to specify the next dance on the fly (to be used during events)
+; FIXME 
+; FIXME 
+; FIXME 
+; FIXME 
+; FIXME 
+; FIXME 
+; FIXME 
+
+
 int id
 Actor dancer
 spdPose startPose

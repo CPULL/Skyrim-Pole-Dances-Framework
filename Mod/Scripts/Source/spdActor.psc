@@ -1,5 +1,10 @@
 Scriptname spdActor extends ReferenceAlias
 
+; FIXME Add some items to store the clothes (used for stripping and redressing)
+; FIXME Add face expressions?
+; FIXME 
+; FIXME 
+
 int id
 Actor dancer
 Package doNothingPackage

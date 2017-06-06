@@ -1,5 +1,6 @@
 Scriptname spdRegistry
 
+spdPoleDances spdF
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -8,10 +9,21 @@ Scriptname spdRegistry
 ; ****************************************************************************************************************************************************************
 
 ; Init function (DoInit, called by OnGameStart and OnInit of main quest)
-function doInit(int version)
+function doInit(int version, spdPoleDances spd)
 	; TODO init the arrays
 	; Register the ones we know (DancesDefaults)
 	; Call the events to register further dances and poses
+	
+	spdF = spd
+	
+	; Threads
+	int i = 0
+	threads = new spdThread[16]
+	while i<threads.length
+		threads[i] = new spdThread()
+		threads[i].id = i + 1
+		threadInUse[i] = false
+	endWhile
 	
 	; Init all actors (if there is any, just free it quickly)
 	
@@ -23,15 +35,39 @@ function doInit(int version)
 endFunction
 
 ; This will just check stuff, and call the mod event to have other mods to add their own dances
-Function reInit(int version)
+Function reInit(int version, spdPoleDances spd)
 	; TODO
 	
+	spdF = spd
+	; Load all known poses and dances
+	editing = true
 	
+	; Send the event to register other poses and dances from mods
+	editing = false
 	int modEvId = ModEvent.Create("SkyrimPoleDancesRegistryUpdated")
 	ModEvent.pushInt(modEvId, currentVersion)
 	ModEvent.pushForm(modEvId, Self)
 	ModEvent.send(modEvId)
 endFunction
+
+bool editing = false
+string editor = ""
+
+Function beginEdit(string mod)
+	int tries = 0
+	while editing && tries<100
+		Utility.waitMenuMode(1.0)
+		tries+=1
+	endWhile
+	editing = true
+	editor = mod
+endFunction
+
+Function completeEdit()
+	editor = ""
+	editing = false
+endFunction
+
 
 
 ; ****************************************************************************************************************************************************************

@@ -9,7 +9,7 @@ To receive the events is important to subscribe to them, and to register for Mod
 Event sent when the pole Dance is being initialized and just started, and the actor begins to walk to the pole.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
-```
+```Papyrus
 myThread.addHook("MyHookForMyMod", "DanceStarting")
 RegisterForModEvent("MyHookForMyMod_DanceStarting", "HandleTheEvent")
 
@@ -29,7 +29,7 @@ If Global Events are registered, also the event `GlobalDanceStarting` is sent.
 Event sent when the actor reached the pole and start the actual dance.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
-```
+```Papyrus
 myThread.addHook("MyHookForMyMod", "DanceStarted")
 RegisterForModEvent("MyHookForMyMod_DanceStarted", "HandleTheEvent")
 
@@ -49,7 +49,7 @@ If Global Events are registered, also the event `GlobalDanceStarted` is sent.
 Event sent every time an actor that is dancing will begin a new dance sub-animation (stage.)
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
-```
+```Papyrus
 myThread.addHook("MyHookForMyMod", "DanceChanged")
 RegisterForModEvent("MyHookForMyMod_DanceChanged", "HandleTheEvent")
 
@@ -70,7 +70,7 @@ Event sent every time an actor that is dancing will pass through a pose (usually
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
 * The parameters `prevDance` and `nextDance` may be an empty strings in case the pose is the very first one or the very last one.
-```
+```Papyrus
 myThread.addHook("MyHookForMyMod", "PoseUsed")
 RegisterForModEvent("MyHookForMyMod_PoseUsed", "HandleTheEvent")
 
@@ -98,7 +98,7 @@ If Global Events are registered, also the event `GlobalPoseUsed` is sent.
 Event sent when the dance is completed and the actor is leaving the pole. The performance itself is still active and the actor is not yet free.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
-```
+```Papyrus
 myThread.addHook("MyHookForMyMod", "DanceEnding")
 RegisterForModEvent("MyHookForMyMod_DanceEnding", "HandleTheEvent")
 
@@ -118,7 +118,7 @@ If Global Events are registered, also the event `GlobalDanceEnding` is sent.
 Event sent when the whole performance is compelted and the actor has been released.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
-```
+```Papyrus
 myThread.addHook("MyHookForMyMod", "DanceEnded")
 RegisterForModEvent("MyHookForMyMod_DanceEnded", "HandleTheEvent")
 
@@ -144,7 +144,7 @@ Global events are similar to Hooks, but they are sent to all mods and all mods c
 Event sent when the pole Dance is being initialized and just started, and the actor begins to walk to the pole.
 * To receive this event you need to tell the framework to send this global event.
 * The subscription is done inside the [spdPoleDances](spdPoleDances.md) main object.
-```
+```Papyrus
 spd.requireGlobalEvent("DanceStarting")
 RegisterForModEvent("GlobalDanceStarting", "HandleTheEvent")
 
@@ -161,7 +161,7 @@ endEvent
 Event sent when the actor reached the pole and start the actual dance.
 * To receive this event you need to tell the framework to send this global event.
 * The subscription is done inside the [spdPoleDances](spdPoleDances.md) main object.
-```
+```Papyrus
 spd.requireGlobalEvent("DanceStarted")
 RegisterForModEvent("GlobalDanceStarted", "HandleTheEvent")
 
@@ -177,7 +177,7 @@ endEvent
 Event sent every time an actor that is dancing will begin a new dance sub-animation (stage.)
 * To receive this event you need to tell the framework to send this global event.
 * The subscription is done inside the [spdPoleDances](spdPoleDances.md) main object.
-```
+```Papyrus
 spd.requireGlobalEvent("DanceChanged")
 RegisterForModEvent("GlobalDanceChanged", "HandleTheEvent")
 
@@ -194,7 +194,7 @@ Event sent every time an actor that is dancing will pass through a pose (usually
 * To receive this event you need to tell the framework to send this global event.
 * The subscription is done inside the [spdPoleDances](spdPoleDances.md) main object.
 * The parameters `prevDance` and `nextDance` may be an empty strings in case the pose is the very first one or the very last one.
-```
+```Papyrus
 spd.requireGlobalEvent("PoseUsed")
 RegisterForModEvent("GlobalDPoseUsed", "HandleTheEvent")
 
@@ -218,7 +218,7 @@ endEvent
 Event sent when the dance is completed and the actor is leaving the pole. The performance itself is still active and the actor is not yet free.
 * To receive this event you need to tell the framework to send this global event.
 * The subscription is done inside the [spdPoleDances](spdPoleDances.md) main object.
-```
+```Papyrus
 spd.requireGlobalEvent("DanceEnding")
 RegisterForModEvent("GlobalDanceEnding", "HandleTheEvent")
 
@@ -234,7 +234,7 @@ endEvent
 Event sent when the whole performance is compelted and the actor has been released.
 * To receive this event you need to tell the framework to send this global event.
 * The subscription is done inside the [spdPoleDances](spdPoleDances.md) main object.
-```
+```Papyrus
 spd.requireGlobalEvent("DanceEnded")
 RegisterForModEvent("GlobalDanceEnded", "HandleTheEvent")
 
@@ -251,7 +251,7 @@ System events are global events that are sent no matter what and are unrelated t
 
 ### SkyrimPoleDancesInitialized(version)
 Sent when the mod is fully initialized and can be used.
-```
+```Papyrus
 RegisterForModEvent("SkyrimPoleDancesInitialized", "HandleTheInit"
 
 ...
@@ -264,7 +264,7 @@ endEvent
 ### SkyrimPoleDancesRegistryUpdated(version, registry)
 Sent when the registry is being updated (to allow to add further dances)
 * This event is really important in case you want to add extra dances and poses.
-```
+```Papyrus
 RegisterForModEvent("SkyrimPoleDancesRegistryUpdated", "AddMyDances")
 
 ...
