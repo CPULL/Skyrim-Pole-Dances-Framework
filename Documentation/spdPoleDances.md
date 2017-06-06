@@ -20,6 +20,12 @@ This function is used to quickly start a pole dance with an actor.
 **True** In case there were errors.
 If there were errors, a detailed error is added to the error list. Use `getLastError()` to get the long description.
 
+
+<br><hr><br><hr><br>
+
+
+
+
 ## Threads
 Threads give you the full control of the Pole Dance performance.
 See [spdThread](spdThread.md) for further details.
@@ -90,6 +96,8 @@ If there were errors, a detailed error is added to the error list. Use `getLastE
 
 
 
+<br><hr><br><hr><br>
+
 
 
 
@@ -122,6 +130,12 @@ removePole(ObjectReference pole)
 **_Returns_**
 Nothing
 
+
+
+<br><hr><br><hr><br>
+
+
+
 ## Errors management
 Every time a function has an error, a detail of the error is tracked. Errors can be dumped to the Papyrus.log or can be retrieved as strings and ID
 
@@ -144,7 +158,7 @@ Nothing
 A _String_ with the last error. An empty string in case there were no errors.
 
 ### getLastErrorID()
-Returns an _int _ corresponding to the type of error happened.
+Returns an _int_ corresponding to the type of error happened.
 
 **_Parameters_**
 None
