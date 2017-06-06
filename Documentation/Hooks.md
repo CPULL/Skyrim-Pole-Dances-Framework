@@ -5,7 +5,7 @@ To receive the events is important to subscribe to them, and to register for Mod
 
 ## Events Definition (by Hooks)
 
-### <Hook>_DanceStarting(tid, dancer, pose)
+### \<Hook\>\_DanceStarting(tid, dancer, pose)
 Event sent when the pole Dance is being initialized and just started, and the actor begins to walk to the pole.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
@@ -25,7 +25,7 @@ The event is sent only if someone registered for it.
 If Global Events are registered, also the event `GlobalDanceStarting` is sent.
 
 
-### <Hook>_DanceStarted(tid, dancer, dance, pose)
+### \<Hook\>\_DanceStarted(tid, dancer, dance, pose)
 Event sent when the actor reached the pole and start the actual dance.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
@@ -45,7 +45,7 @@ The event is sent only if someone registered for it
 If Global Events are registered, also the event `GlobalDanceStarted` is sent.
 
 
-### <Hook>_DanceChanged(tid, dancer, dance)
+### \<Hook\>\_DanceChanged(tid, dancer, dance)
 Event sent every time an actor that is dancing will begin a new dance sub-animation (stage.)
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
@@ -65,7 +65,7 @@ The event is sent only if someone registered for it
 If Global Events are registered, also the event `GlobalDanceChanged` is sent.
 
 
-### <Hook>_PoseUsed(tid, dancer, prevDance, pose, nextDance)
+### \<Hook\>\_PoseUsed(tid, dancer, prevDance, pose, nextDance)
 Event sent every time an actor that is dancing will pass through a pose (usually at the very begin of the performance, and at the end of all sub-dances.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
@@ -94,7 +94,7 @@ The event is sent only if someone registered for it
 If Global Events are registered, also the event `GlobalPoseUsed` is sent.
 
 
-### <Hook>_DanceEnding(tid, dancer, endPose, endPoseTime)
+### \<Hook\>\_DanceEnding(tid, dancer, endPose, endPoseTime)
 Event sent when the dance is completed and the actor is leaving the pole. The performance itself is still active and the actor is not yet free.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
@@ -114,7 +114,7 @@ The event is sent only if someone registered for it
 If Global Events are registered, also the event `GlobalDanceEnding` is sent.
 
 
-### <Hook>_DanceEnded(tid, dancer)
+### \<Hook\>\_DanceEnded(tid, dancer)
 Event sent when the whole performance is compelted and the actor has been released.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.

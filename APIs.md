@@ -20,18 +20,19 @@ spdPoleDances spd = spdPoleDances.getInstance()
 
 ## Structure of the files
 
-[spdPoleDances](spdPoleDances.md) (quest **spd**): it is the main framework
+[spdPoleDances](documentation/spdPoleDances.md) (quest **spd**): it is the main framework
 
-[spdRegistry](spdRegistry.md) (quest **spd**): it contains the registry for all items used by the framework, it is passed if you register for initialization events (to add your own poses and dances)
+[spdRegistry](documentation/spdRegistry.md) (quest **spd**): it contains the registry for all items used by the framework, it is passed if you register for initialization events (to add your own poses and dances)
 
-[spdPose](spdPose.md) (_internal_): it is use to define the _Poses_
+[spdPose](documentation/spdPose.md) (_internal_): it is use to define the _Poses_
 
-[spdDance](spdDance.md) (_internal_): it is used to define the sub-dances
+[spdDance](documentation/spdDance.md) (_internal_): it is used to define the sub-dances
 
-[spdThread](spdThread.md) (ReferenceAlias of quest **spd**): it is used to play a Pole Dance, handling all the actions and the events
+[spdThread](documentation/spdThread.md) (ReferenceAlias of quest **spd**): it is used to play a Pole Dance, handling all the actions and the events
 
-[spdActor](spdActor.md) (_internal_): it used to track extra information about an actor, to simplify the control of NPCs
+[spdActor](documentation/spdActor.md) (_internal_): it used to track extra information about an actor, to simplify the control of NPCs
 
+[Hooks and Events](documentation/Hooks.md): this document contains all the information for the Hooks and Events, is is not an actual ```psc``` file.
 
 
 ### Recommendations
