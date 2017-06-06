@@ -23,6 +23,7 @@ Threads give you the full control of the Pole Dance performance.
 See [spdThread](spdThread.md) for further details.
 Threads can be initialized in three different ways, depending on how to find the sub-animations.
 
+### newThreadPose
 ```Papyrus
 spdThread Function newThreadPose(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
 ```
@@ -38,7 +39,7 @@ Allocates a new thread and initilize it with the dancer, a pole, the duration, a
 An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
 _None_ in case the thread cannot be allocated or initialized.
 
-
+### newThreadDances
 ```Papyrus
 spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, float duration=-1.0, string dances)
 ```
@@ -54,17 +55,17 @@ Allocates a new thread and initilize it with the dancer, a pole, the duration, a
 An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
 _None_ in case the thread cannot be allocated or initialized.
 
-
+### newThreadDancesArray
 ```Papyrus
 spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None, float duration=-1.0, string[] dances)
 ```
 Allocates a new thread and initilize it with the dancer, a pole, the duration, and a set of dances (as array of strings of dance names.)
 
 **_Parameters_**
-* `_Actor_ dancer`: is the actor that will perform the dance (_mandatory_)
-* `_ObjectReference_ pole`: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
-* `_Float_ duration`: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
-* `_String[]_ dances`: a set of dance names, one for each entry of the array
+* _Actor_ `dancer`: is the actor that will perform the dance (_mandatory_)
+* _ObjectReference_ `pole`: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
+* _Float_ `duration`: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
+* _String[]_ `dances`: a set of dance names, one for each entry of the array
 ```Papyrus
 String[] dances = new String[8]
 dances[0] = "SoftMove"
@@ -78,7 +79,7 @@ dances[7] = "SoftMove"
 ```
 
 **_Returns_**
-An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
+An allocated and initialized [spdThread](spdThread.md) that can be used to start the Pole Dance performance.
 _None_ in case the thread cannot be allocated or initialized.
 
 
@@ -87,31 +88,16 @@ _None_ in case the thread cannot be allocated or initialized.
 
 
 
+## Poles
+TODO...
 
-
-
-; ****************************************************************************************************************************************************************
-; ************                                                                                                                                        ************
-; ************                                                Poles                                                                                   ************
-; ************                                                                                                                                        ************
-; ****************************************************************************************************************************************************************
-
-Static Property mainPole
-Actor Property PlayerRef Auto
-
+### placePole
+```Papyrus
 ObjectReference Function placePole(ObjectReference location = None, float distance = 0.0, float rotation = 0.0)
-	ObjectRef re = location
-	if !ref
-		ref = PlayerRef
-	endIf
-	
-	float zAngle = ref.getAngleZ()
-	return location.placeAtMe(mainPole, Math.cos(zAngle + rotation) * distance, Math.sin(zAngle + rotation) * distance, ref.z, true)
-endFunction
+```
 
+### removePole
+```Papyrus
 Function removePole(ObjectReference pole)
-	pole.disable(true)
-	pole.delete(true)
-endFunction
-
+```
 
