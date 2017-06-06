@@ -8,13 +8,13 @@ bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration
 ```
 This function is used to quickly start a pole dance with an actor.
 
-__ *Parameters* __
+**_Parameters_**
 * _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
 * _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
 * _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
 * _String_ startingPose: a name of a known pose that should be used to start the performance
 
-__ *Returns* __
+**_Returns_**
 **True** In case there were errors.
 
 
@@ -28,13 +28,13 @@ spdThread Function newThreadPose(Actor dancer, ObjectReference pole=None, float 
 ```
 Allocates a new thread and initilize it with the dancer, a pole, the duration, and a starting pose. The sub-animations will be chosen randomly, starting from the starting pose (if any.)
 
-__ *Parameters* __
+**_Parameters_**
 * _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
 * _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
 * _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
 * _String_ startingPose: a name of a known pose that should be used to start the performance
 
-__ *Returns* __
+**_Returns_**
 An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
 _None_ in case the thread cannot be allocated or initialized.
 
@@ -44,9 +44,9 @@ spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, floa
 ```
 Descr
 
-__ *Parameters* __
+**_Parameters_**
 
-__ *Returns* __
+**_Returns_**
 
 
 ```
@@ -54,9 +54,9 @@ spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None,
 ```
 Descr
 
-__ *Parameters* __
+**_Parameters_**
 
-__ *Returns* __
+**_Returns_**
 
 
 

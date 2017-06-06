@@ -20,7 +20,7 @@ spdPoleDances spd = spdPoleDances.getInstance()
 
 ## Structure of the files
 
-[spdPoleDances](spdPoleDances.md) (** (quest **spd**): it is the main framework
+[spdPoleDances](spdPoleDances.md) (quest **spd**): it is the main framework
 
 [spdRegistry](spdRegistry.md) (quest **spd**): it contains the registry for all items used by the framework, it is passed if you register for initialization events (to add your own poses and dances)
 

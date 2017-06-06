@@ -8,10 +8,10 @@ method()
 ```
 description
 
-__ *Parameters* __
+**_Parameters_**
 * _TYPE_ name: descr (_mandatory_)
 * _TYPE_ name: descr
 
-__ *Returns* __
+**_Returns_**
 **TYPE or VALUE** when...
 
