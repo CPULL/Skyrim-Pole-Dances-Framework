@@ -1,98 +1,71 @@
-Scriptname spdPoleDances Extends Quest
+# spdPoleDances 
+Main framework APIs
 
 
-spdRegistry registry
-
-int currentVersion
-
-int Function getVersion()
-	return 1
-endFunction
-
-Function _doInit()
-	if currentV != getVersion()
-		_doUpdate()
-	endIf
-	currentVersion = getVersion()
-	
-	registry.reInit() ; This will just check stuff, and call the mod event to have other mods to add their own dances
-	
-	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
-	ModEvent.pushInt(modEvId, currentVersion)
-	ModEvent.send(modEvId)
-endFunction
-
-Function _doUpdate()
-	; Nothing to do yet
-	registry._doInit() ; This will initialize all arrays
-endFunction
-
-
-; ****************************************************************************************************************************************************************
-; ************                                                                                                                                        ************
-; ************                                             Threads and QuickStart                                                                     ************
-; ************                                                                                                                                        ************
-; ****************************************************************************************************************************************************************
-
+## QuickStart
+```
 bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
-	spdThread th = newThread(dancer, pole, duration, startingPose)
-	if !th
-		Debug.Trace("SPD: problems initializing a Pole Dance Thread.")
-		return true
-	endIf
-	if th.start()
-		Debug.Trace("SPD: problems starting a Pole Dance Thread.")
-		return true
-	endIf
-	return false
-endFunction
+```
+This function is used to quickly start a pole dance with an actor.
 
+__ *Parameters* __
+* _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
+* _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
+* _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
+* _String_ startingPose: a name of a known pose that should be used to start the performance
+
+__ *Returns* __
+**True** In case there were errors.
+
+
+## Threads
+Threads give you the full control of the Pole Dance performance.
+See [spdThread](spdThread.md) for further details.
+Threads can be initialized in three different ways, depending on how to find the sub-animations.
+
+```
 spdThread Function newThreadPose(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
-	spdThread th = registry.getThread()
-	th.initThread(dancer, pole, duration)
-	th.setStartPose(startingPose)
-	return th
-endFunction
+```
+Allocates a new thread and initilize it with the dancer, a pole, the duration, and a starting pose. The sub-animations will be chosen randomly, starting from the starting pose (if any.)
 
+__ *Parameters* __
+* _Actor_ dancer: is the actor that will perform the dance (_mandatory_)
+* _ObjectReference_ pole: it can be a static object, representing a pole, that will be used by the actor. In casse it is missing a temporary one will be generated in the location of the actor.
+* _Float_ duration: the time in seconds the full pole dance performance should last. In case it is not specified it will be defaulted to 60 seconds.
+* _String_ startingPose: a name of a known pose that should be used to start the performance
+
+__ *Returns* __
+An allocated and initialized _spdThread_ that can be used to start the Pole Dance performance.
+_None_ in case the thread cannot be allocated or initialized.
+
+
+```
 spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, float duration=-1.0, string dances)
-	spdThread th = registry.getThread()
-	th.initThread(dancer, pole, duration)
-	
-	string[] dcs = StringUtil.Split(dances, ",")
-	int count = 0
-	int i = 0
-	while i<dcs.length
-		spdDance d = registry.getDance(dcs[i])
-		if d
-			count+=1
-		endIf
-		i+=1
-	endWhile
-	if count==0
-		Debug.Trace("SPD: could not find any valid dance in: " + dances)
-		return none
-	endIf
-	string[] dtu = Utility.CreateStringArray(count)
-	i=0
-	count=0
-	while i<dcs.length
-		spdDance d = registry.getDance(dcs[i])
-		if d
-			dtu[count] = d.name
-			count+=1
-		endIf
-		i+=1
-	endWhile
-	th.setDances(dtu)
-	return th
-endFunction
+```
+Descr
 
+__ *Parameters* __
+
+__ *Returns* __
+
+
+```
 spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None, float duration=-1.0, string[] dances)
-	spdThread th = registry.getThread()
-	th.initThread(dancer, pole, duration)
-	th.setDances(dances)
-	return th
-endFunction
+```
+Descr
+
+__ *Parameters* __
+
+__ *Returns* __
+
+
+
+
+
+
+
+
+
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************

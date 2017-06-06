@@ -49,7 +49,7 @@ Something like:
 [_Play enterPose anim for_ __Pose A__] --> [_Play one anim that starts with_ __Pose A__] --> [_Animation ends with_ __Pose B__, find new animation starting with __Pose B__] --> [_Play the animation_] --> [...] --> [_reach the end pose of the last animation_ (__Pose Z__)] --> [_Play exitPose anim for_ __Pose Z__]
 
 ## APIs
-The APIs are available in this document: [Skyrim Pole Dances APIs](APIs.md)
+The APIs are available in this document: [Skyrim Pole Dances APIs](Documentation/APIs.md)
 
 
 :dancer: :dancers: :dancer:
