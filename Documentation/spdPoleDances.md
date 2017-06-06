@@ -1,6 +1,17 @@
 # Pole Dances Framework (spdPoleDances)
 Main framework APIs
 
+* QuickStart: [QuickStart](spdPoleDances.md#quickstart)
+* Threads: [NewThread](spdPoleDances.md#newthread)
+* Poles: [PlacePole](spdPoleDances.md#placepole)
+* Poles: [RemovePole](spdPoleDances.md#removepole)
+* Errors Management: [DumpErrors](spdPoleDances.md#dumperrors)
+* Errors Management: [GetLastError](spdPoleDances.md#getlasterror)
+* Errors Management: [GetLastErrorID](spdPoleDances.md#getlasterrorid)
+* Registry: [GetRegistry](spdPoleDances.md#getregistry)
+
+<br><br><hr><br><br>
+
 
 ## QuickStart
 
@@ -21,8 +32,7 @@ This function is used to quickly start a pole dance with an actor.
 If there were errors, a detailed error is added to the error list. Use `getLastError()` to get the long description.
 
 
-<br><hr><br><hr><br>
-
+<br><br><hr><br><br>
 
 
 
@@ -96,7 +106,7 @@ If there were errors, a detailed error is added to the error list. Use `getLastE
 
 
 
-<br><hr><br><hr><br>
+<br><br><hr><br><br>
 
 
 
@@ -132,7 +142,7 @@ Nothing
 
 
 
-<br><hr><br><hr><br>
+<br><br><hr><br><br>
 
 
 
@@ -169,3 +179,16 @@ An _int_ that is the ID of the type of error.
 * 1 -> ....
 
 
+
+<br><br><hr><br><br>
+
+## Registr
+
+### getRegistry()
+Give you back the instance of the Registry (Poses, Dances, Actors, Threads, Tags, etc.)
+
+**_Parameters_**
+Nothing
+
+**_Returns_**
+The _spdRegistry_ that can be used to call Registry functions.

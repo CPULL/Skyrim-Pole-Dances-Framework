@@ -8,3 +8,4 @@
 - [ ] **MCM** Add a MCM to the framework (**CPU**)
 - [ ] **MCM** Add a way to preview-poses in the Framework MCM (**CPU**)
 - [ ] **Mod** Add a test mod (__DanceMaker__) to test the dances (**CPU**)
+- [ ] **Documentation** For all doc pages, add an index at begin, and use a single line (not two) to split the sections
