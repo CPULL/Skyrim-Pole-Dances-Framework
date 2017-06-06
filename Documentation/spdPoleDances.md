@@ -1,4 +1,4 @@
-# spdPoleDances 
+# Pole Dances Framework (spdPoleDances)
 Main framework APIs
 
 
