@@ -6,7 +6,7 @@ Scriptname spdThread
 ; FIXME Handle the sequence of dances by poses or events
 ; FIXME Add the code to handle the stripping
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
-; FIXME 
+; FIXME Change the error generation by using the new way
 ; FIXME 
 ; FIXME 
 ; FIXME 
@@ -16,6 +16,7 @@ Scriptname spdThread
 
 
 int id
+spdPoleDances spdF
 Actor dancer
 spdPose startPose
 spdRegistry Property registry Auto
@@ -38,24 +39,27 @@ string[] poseUsedHooks
 string[] danceEndingHooks
 string[] danceEndedHooks
 
+Function _doInit(spdPoleDances s)
+	spdF = s
+endIf
 
 event OnUpdate()
 	goToState("waiting")
 endEvent
 
-state waiting
+state Waiting
 
-	; Split the start and the init functions
-	function initThread(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPosition="")
+	bool function initThread(Actor dancer, ObjectReference pole=None, float duration=-1.0)
 		dancer = a
-		; validate the actor and lock the actor and add it to the actors registry
+		; validate the actor, lock the actor, and add it to the actors registry
 		if  registry.allocateActor(dancer)
-			return "The actor is not good: " + a
+			spdF._addError(1, "The actor " + a + " is not good", "spdThread", "initThread")
+			return true
 		endIf
-		if time==-1
+		if duration==-1
 			totalTime = Utility.randomFloat(30.0, 60.0)
 		else
-			totalTime = time
+			totalTime = duration
 		endIf
 		
 		; Set the pole, or create one on the fly where the actor is
@@ -66,9 +70,21 @@ state waiting
 			refPole = pole
 			poleCreated = false
 		endIf
+		
 		startPose = none
 		danceList = new string[0]
 	endFunction
+	
+	; FIXME Set the start position
+	; FIXME Set the dances
+	; FIXME Set the stripping
+	; FIXME Set the tags
+	; FIXME Set the timing
+	; FIXME Set the hooks
+	
+	
+	
+	
 
 	string function start()
 		

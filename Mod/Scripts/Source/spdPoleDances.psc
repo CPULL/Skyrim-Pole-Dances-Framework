@@ -30,6 +30,11 @@ Function _doInit()
 	
 	registry.reInit(currentVersion, Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
 	
+	errors = new string[32]
+	errorSources = new string[32]
+	errorMethods = new string[32]
+	numErrors = 0
+	
 	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
 	ModEvent.pushInt(modEvId, currentVersion)
 	ModEvent.send(modEvId)
@@ -135,6 +140,58 @@ endFunction
 
 ; -))
 
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                             Errors management                                                                          ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+
+string[] errors
+string[] errorSources
+string[] errorMethods
+int[] errorIDs
+int numErrors
+
+Function _addError(int id, string error, string source, string method)
+	if numErrors == errors.length
+		dumpErrors()
+	endIf
+	errors[numErrors] = error
+	errorSources[numErrors] = source
+	errorMethods[numErrors] = method
+	errorIDs[numErrors] = id
+	numErrors+=1
+endFunction
+
+; 1 not valid actor
+
+Function dumpErrors()
+	int i = 0
+	while i<numErrors
+		debug.trace("SPD: [" + errorIDs[i] + "] " + errors[i] + " [" + errorSources[i] + "]." + errorMethods[i])
+		i+=1
+	endWhile
+	while numErrors
+		numErrors-=1
+		errors[numErrors] = ""
+		errorSources[numErrors] = ""
+		errorMethods[numErrors] = ""
+	endWhile
+endFunction
+
+string function getLastError()
+	if numErrors==0
+		return ""
+	endIf
+	return errors[numErrors - 1]
+endFunction
+
+int function getLastErrorID()
+	if numErrors==0
+		return 0 ; no error
+	endIf
+	return errorIDs[numErrors - 1]
+endFunction
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
