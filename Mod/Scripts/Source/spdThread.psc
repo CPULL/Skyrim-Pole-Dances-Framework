@@ -232,7 +232,7 @@ bool Function setDancesArray(string[] refDances)
 endFunction
 
 
-; FIXME will it be used as sinmple list of tags or as multiple sequence of tags?
+; FIXME will it be used as simple list of tags or as multiple sequence of tags?
 
 bool Function setTagsString(string refTags)
 	; FIXME do nothing in case the thread is playing

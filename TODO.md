@@ -1,11 +1,19 @@
 # TODO
-- [ ] **TAGS** Define (all **contributors**) and Add (**CPU**) a set of tags
-- [ ] **Framework** Add a newThreadTags() function (**CPU**)
-- [ ] **Threads** Alter the thread to play with the different modes to define the animation (**CPU**)
-- [ ] **Stripping** Add a way to control stripping during pole dances (**CPU**)
-- [ ] **Stripping** Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
-- [ ] **Documentation** Complete the documentation of APIs (**CPU**)
-- [ ] **MCM** Add a MCM to the framework (**CPU**)
-- [ ] **MCM** Add a way to preview-poses in the Framework MCM (**CPU**)
-- [ ] **Mod** Add a test mod (__DanceMaker__) to test the dances (**CPU**)
-- [ ] **Documentation** For all doc pages, add an index at begin, and use a single line (not two) to split the sections
+- [ ] **TAGS**
+    - [ ] Define how to use them and the list of them (all **contributors**)
+    - [ ] Add code for tags and use them for Performances (**CPU**)
+- [ ] **Framework**
+    - [X] Add a newThreadTags() function (**CPU**)
+- [ ] **Threads**
+    - [ ] Alter the thread to play with the different modes to define the animation (**CPU**)
+    - [ ] Rename everywhere "Thread" with "Performance" (**CPU**)
+- [ ] **Stripping**
+    - [ ] Add a way to control stripping during pole dances (**CPU**)
+    - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
+- [ ] **Documentation**
+    - [ ] Complete the documentation of APIs (**CPU**)
+    - [ ] For all doc pages, add an index at begin, and use a single line (not two) to split the sections (**CPU**)
+- [ ] **MCM**
+    - [ ] Add a MCM to the framework (**CPU**)
+    - [ ] Add a way to preview-poses in the Framework MCM (**CPU**)
+    - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)

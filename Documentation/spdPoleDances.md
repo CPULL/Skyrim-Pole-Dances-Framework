@@ -12,6 +12,13 @@ Main framework APIs
 
 <br><br><hr><br><br>
 
+** _Conventions_ **<br>
+**Performance** : Is the whole animations, composed of a set of dances
+**Dance** : It is a single animation that will be performed during a performance
+**Pose** : It is a specific pose that is used to join animations
+
+<br><br><hr><br><br>
+
 
 ## QuickStart
 
