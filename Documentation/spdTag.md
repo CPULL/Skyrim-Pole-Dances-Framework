@@ -3,13 +3,21 @@ Tags are associated to the dances, and they can be used to define the performanc
 
 Tags can add many different informations and they are _pre-defined_ (you cannot add your own tags.)
 
-* XXX: [XXX](spdTag.md#XXX)
+* [Type of tags](spdTag.md#type-of-tags)
+    * [Author tags](spdTag.md#author-tags)
+    * [Dance tags](spdTag.md#dance-tags)
+    * [Stripping tags](spdTag.md#stripping-tags)
+    * [Tags with values](spdTag.md#tags-with-values)
+* [Usage of tags](spdTag.md#usage-of-tags)
+* [List of tags](spdTag.md#list-of-tags)
+	* [XXX](spdTag.md#XXX)
+* [Example of tags](spdTag.md#example-of-tags)
 
 <br><br><hr><br><br>
 
 
 ## Type of tags
-A tag may have a column ( `:` ) inside to define a specific type.
+A tag may have a column (`:`) inside to define a specific type.
 
 ### Author tags
 These tags are used to define the author of the dance.<br>
@@ -17,41 +25,44 @@ They have the format `Auth:komotor` or `Auth:FunnyBizness` .
 
 ### Dance tags
 They are used to specify what the dance will be<br>
-They use just the name without any column ( `:` ).
+They use just the name without any column (`:`).
 
 ### Stripping tags
 These tags are specific and not associated with dances.<br>
 They are used to specify a strip during a performance.<br>
-TODO define how to do them... `Strip:body` `Strip:All` `Strip:32` `Srtip:32+34+35+38`
-TODO nd redress... `Dress:body` `Dress:All` `Dress:32` `Dress:32+34+35+38`
+**TODO** define how to do them... `Strip:body` `Strip:All` `Strip:32` `Srtip:32+34+35+38` <br>
+**TODO** need redress... `Dress:body` `Dress:All` `Dress:32` `Dress:32+34+35+38`
+
+### Tags with values
+These tags are used to specify a level (`Skill`, `Sexy`, etc.)
 
 
 <br><br><hr><br><br>
 
 
-## Use of tags
+## Usage of tags
 Considering that the tags are associated to [Dances](spdDance.md) many of them can be possible for a single dance (and this is a group), and multiple groups can be used to define the full sequence.
 
-A group of tags is a string with all the tags inside, separated by comma ( `,`)
+A group of tags is a string with all the tags inside, separated by comma (`,`)
 
-Example: " `Auth:Anubis,Standing,Skill:2` (grabs all dances from Anubis of type standing and skill level equal to 2) `Auth:FunnyBizness,Brutal` (all FunyBizness' Dances of type Bruta;l.)
+Example: `Auth:Anubis,Standing,Skill:2` (grabs all dances from Anubis of type standing and skill level equal to 2) `Auth:FunnyBizness,Brutal` (all FunyBizness' Dances of type Bruta;l.)
 `!Auth:Rydin,Spreading` (Grabs the dances of type Spreadin where the author is NOT Rydin)
 
 When setting the tags for a Performace you can pass them as array of strings (in this case each element is a group), or all as a single string.<br>
-Multiple groups have to be joined using the semicolon character ( `;` )
+Multiple groups have to be joined using the semicolon character (`;`)
 
-To say that a tag _should not_ be in the dance, you can prepend it with an exclamation point ( `!` )<br>
+To say that a tag _should not_ be in the dance, you can prepend it with an exclamation point (`!`)<br>
 For example `!Standing` will match all dances that ___do not___ have the `Standing` tag.
 
 <br><br><hr><br><br>
 
 
 ## List of tags
-Be aware that tags are not case sensitive, so `TAG` , `Tag` , and `tag` are all equivalent.
+Be aware that tags are not case sensitive, so `TAG`, `Tag`, and `tag` are all equivalent.
 
 ### Auth:\<name\>
 These tags are used to specify the author of the dance.<br>
-E.g. `Auth:komotor` , `Auth:FunnyBizaness` , `Auth:Anubiss` , `Auth:Rydin` , `Auth:MadMansGun` , `Auth:Leito`
+E.g. `Auth:komotor`, `Auth:FunnyBizaness`, `Auth:Anubiss`, `Auth:Rydin`, `Auth:MadMansGun`, `Auth:Leito`
 
 ### Standing
 The dance will have the dancer on his/her feet
@@ -109,3 +120,7 @@ Specifies how sexually oriented the dance will be
 - 3: definitly sexual
 - 4: you may have an orgasm by watching it
 - 5: you will have an orgasm for sure, and probably the dancer too
+
+
+## Example of tags
+Here some example of tags (as array and simple string)
