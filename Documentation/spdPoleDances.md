@@ -188,9 +188,14 @@ An _int_ that is the ID of the type of error.
 * 3 -> (Actors) the actor is performing an activity that will make impossible to dance, or is a child
 * 4 -> (Actors) an actor is already used for another dance
 * 10 -> (Threads) No more threads available
+* 11 -> Cannot update a playing thread
 
+20 (dances)
 20 start pose does not exist
 21 dances are empty
+
+30 (tags)
+
 
 <br><br><hr><br><br>
 

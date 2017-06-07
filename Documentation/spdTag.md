@@ -34,7 +34,9 @@ They are used to specify a strip during a performance.<br>
 **TODO** need redress... `Dress:body` `Dress:All` `Dress:32` `Dress:32+34+35+38`
 
 ### Tags with values
-These tags are used to specify a level (`Skill`, `Sexy`, etc.)
+These tags are used to specify a level (`Skill`, `Sexy`, etc.)<br>
+They are done by the name of the tag, a column (`:`), and a numeric value:<br>
+`Skill:2`, `Sexy:4`, `duration:1`
 
 
 <br><br><hr><br><br>
@@ -69,6 +71,9 @@ The dance will have the dancer on his/her feet
 
 ### Kneeling
 The dance will have the dancer on the floor with one or two legs bended and kneeled
+
+### Sitting
+The dancer will sit on the floor
 
 ### Front
 The dancer will face the specator
@@ -123,4 +128,38 @@ Specifies how sexually oriented the dance will be
 
 
 ## Example of tags
-Here some example of tags (as array and simple string)
+Here some example of tags (as array and simple string)<br>
+Remember that all tags you put in a tring are used together, and they are separated by commas (`,`). If you want to say that you ___don't___ want a dance to contain a tag, just add an exclamation point at the begin (`!`).
+
+### Examples for tags for a single dance (single Group)
+
+`Sitting,Spreading'<br>
+This will get all dances with bot `Sitting` and `Spreading` tags.
+
+`Auth:komotor`<br>
+This will get all dances made by komotor.
+
+`Auth:komotor,!Legsup`
+This will get all dances made by komotor, excluding the ones that have the `Legsup` tag.
+
+`Skill:1|2|3'<br>
+Grabs all dances that have the tags Skill:1 or Skill:2 or Skill:3<br>
+The character `|` can be used to use a set of values for tags that support numeric values.
+
+`!Auth:AP,Bend,Back,Sexy:3|4,!DoubleGrab`<br>
+Gets the dances NOT from AP, that have Bending and Back, do NOT have DoubleGrab, and have the Sexy tag with values 3 OR 4.
+
+
+### Examples for tags for multiple dances (multiple Groups)
+To join together multiple groups, just put them together separated by a semicolon (`;`).
+
+`Sexy:0,Standing,Grab;Sexy:1,Standing,Grab;Sexy:2|3;Floating,Grab;Sexy:3|4,Floating;Bending;Spreading`<br>
+This will define 6 groups (there are 5 `;`).<br>
+The first group (`Sexy:0,Standing,Grab`) will get animations not really sexy, that are standing and the dancer will grab the pole.<br>
+The second group (`Sexy:1,Standing,Grab`) is very similar to the previous, but the level of sexuality is a little bit higher.<br>
+The third group (`Sexy:2|3`) will get all the dances that have the sexuality level set to 2 OR 3. (tags with values can use a range of values.)
+And so on.
+
+This format is used by the function [setTagsString](spdThread.md#setTagsString) defined in [spdThread](spdThread.md).
+
+
