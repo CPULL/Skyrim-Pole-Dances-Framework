@@ -176,13 +176,18 @@ None
 **_Returns_**
 An _int_ that is the ID of the type of error.
 * 0 -> no error
-* 1 -> ....
+* 1 -> (Actors) not valid actor (generic, as fallback)
+* 2 -> (Actors) the actor is "None"
+* 3 -> (Actors) the actor is performing an activity that will make impossible to dance, or is a child
+* 4 -> (Actors) an actor is already used for another dance
+* 10 -> (Threads) No more threads available
 
-
+20 start pose does not exist
+21 dances are empty
 
 <br><br><hr><br><br>
 
-## Registr
+## Registry
 
 ### getRegistry()
 Give you back the instance of the Registry (Poses, Dances, Actors, Threads, Tags, etc.)

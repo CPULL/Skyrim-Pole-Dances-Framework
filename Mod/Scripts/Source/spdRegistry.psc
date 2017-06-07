@@ -79,7 +79,7 @@ endFunction
 spdThread[] threads
 bool[] threadInUse
 
-spdThread Function getThread()
+spdThread Function _allocateThread()
 	int i = 0
 	while i<threads.length
 		if !threadInUse[i]
@@ -104,11 +104,17 @@ Faction Property spdDancingFaction Auto
 spdActor[] actors
 actor[] refActors
 
-bool function allocateActor(Actor a)
-	if !a || a.isOnMout() || a.isSwimming() || a.isFlying() || a.getActorbase().isChild() || a.isChild || a.isInCombat() || a.isDead() || a.IsUnconscious() || a.isInFaction(spdDancingFaction)
+bool function _allocateActor(Actor a)
+	if !a
+		spdF.addError(2, "Trying to allocate a null actor", "Registry", "allocateActor")
 		return true ; Bad actor
 	endIf
-	if refActors.find(a)!=-1
+	if a.isOnMout() || a.isSwimming() || a.isFlying() || a.getActorbase().isChild() || a.isChild || a.isInCombat() || a.isDead() || a.IsUnconscious()
+		spdF.addError(3, "Trying to allocate a non valid actor: " + a.getDisplayName(), "Registry", "allocateActor")
+		return true ; Bad actor
+	endIf
+	if a.isInFaction(spdDancingFaction) && refActors.find(a)!=-1
+		spdF.addError(4, "The actor " + a.getDisplayName() + " is already allocated and dancing", "Registry", "allocateActor")
 		return true ; Already used
 	endIf
 	

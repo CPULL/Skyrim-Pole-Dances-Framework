@@ -15,8 +15,6 @@ Scriptname spdThread
 ; FIXME 
 
 
-int id
-spdPoleDances spdF
 Actor dancer
 spdPose startPose
 spdRegistry Property registry Auto
@@ -47,14 +45,302 @@ event OnUpdate()
 	goToState("waiting")
 endEvent
 
+bool function isValid()
+	; FIXME returns false in case the thread is completed and no more valid
+endFunction
+
+
+; FIXME Add inUse and use it for isValid
+; FIXME add all functions to set the startPose, dances (as comma string, as array), tags
+; FIXME Add internal function to find the next dance (by next pose, list, tags)
+; FIXME Add function to reach the pole
+; FIXME Add function to play intro anim for pose
+; FIXME Add function to play ending anim for pose
+; FIXME Add function to play the dance anim (timed)
+; FIXME Add functions to strip and redress
+; FIXME Add states after the first writing of the code
+; FIXME 
+; FIXME 
+; FIXME 
+; FIXME 
+
+int id
+spdPoleDances spdF
+spdRegistry registry
+
+bool isValid = false
+Actor dancer
+ObjectReference pole
+bool poleCreated
+float duration
+float startTime
+
+spdPose startingPose
+spdPose currentPose
+spdDance currentDance
+spdDance[] dances
+spdTag[] tags
+
+
+Function _doInit()
+	startingPose = None
+	currentPose = None
+	currentDance = None
+	if dancer
+		registry._releaseDancer(dancer)
+	endIf
+	dancer = none
+	if pole && poleCreated
+		spdT.removePole(pole)
+	endIf
+	pole = None
+	poleCreated = false
+	dances = new spdDance[0]
+	tags = new spdTag[0]
+endFunction
+
+Bool Function setBasicOption(Actor refDancer, ObjectReference refPole=none, float refDuration=-1.0)
+	; FIXME do nothing in case the thread is playing
+	if  registry._allocateActor(refDancer)
+		return true ; The error is addded by the allocateActor
+	endIf
+	dancer = refDancer
+	duration = refDuration ; FIXME in the start function we need to check if we have a list of anims, in case we don't then we need to set a duration
+	; Set the pole, or create one on the fly where the actor is
+	if refPole==none
+		pole = spdF.placePole(dancer, 50, 0)
+		poleCreated = true
+	else
+		pole = refPole
+		poleCreated = false
+	endIf
+	isValid == (dancer!=None && pole!=none && (duration!=-1.0 || (dances!=None && dances.length>0) || (tags!=None && tags.length>0))
+	return false
+endFunction
+
+bool Function setStartPose(string refStartingPose)
+	; FIXME do nothing in case the thread is playing
+	startingPose = registry.findPose(refStartingPose)
+	if startingPose==None
+		spdF._addError(20, "The requested starting pose \"" + refStartingPose + "\" does not exist", "Thread", "setStartPose")
+		return true
+	endIf
+	; Clean the other stuff
+	dances = new spdDance[0]
+	tags = new spdTag[0]
+	return false
+endFunction
+
+Function setDuration(float refDuration=-1.0)
+	; FIXME do nothing in case the thread is playing
+	duration = refDuration
+endFunction
+
+bool Function setDancesString(string refDances)
+	; FIXME do nothing in case the thread is playing
+	string[] parts = StringUtil.Split(refDances, ",")
+	if parts.length==0
+		spdF._addError(21, "The requested dances are not valid", "Thread", "setDancesString")
+		return true
+	endIf
+	int count = 0
+	int i = 0
+	string errs = ""
+	while i<parts.length
+		spdDance d = registry.findDance(parts[i]) ; It will get both actual dances and strips
+		if d!=None
+			count+=1
+		else
+			if errs==""
+				errs+=parts[i]
+			else
+				errs+=","+parts[i]
+			endIf
+		endIf
+		i+=1
+	endWhile
+	if count==0
+		spdF._addError(22, "No one of the requested dances is valid", "Thread", "setDancesString")
+		return true
+	endIf
+	if errs!=""
+		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Thread", "setDancesString")
+	endIf
+	; Now allocate the array and fill it
+	dances = new spdDance[count]
+	i = 0
+	count = 0
+	while i<parts.length
+		spdDance d = registry.findDance(parts[i]) ; It will get both actual dances and strips
+		if d!=None
+			dances[count] = d
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	; Clean the other stuff
+	startingPose = None
+	tags = new spdTag[0]
+	return false
+endFunction
+	
+bool Function setDancesArray(string[] refDances)
+	; FIXME do nothing in case the thread is playing
+	if !refDances || refDances.length==0
+		spdF._addError(21, "The requested dances are not valid", "Thread", "setDancesArray")
+		return true
+	endIf
+	int count = 0
+	int i = 0
+	string errs = ""
+	while i<refDances.length
+		spdDance d = registry.findDance(refDances[i]) ; It will get both actual dances and strips
+		if d!=None
+			count+=1
+		else
+			if errs==""
+				errs+=refDances[i]
+			else
+				errs+=","+refDances[i]
+			endIf
+		endIf
+		i+=1
+	endWhile
+	if count==0
+		spdF._addError(22, "No one of the requested dances is valid", "Thread", "setDancesArray")
+		return true
+	endIf
+	if errs!=""
+		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Thread", "setDancesArray")
+	endIf
+	; Now allocate the array and fill it
+	dances = new spdDance[count]
+	i = 0
+	count = 0
+	while i<refDances.length
+		spdDance d = registry.findDance(refDances[i]) ; It will get both actual dances and strips
+		if d!=None
+			dances[count] = d
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	; Clean the other stuff
+	startingPose = None
+	tags = new spdTag[0]
+	return false
+endFunction
+
+
+; FIXME will it be used as sinmple list of tags or as multiple sequence of tags?
+
+bool Function setTagsString(string refTags)
+	; FIXME do nothing in case the thread is playing
+	string[] parts = StringUtil.Split(refTags, ",")
+	if parts.length==0
+		spdF._addError(21, "The requested Tags are not valid", "Thread", "setTagsString")
+		return true
+	endIf
+	int count = 0
+	int i = 0
+	string errs = ""
+	while i<parts.length
+		spdDance d = registry.findTag(parts[i])
+		if d!=None
+			count+=1
+		else
+			if errs==""
+				errs+=parts[i]
+			else
+				errs+=","+parts[i]
+			endIf
+		endIf
+		i+=1
+	endWhile
+	if count==0
+		spdF._addError(22, "No one of the requested dances is valid", "Thread", "setTagsString")
+		return true
+	endIf
+	if errs!=""
+		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Thread", "setTagsString")
+	endIf
+	; Now allocate the array and fill it
+	dances = new spdDance[count]
+	i = 0
+	count = 0
+	while i<parts.length
+		spdDance d = registry.findDance(parts[i]) ; It will get both actual dances and strips
+		if d!=None
+			dances[count] = d
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	; Clean the other stuff
+	startingPose = None
+	tags = new spdTag[0]
+	return false
+endFunction
+	
+bool Function setTagssArray(string[] refTags)
+	; FIXME do nothing in case the thread is playing
+	if !refDances || refDances.length==0
+		spdF._addError(21, "The requested dances are not valid", "Thread", "setDancesArray")
+		return true
+	endIf
+	int count = 0
+	int i = 0
+	string errs = ""
+	while i<refDances.length
+		spdDance d = registry.findDance(refDances[i]) ; It will get both actual dances and strips
+		if d!=None
+			count+=1
+		else
+			if errs==""
+				errs+=refDances[i]
+			else
+				errs+=","+refDances[i]
+			endIf
+		endIf
+		i+=1
+	endWhile
+	if count==0
+		spdF._addError(22, "No one of the requested dances is valid", "Thread", "setDancesArray")
+		return true
+	endIf
+	if errs!=""
+		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Thread", "setDancesArray")
+	endIf
+	; Now allocate the array and fill it
+	dances = new spdDance[count]
+	i = 0
+	count = 0
+	while i<refDances.length
+		spdDance d = registry.findDance(refDances[i]) ; It will get both actual dances and strips
+		if d!=None
+			dances[count] = d
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	; Clean the other stuff
+	startingPose = None
+	tags = new spdTag[0]
+	return false
+endFunction
+
+
+
+
+	
+	
 state Waiting
 
 	bool function initThread(Actor dancer, ObjectReference pole=None, float duration=-1.0)
 		dancer = a
 		; validate the actor, lock the actor, and add it to the actors registry
-		if  registry.allocateActor(dancer)
-			spdF._addError(1, "The actor " + a + " is not good", "spdThread", "initThread")
-			return true
+		if  registry._allocateActor(dancer)
+			return true ; The error is addded by the allocateActor
 		endIf
 		if duration==-1
 			totalTime = Utility.randomFloat(30.0, 60.0)
@@ -62,14 +348,6 @@ state Waiting
 			totalTime = duration
 		endIf
 		
-		; Set the pole, or create one on the fly where the actor is
-		if pole==none
-			refPole = a.placeAtMe(spdPole)
-			poleCreated = true
-		else
-			refPole = pole
-			poleCreated = false
-		endIf
 		
 		startPose = none
 		danceList = new string[0]

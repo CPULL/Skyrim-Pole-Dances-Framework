@@ -54,64 +54,32 @@ endFunction
 ; ((-
 
 bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
-	spdThread th = newThread(dancer, pole, duration, startingPose)
+	spdThread th = Registry._allocateThread()
 	if !th
-		Debug.Trace("SPD: problems initializing a Pole Dance Thread.")
+		_addError(10, "No threads available", "PoleDancesFramework", "QuickStart")
 		return true
 	endIf
+	th._doInit()
+	th.setBasicOption(dancer, pole, duration)
+	th.setStartingPose(startingPose)
 	if th.start()
-		Debug.Trace("SPD: problems starting a Pole Dance Thread.")
+		Debug.Trace("SPD: problems starting a Pole Dance Thread.") ; FIXME
 		return true
 	endIf
 	return false
 endFunction
 
-spdThread Function newThreadPose(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
-	spdThread th = registry.getThread()
-	th.initThread(dancer, pole, duration)
-	th.setStartPose(startingPose)
-	return th
-endFunction
-
-spdThread Function newThreadDances(Actor dancer, ObjectReference pole=None, float duration=-1.0, string dances)
-	spdThread th = registry.getThread()
-	th.initThread(dancer, pole, duration)
-	
-	string[] dcs = StringUtil.Split(dances, ",")
-	int count = 0
-	int i = 0
-	while i<dcs.length
-		spdDance d = registry.getDance(dcs[i])
-		if d
-			count+=1
-		endIf
-		i+=1
-	endWhile
-	if count==0
-		Debug.Trace("SPD: could not find any valid dance in: " + dances)
-		return none
+spdThread Function newThread(Actor dancer, ObjectReference pole=None, float duration=-1.0)
+	spdThread th = Registry._allocateThread(dancer, pole, duration)
+	if !th
+		_addError(10, "No threads available", "PoleDancesFramework", "QuickStart")
+		return None
 	endIf
-	string[] dtu = Utility.CreateStringArray(count)
-	i=0
-	count=0
-	while i<dcs.length
-		spdDance d = registry.getDance(dcs[i])
-		if d
-			dtu[count] = d.name
-			count+=1
-		endIf
-		i+=1
-	endWhile
-	th.setDances(dtu)
+	th._doInit()
+	th.setBasicOption(dancer, pole, duration)
 	return th
 endFunction
 
-spdThread Function newThreadDancesArray(Actor dancer, ObjectReference pole=None, float duration=-1.0, string[] dances)
-	spdThread th = registry.getThread()
-	th.initThread(dancer, pole, duration)
-	th.setDances(dances)
-	return th
-endFunction
 
 ; -))
 
@@ -145,6 +113,7 @@ endFunction
 ; ************                                             Errors management                                                                          ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
+; ((-
 
 string[] errors
 string[] errorSources
@@ -163,7 +132,14 @@ Function _addError(int id, string error, string source, string method)
 	numErrors+=1
 endFunction
 
-; 1 not valid actor
+; ((- Error IDs
+; 0 not an error
+; 1 not valid actor (generic, as fallback)
+; 2 the actor is "None"
+; 3 the actor is performing an activity that will make impossible to dance, or is a child
+; 4 an actor is already used for another dance
+; 10 No more threads available
+; -))
 
 Function dumpErrors()
 	int i = 0
@@ -192,6 +168,8 @@ int function getLastErrorID()
 	endIf
 	return errorIDs[numErrors - 1]
 endFunction
+
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
