@@ -84,6 +84,9 @@ The specator will see the shoulders/back of the dancer
 ### Grab
 The dancer will have one or two hands on the pole
 
+### SingleGrab
+The dancer will have only one hand on the pole
+
 ### DoubleGrab
 The dancer will have both hands on the pole
 
@@ -153,7 +156,7 @@ Gets the dances NOT from AP, that have Bending and Back, do NOT have DoubleGrab,
 ### Examples for tags for multiple dances (multiple Groups)
 To join together multiple groups, just put them together separated by a semicolon (`;`).
 
-`Sexy:0,Standing,Grab;Sexy:1,Standing,Grab;Sexy:2|3;Floating,Grab;Sexy:3|4,Floating;Bending;Spreading`<br>
+`Sexy:0,Standing,Grab;Sexy:1,Standing,Grab;Sexy:2|3;Strip:body|feet;Dance:komDance33;Pose:Pose1;Floating,Grab;Sexy:3|4,Floating;Bending;Spreading`<br>
 This will define 6 groups (there are 5 `;`).<br>
 The first group (`Sexy:0,Standing,Grab`) will get animations not really sexy, that are standing and the dancer will grab the pole.<br>
 The second group (`Sexy:1,Standing,Grab`) is very similar to the previous, but the level of sexuality is a little bit higher.<br>

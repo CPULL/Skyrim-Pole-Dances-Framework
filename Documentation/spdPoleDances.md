@@ -195,6 +195,9 @@ An _int_ that is the ID of the type of error.
 21 dances are empty
 
 30 (tags)
+31 Empty tag
+32 Unknow tag
+33 Invalid tag values
 
 
 <br><br><hr><br><br>

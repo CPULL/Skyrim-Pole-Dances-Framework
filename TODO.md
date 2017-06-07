@@ -2,6 +2,8 @@
 - [ ] **TAGS**
     - [ ] Define how to use them and the list of them (all **contributors**)
     - [ ] Add code for tags and use them for Performances (**CPU**)
+    - [ ] Add "dance:<name>" type of tag
+    - [ ] Add "strip:<values>" type of tag
 - [ ] **Framework**
     - [X] Add a newThreadTags() function (**CPU**)
 - [ ] **Threads**

@@ -42,6 +42,78 @@ Function reInit(int version, spdPoleDances spd)
 	; Load all known poses and dances
 	editing = true
 	
+	
+	
+	bodyParts = new String[64]
+	bodyParts[0] = "Head"
+	bodyParts[1] = "Hair"
+	bodyParts[2] = "Body"
+	bodyParts[3] = "Hands"
+	bodyParts[4] = "Forearms"
+	bodyParts[5] = "Amulet"
+	bodyParts[6] = "Ring"
+	bodyParts[7] = "Feet"
+	bodyParts[8] = "Calves"
+	bodyParts[9] = "Shield"
+	bodyParts[10] = "Tail"
+	bodyParts[11] = "LongHair"
+	bodyParts[12] = "Circlet"
+	bodyParts[13] = "Ears"
+	bodyParts[14] = "Mouth"
+	bodyParts[15] = "Neck"
+	bodyParts[16] = "Chest"
+	bodyParts[17] = "Wings"
+	bodyParts[18] = "Strapon"
+	bodyParts[19] = "Pelvis"
+	bodyParts[20] = "DecapitatedHead"
+	bodyParts[21] = "DecapitatedBody"
+	bodyParts[22] = "Pelvis2"
+	bodyParts[23] = "RightLeg"
+	bodyParts[24] = "LeftLeg"
+	bodyParts[25] = "Jewelry"
+	bodyParts[26] = "Undergarment"
+	bodyParts[27] = "Shoulders"
+	bodyParts[28] = "LeftArm"
+	bodyParts[29] = "RightArm"
+	bodyParts[30] = "Shclong"
+	bodyParts[31] = "FX01"
+	
+	bodyParts[32] = "30"
+	bodyParts[33] = "31"
+	bodyParts[34] = "32"
+	bodyParts[35] = "33"
+	bodyParts[36] = "34"
+	bodyParts[37] = "35"
+	bodyParts[38] = "36"
+	bodyParts[39] = "37"
+	bodyParts[30] = "38"
+	bodyParts[41] = "39"
+	bodyParts[42] = "40"
+	bodyParts[43] = "41"
+	bodyParts[44] = "42"
+	bodyParts[45] = "43"
+	bodyParts[46] = "44"
+	bodyParts[47] = "45"
+	bodyParts[48] = "46"
+	bodyParts[49] = "47"
+	bodyParts[50] = "48"
+	bodyParts[51] = "49"
+	bodyParts[52] = "50"
+	bodyParts[53] = "51"
+	bodyParts[54] = "52"
+	bodyParts[55] = "53"
+	bodyParts[56] = "54"
+	bodyParts[57] = "55"
+	bodyParts[58] = "56"
+	bodyParts[59] = "57"
+	bodyParts[60] = "58"
+	bodyParts[61] = "59"
+	bodyParts[62] = "60"
+	bodyParts[63] = "61"
+
+	
+	
+	
 	; Send the event to register other poses and dances from mods
 	editing = false
 	int modEvId = ModEvent.Create("SkyrimPoleDancesRegistryUpdated")
@@ -174,7 +246,7 @@ endFunction
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-
+; ((-
 
 ; Dance Anims
 spdDance[] dances
@@ -215,7 +287,7 @@ spdDance Function getDance(string name)
 	return none
 endFunction
 
-
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -233,13 +305,21 @@ endFunction
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-bool Function tryParseTags(string tagCode)
-; true if the tag can be parsed and is valid (does not create the tag)
+string[] validTags
+
+
+
+string Function tryParseTags(string tagCode)
+	return spdTag._tryParseTags(tagCode, validTags, bodyParts)
 endFunction
 
 
-spdTag Function parseTags(string tagCode)
-; does the real parsing and creates the object holding the tags
+spdTag Function parseTags(string tagCode, validTags, bodyParts)
+	spdTag res = new spdTag
+	if res.init(tagCode, validTags, bodyParts, spdF)
+		return none
+	endIf
+	return res
 endFunction
 
 
@@ -334,3 +414,13 @@ spdDaces[] Function allocateDances(int count)
 		return new spdDances[30] ; FIXME in future handle more dances, right now it is nonsense
 	endIf
 endFunction
+
+
+
+; FIXME add better formatting
+
+string[] bodyParts
+
+
+
+
