@@ -1,9 +1,9 @@
 Scriptname spdPerformance
 
 ; FIXME Re-set the events, right now they are not perfect in timing and parameters
-; FIXME Add the into anim and the exit anim
+; FIXME Add the intro anim and the exit anim
 ; FIXME Add the walking to the pole
-; FIXME Handle the sequence of dances by poses or events
+; FIXME Handle the sequence of dances by poses or dances or tags
 ; FIXME Add the code to handle the stripping
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
 ; FIXME Change the error generation by using the new way
@@ -15,12 +15,6 @@ Scriptname spdPerformance
 ; FIXME 
 
 
-Actor dancer
-spdPose startPose
-spdRegistry Property registry Auto
-float startTime
-float duration
-float totalTime
 string[] danceList
 spdDance[] nextDances
 spdDance currentDance
@@ -78,7 +72,7 @@ spdDance[] dances
 spdTag[] tags
 
 
-Function _doInit(spdPoleDances s)
+Function __doInit(spdPoleDances s)
 	spdF = s
 	registry = s.registry
 	startingPose = None
@@ -228,7 +222,7 @@ bool Function setDancesString(string refDances)
 	isValid() ; To recalculate
 	return false
 endFunction
-	
+
 bool Function setDancesArray(string[] refDances)
 	; Do nothing in case the performance is playing
 	if isPerformancePlaying
@@ -280,9 +274,6 @@ bool Function setDancesArray(string[] refDances)
 	isValid() ; To recalculate
 	return false
 endFunction
-
-
-; FIXME will it be used as simple list of tags or as multiple sequence of tags?
 
 bool Function setTagsString(string refTags)
 	; Do nothing in case the performance is playing
@@ -392,8 +383,145 @@ endFunction
 
 
 
+bool function start(bool forceTransitions = true)
+	if !isValid()
+		spdF._addError(42, "The performance is not valid, it cannot be started", "Performance", "start")
+		return true
+	endIf
+	if isPlaying()
+		spdF._addError(41, "The performance is already playing, it cannot be started gain", "Performance", "start")
+		return true
+	endIf
 
+	if startingPose && dances.length==0 && tags.length==0
+		; Case startPose -> Find randomly dances (respect the sequence of poses) until the expected time is completed
+		spdDance d = registry.findDanceByStartPose(startingPose)
+		if !d
+			spdF._addError(44, "Could not find a dance starting with pose \"" + startingPose.name + "\"", "Performance", "start")
+			return true
+		endIf
+		dances = _addDance(dances, d)
+		float calculatedDuration = d.duration
+		while calculatedDuration<durantion
+			spdPose endPose = d.endPose
+			d = registry.findDanceByStartPose(endPose)
+			if !d
+				if forceTransitions
+					spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + endPose.name + "\"", "Performance", "start")
+					return true
+				endIf
+				; Get any dance
+				d = registry.findRandomDance()
+			endIf
+			calculatedDuration += d.duration
+			dances = _addDance(dances, d)
+		endWhile
+		
+	elseIf startingPose==None && dances.length>0 && tags.length==0
+		; Case dances -> Add transitions in case the dances are not in sequence and the param is true
+		if forceTransitions
+			spdDance[] reDances = new spdDance[1]
+			reDances[0] = dances[0]
+			int i=1
+			while i<dances.length
+				spdDance next = dances[i]
+				spdDance prev = reDances[reDances.length - 1]
+				if prev.endPose != next.startPose
+					; Add a transition
+					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
+					if !d
+						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
+						return true
+					endIf
+					if d
+						reDances = _addDance(reDances, d)
+					endIf
+				endIf
+				reDances = _addDance(reDances, next)
+				i+=1
+			endWhile
+		endIf
+		
+	elseIf startingPose==None && dances.length>0 && tags.length==0
+		; Case tags -> Find the dances (try to respect the transitions in case the param is true)
+		
+		
+		
+		
+	else
+		; Something wrong
+		spdF._addError(43, "The performance seems to be not valid, it is not specifed what to perform", "Performance", "start")
+		return true
+	endIf
+
+	if needPoleCreated
+		pole = spdF.placePole(dancer, 50, 0)
+		poleCreated = true
+	else
+		poleCreated = false
+	endIf
 	
+	
+	; Allocate the actor (block it) and start walking to the pole
+	
+	; Get the first pose of the first dance and start
+	
+
+endFunction
+
+
+Function _addDance(spdDance[] orig, spdDance d)
+	int num = orig.length
+	orig = _reAllocateDances(orig, num + 1)
+	orig[num] = d
+	return orig
+endFunction
+
+Function _reAllocateDances(spdDance[] origDances, int num)
+	spdDance[] newDances
+	if num==1
+		newDances = new spdDance[1]
+	elseIf num==2
+		newDances = new spdDance[2]
+	elseIf num==3
+		newDances = new spdDance[3]
+	elseIf num==4
+		newDances = new spdDance[4]
+	elseIf num==5
+		newDances = new spdDance[5]
+	elseIf num==6
+		newDances = new spdDance[6]
+	elseIf num==7
+		newDances = new spdDance[7]
+	elseIf num==8
+		newDances = new spdDance[8]
+	elseIf num==9
+		newDances = new spdDance[9]
+	elseIf num==10
+		newDances = new spdDance[10]
+	elseIf num==11
+		newDances = new spdDance[11]
+	elseIf num==12
+		newDances = new spdDance[12]
+	elseIf num==13
+		newDances = new spdDance[13]
+	elseIf num==14
+		newDances = new spdDance[14]
+	elseIf num==15
+		newDances = new spdDance[15]
+	else
+		newDances = new spdDance[16]
+	endIf
+	int i = origDances.length
+	while i
+		i-=1
+		newDances[i] = origDances[i]
+	endWhile
+	return newDances
+endFunction
+
+Function abort(bool rightNow=false)
+endFunction
 	
 state Waiting
 
@@ -409,13 +537,6 @@ state Waiting
 	
 	
 
-	string function start()
-		if needPoleCreated
-			pole = spdF.placePole(dancer, 50, 0) ; FIXME do not create the pole right now, do it when we will start the performance
-			poleCreated = true
-		else
-			poleCreated = false
-		endIf
 	
 		; Find a start position if missing and there are no dances
 		if startPose==none && danceList.length==0

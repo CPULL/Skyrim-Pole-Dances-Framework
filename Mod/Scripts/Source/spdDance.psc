@@ -30,21 +30,16 @@ float Property duration
 	endFunction
 endProperty
 
-float Property endHKX
-	float function get()
-		return _endPose
-	endFunction
-endProperty
-
-float Property startHKX
-	float function get()
-		return _startPose
-	endFunction
-endProperty
 
 spdPose Property startPose
 	float function get()
 		return _startPose
+	endFunction
+endProperty
+
+spdPose Property endPose
+	float function get()
+		return _endPose
 	endFunction
 endProperty
 

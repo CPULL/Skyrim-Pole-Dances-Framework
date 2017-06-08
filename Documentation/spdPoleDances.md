@@ -200,6 +200,11 @@ An _int_ that is the ID of the type of error.
 32 Unknow tag
 33 Invalid tag values
 
+40 Playing Performance
+41 Cannot start already strated
+42 Cannot start not valid
+43 The performance seems to be not valid, it is not specifed what to perform
+44 Could not find a dance starting with pose \<_name_\>
 
 <br><br><hr><br><br>
 
