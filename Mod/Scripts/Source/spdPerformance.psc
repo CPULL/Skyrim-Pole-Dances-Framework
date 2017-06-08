@@ -444,6 +444,34 @@ bool function start(bool forceTransitions = true)
 		
 	elseIf startingPose==None && dances.length>0 && tags.length==0
 		; Case tags -> Find the dances (try to respect the transitions in case the param is true)
+		dances = new spdDance[0]
+		spdDance d = registry.findDanceByTags(tags[i])
+		if !d && forceTransitions
+			spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
+			return true
+		else
+			_addDance(dances, d)
+		endIf
+		int i = 1
+		while i<tags.length
+			; In case we need a transition use it
+			
+			better if we just try, and add transitions only inbetween and only if required
+			
+			
+			if forceTransitions
+				; Try before to just get a dance
+				d = registry.findDanceByTags(tags[i], dances[dances.length - 1].endPose)
+				if !d
+					d = registry.findDanceByTags(tags[i]
+					if !d
+						spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
+						return true
+					endIf
+					; OK, check if we have a transition between the two
+					
+				endIf
+		endWhile
 		
 		
 		

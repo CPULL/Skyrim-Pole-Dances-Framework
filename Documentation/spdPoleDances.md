@@ -205,6 +205,8 @@ An _int_ that is the ID of the type of error.
 42 Cannot start not valid
 43 The performance seems to be not valid, it is not specifed what to perform
 44 Could not find a dance starting with pose \<_name_\>
+45 Could not find an intermediate dance starting with pose "_pose name_" and starting with pose "_pose name_"
+46 Could not find a dance for tags "_tag_"
 
 <br><br><hr><br><br>
 
