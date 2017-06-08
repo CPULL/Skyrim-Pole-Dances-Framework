@@ -189,6 +189,7 @@ An _int_ that is the ID of the type of error.
 * 4 -> (Actors) an actor is already used for another dance
 * 10 -> (Performances) No more performances available
 * 11 -> Cannot update a playing performance
+* 12 -> Trying to use a performance that is already being used
 
 20 (dances)
 20 start pose does not exist

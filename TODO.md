@@ -22,3 +22,6 @@
     - [ ] Add a MCM to the framework (**CPU**)
     - [ ] Add a way to preview-poses in the Framework MCM (**CPU**)
     - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
+- [ ] **Hooks**
+- [ ] **Errors Management**
+	- [ ] Complete errors documentation (**CPU**)

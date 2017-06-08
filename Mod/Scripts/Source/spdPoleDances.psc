@@ -1,8 +1,5 @@
 Scriptname spdPoleDances Extends Quest
 
-; FIXME add the startPerformance with tags
-; FIXME add a global way to report errors
-
 
 ; ((- Properties
 
@@ -17,6 +14,7 @@ int currentVersion
 
 ; -))
 
+; ((- Main functions
 
 int Function getVersion()
 	return 1
@@ -45,6 +43,11 @@ Function _doUpdate()
 	registry._doInit(getVersion(), Self) ; This will initialize all arrays
 endFunction
 
+spdPoleDances static Function getInstance()
+	return Game.getFormFormMod("Skyrim Pole Dances.esp", 0x000001) as spdPoleDances
+endFunction
+
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -72,7 +75,7 @@ endFunction
 spdPerformance Function newPerformance(Actor dancer, ObjectReference pole=None, float duration=-1.0)
 	spdPerformance th = Registry._allocatePerformance(dancer, pole, duration)
 	if !th
-		_addError(10, "No Performances available", "PoleDancesFramework", "QuickStart")
+		_addError(10, "No Performances available", "PoleDancesFramework", "newPerformance")
 		return None
 	endIf
 	th._doInit()

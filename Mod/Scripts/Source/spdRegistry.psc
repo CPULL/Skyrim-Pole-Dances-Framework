@@ -149,14 +149,14 @@ endFunction
 ; ****************************************************************************************************************************************************************
 
 spdPerformance[] performances
-bool[] performanceInUse
 
-spdPerformance Function _allocateThread()
+spdPerformance Function _allocatePerformance()
 	int i = 0
 	while i<performances.length
-		if !performanceInUse[i]
-			performanceInUse[i] = true
-			return performances[i]
+		if !performance[i].isInUse()
+			if !performance[i].use(spdF)
+				return performances[i]
+			endIf
 		endIf
 		i+=1
 	endWhile

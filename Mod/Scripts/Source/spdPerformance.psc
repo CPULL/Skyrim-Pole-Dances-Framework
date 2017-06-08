@@ -37,19 +37,10 @@ string[] poseUsedHooks
 string[] danceEndingHooks
 string[] danceEndedHooks
 
-Function _doInit(spdPoleDances s)
-	spdF = s
-endIf
-
 event OnUpdate()
 	goToState("waiting")
 endEvent
 
-bool function isValid()
-	; Recalculate
-	isPerformanceValid = (dancer!=None && pole!=none && (duration!=-1.0 || (dances!=None && dances.length>0) || (tags!=None && tags.length>0))
-	return isValid
-endFunction
 
 
 ; FIXME Add inUse and use it for isValid
@@ -72,6 +63,7 @@ spdRegistry registry
 
 bool isPerformanceValid = false
 bool isPerformancePlaying = false
+bool isPerformanceInUse = false
 Actor dancer
 ObjectReference pole
 bool needPoleCreated
@@ -86,7 +78,9 @@ spdDance[] dances
 spdTag[] tags
 
 
-Function _doInit()
+Function _doInit(spdPoleDances s)
+	spdF = s
+	registry = s.registry
 	startingPose = None
 	currentPose = None
 	currentDance = None
@@ -104,6 +98,32 @@ Function _doInit()
 	tags = new spdTag[0]
 	isPerformancePlaying = false
 	isPerformanceValid = false
+endFunction
+
+
+bool function isPlaying()
+	return isPerformancePlaying
+endFunction
+
+bool function isInUse()
+	return isPerformanceInUse
+endFunction
+
+bool function use(spdPoleDances s)
+	if isPerformanceInUse
+		s._addError(12, "Trying to use a performance that is already being used (" + id + ")", "Performance", "use")
+		return true
+	endIf
+
+	isPerformanceInUse = true
+	_doInit(s)
+	return false
+endFunction
+
+bool function isValid()
+	; Recalculate
+	isPerformanceValid = (dancer!=None && pole!=none && (duration!=-1.0 || (dances!=None && dances.length>0) || (tags!=None && tags.length>0))
+	return isValid
 endFunction
 
 Bool Function setBasicOption(Actor refDancer, ObjectReference refPole=none, float refDuration=-1.0)
