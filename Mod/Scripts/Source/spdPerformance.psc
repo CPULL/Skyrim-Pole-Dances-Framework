@@ -1,30 +1,15 @@
 Scriptname spdPerformance
 
 ; FIXME Re-set the events, right now they are not perfect in timing and parameters
-; FIXME Add the code to handle the stripping
+; FIXME Add functions to strip and redress
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
 ; FIXME Add stop() function
-; FIXME 
+; FIXME Make private all functions that should be private
 ; FIXME 
 ; FIXME 
 ; FIXME 
 ; FIXME 
 
-
-
-; FIXME Add inUse and use it for isValid
-; FIXME add all functions to set the startPose, dances (as comma string, as array), tags
-; FIXME Add internal function to find the next dance (by next pose, list, tags)
-; FIXME Add function to reach the pole
-; FIXME Add function to play intro anim for pose
-; FIXME Add function to play ending anim for pose
-; FIXME Add function to play the dance anim (timed)
-; FIXME Add functions to strip and redress
-; FIXME Add states after the first writing of the code
-; FIXME 
-; FIXME 
-; FIXME 
-; FIXME 
 
 int id
 spdPoleDances spdF
@@ -167,6 +152,10 @@ bool Function setDancesString(string refDances)
 	int i = 0
 	string errs = ""
 	while i<parts.length
+		if parts[i]==""
+			spdF._addError(21, "The requested dances are not valid", "Performance", "setDancesString")
+			return true
+		endIf
 		spdDance d = registry.findDance(parts[i]) ; It will get both actual dances and strips
 		if d!=None
 			count+=1
@@ -274,7 +263,7 @@ bool Function setTagsString(string refTags)
 	int i = 0
 	string errs = ""
 	while i<parts.length
-		if registry.tryParseTags(parts[i])
+		if registry.tryToParseTags(parts[i])
 			count+=1
 		else
 			if errs==""
@@ -371,7 +360,7 @@ bool function start(bool forceTransitions = true)
 		return true
 	endIf
 	if isPlaying()
-		spdF._addError(41, "The performance is already playing, it cannot be started gain", "Performance", "start")
+		spdF._addError(41, "The performance is already playing, it cannot be started again", "Performance", "start")
 		return true
 	endIf
 

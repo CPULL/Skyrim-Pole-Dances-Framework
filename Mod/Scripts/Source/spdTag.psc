@@ -1,5 +1,7 @@
 Scriptname spdTag
 
+; FIXME we should add a way to add the positive tags in OR mode
+
 int numTags
 String[] tags
 bool[] tagNegatives
@@ -20,6 +22,9 @@ static string Function _tryToParseTag(string tagCode, string[] validTags, string
 	while i
 		i-=1
 		string theTag = parts[i]
+		if theTag==""
+			return "Empty tag"
+		endIf
 		string theValue = ""
 		if StringUtil.subString(theTag, 0, 1)=="!"
 			theTag = StringUtil.subString(theTag, 1)
@@ -96,7 +101,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 	dance = ""
 
 	if tagCode==""
-		spdF._addError(31, "Empty tag", "spdTag", "init")
+		spdF._addError(34, "Empty tag", "spdTag", "init")
 		return true
 	endIf
 
@@ -123,7 +128,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 			endIf
 		endWhile
 		if !isGood
-			spdF._addError(32, "Unknow tag (" + theTag + ")", "spdTag", "init")
+			spdF._addError(35, "Unknow tag (" + theTag + ")", "spdTag", "init")
 			return true
 		endIf
 		isValue = (StringUtil.find(theTag, ":")!=-1)
@@ -135,7 +140,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 		if theTag=="Auth"
 			; Only one author can be added
 			if author!=""
-				spdF._addError(33, "Not possible to specify multiple authors for a tag (" + theTag + ")", "spdTag", "init")
+				spdF._addError(36, "Not possible to specify multiple authors for a tag (" + theTag + ")", "spdTag", "init")
 				return true
 			endIf
 			author = theValue
@@ -143,14 +148,14 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 		elseIf theTag=="Dance"
 			; The value should be a known dance
 			if findDance(theValue)==None
-				spdF._addError(34, "Unknow dance for the tag: " + theValue, "spdTag", "init")
+				spdF._addError(37, "Unknow dance for the tag: " + theValue, "spdTag", "init")
 				return true
 			endIf
 			dance = theValue
 			
 		elseIf theTag=="Strip"
 			if theValue==""
-				spdF._addError(35, "Part not specified for stripping tag", "spdTag", "init")
+				spdF._addError(38, "Part not specified for stripping tag", "spdTag", "init")
 				return true
 			endIf
 			; Can be body location(s) or a set of body slots (numbers)
@@ -159,7 +164,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 			while j
 				j-=1
 				if bodyParts.find(slots[j])==-1
-					spdF._addError(35, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
+					spdF._addError(39, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
 				endIf
 			endWhile
 			; Fill all slots that should be stripped

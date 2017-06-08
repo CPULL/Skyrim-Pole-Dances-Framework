@@ -309,8 +309,8 @@ string[] validTags
 
 
 
-string Function tryParseTags(string tagCode)
-	return spdTag._tryParseTags(tagCode, validTags, bodyParts)
+string Function tryToParseTags(string tagCode)
+	return spdTag._tryToParseTags(tagCode, validTags, bodyParts)
 endFunction
 
 

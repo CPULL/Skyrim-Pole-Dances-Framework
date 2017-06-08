@@ -188,25 +188,30 @@ An _int_ that is the ID of the type of error.
 * 3 -> (Actors) the actor is performing an activity that will make impossible to dance, or is a child
 * 4 -> (Actors) an actor is already used for another dance
 * 10 -> (Performances) No more performances available
-* 11 -> Cannot update a playing performance
-* 12 -> Trying to use a performance that is already being used
+* 11 -> (Performances) Cannot update a playing performance
+* 12 -> (Performances) Trying to use a performance that is already being used
+* 20 -> (Performances) Requested start pose does not exist
+* 21 -> (Performances) The requested dances are not valid (empty string to declare dances)
+* 22 -> (Performances) No one of the requested dances is valid
+* 23 -> [WARNING] Some of the dances are not valid: \<_list of dance names_\> (this is just a warning and will not stop the Performance)
+* 30 -> (Tags) Generic error on Tags
+* 31 -> (Tags) The requested Tags are not valid (empty string to declare tags)
+* 32 -> (Tags) No one of the requested tags is valid
+* 33 -> (Tags) [WARNING] Some of the tags are not valid: \<_list of tags_\> (this is just a warning and will not stop the Performance)
+* 34 -> (Tags) Empty tag
+* 35 -> (Tags) Unknow tag
+* 36 -> (Tags) Not possible to specify multiple authors for a tag \<_tag_\>
+* 37 -> (Tags) Unknow dance for the tag \<_tag_\> (applies to tags of the form "dance\<_dance name_\>")
+* 38 -> (Tags) Part not specified for stripping tag \<_tag_\>
+* 39 -> (Tags) Unknown part \<_body slot name or number_\> for stripping tag
+* 40 -> (Performances) Generic error on playing performances
+* 41 -> (Performances) The performance is already playing, it cannot be started again
+* 42 -> (Performances) The performance is not valid, it cannot be started
+* 43 -> (Performances) The performance seems to be not valid, it is not specifed what to perform
+* 44 -> (Performances) Could not find a dance starting with pose \<_pose name_\>
+* 45 -> (Performances) Could not find an intermediate dance starting with pose \<_pose name_\>
+* 46 -> (Performances) Could not find a dance for tags \<_tag_\>
 
-20 (dances)
-20 start pose does not exist
-21 dances are empty
-
-30 (tags)
-31 Empty tag
-32 Unknow tag
-33 Invalid tag values
-
-40 Playing Performance
-41 Cannot start already strated
-42 Cannot start not valid
-43 The performance seems to be not valid, it is not specifed what to perform
-44 Could not find a dance starting with pose \<_name_\>
-45 Could not find an intermediate dance starting with pose "_pose name_" and starting with pose "_pose name_"
-46 Could not find a dance for tags "_tag_"
 
 <br><br><hr><br><br>
 
