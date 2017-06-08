@@ -223,3 +223,6 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 	return false
 endFunction
 
+string Function print()
+	; FIXME do a string version of the current tag
+endFunction

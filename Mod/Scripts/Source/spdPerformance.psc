@@ -1,39 +1,14 @@
 Scriptname spdPerformance
 
 ; FIXME Re-set the events, right now they are not perfect in timing and parameters
-; FIXME Add the intro anim and the exit anim
-; FIXME Add the walking to the pole
-; FIXME Handle the sequence of dances by poses or dances or tags
 ; FIXME Add the code to handle the stripping
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
-; FIXME Change the error generation by using the new way
+; FIXME Add stop() function
 ; FIXME 
 ; FIXME 
 ; FIXME 
 ; FIXME 
 ; FIXME 
-; FIXME 
-
-
-string[] danceList
-spdDance[] nextDances
-spdDance currentDance
-float currentAnimSpentTime
-bool currentAnimStarted
-ObjectReference refPole
-bool poleCreated
-
-string[] danceInitHooks
-string[] danceStartingHooks
-string[] danceStartedHooks
-string[] danceChangedHooks
-string[] poseUsedHooks
-string[] danceEndingHooks
-string[] danceEndedHooks
-
-event OnUpdate()
-	goToState("waiting")
-endEvent
 
 
 
@@ -64,13 +39,20 @@ bool needPoleCreated
 bool poleCreated
 float duration
 float startTime
-
+int currentDance
 spdPose startingPose
 spdPose currentPose
 spdDance currentDance
 spdDance[] dances
 spdTag[] tags
 
+string[] danceInitHooks
+string[] danceStartingHooks
+string[] danceStartedHooks
+string[] danceChangedHooks
+string[] poseUsedHooks
+string[] danceEndingHooks
+string[] danceEndedHooks
 
 Function __doInit(spdPoleDances s)
 	spdF = s
@@ -393,7 +375,7 @@ bool function start(bool forceTransitions = true)
 		return true
 	endIf
 
-	if startingPose && dances.length==0 && tags.length==0
+	if startingPose && duration!=-1.0 && dances.length==0 && tags.length==0
 		; Case startPose -> Find randomly dances (respect the sequence of poses) until the expected time is completed
 		spdDance d = registry.findDanceByStartPose(startingPose)
 		if !d
@@ -402,7 +384,7 @@ bool function start(bool forceTransitions = true)
 		endIf
 		dances = _addDance(dances, d)
 		float calculatedDuration = d.duration
-		while calculatedDuration<durantion
+		while calculatedDuration<duration
 			spdPose endPose = d.endPose
 			d = registry.findDanceByStartPose(endPose)
 			if !d
@@ -422,6 +404,7 @@ bool function start(bool forceTransitions = true)
 		if forceTransitions
 			spdDance[] reDances = new spdDance[1]
 			reDances[0] = dances[0]
+			startingPose = dances[0].startingPose
 			int i=1
 			while i<dances.length
 				spdDance next = dances[i]
@@ -431,7 +414,6 @@ bool function start(bool forceTransitions = true)
 					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
 					if !d
 						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
-						return true
 					endIf
 					if d
 						reDances = _addDance(reDances, d)
@@ -445,36 +427,34 @@ bool function start(bool forceTransitions = true)
 	elseIf startingPose==None && dances.length>0 && tags.length==0
 		; Case tags -> Find the dances (try to respect the transitions in case the param is true)
 		dances = new spdDance[0]
-		spdDance d = registry.findDanceByTags(tags[i])
+		spdDance d = registry.findDanceByTags(tags[0])
 		if !d && forceTransitions
 			spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
 			return true
-		else
-			_addDance(dances, d)
 		endIf
+		_addDance(dances, d)
+		startingPose = dances[0].startingPose
 		int i = 1
 		while i<tags.length
-			; In case we need a transition use it
-			
-			better if we just try, and add transitions only inbetween and only if required
-			
-			
-			if forceTransitions
-				; Try before to just get a dance
-				d = registry.findDanceByTags(tags[i], dances[dances.length - 1].endPose)
-				if !d
-					d = registry.findDanceByTags(tags[i]
+			spdDance prev = dances[dances.length - 1]
+			spdDance next = registry.findDanceByTags(tags[i])
+			if next==none
+				; missing dance, trace but don't stop
+				spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
+			else
+				if prev.endPose != next.startPose && forceTransitions
+					; Add a transition
+					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
 					if !d
-						spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
-						return true
+						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
 					endIf
-					; OK, check if we have a transition between the two
-					
+					if d
+						reDances = _addDance(dances, d)
+					endIf
 				endIf
+				_addDance(dances, next)
+			endIf
 		endWhile
-		
-		
-		
 		
 	else
 		; Something wrong
@@ -491,10 +471,19 @@ bool function start(bool forceTransitions = true)
 	
 	
 	; Allocate the actor (block it) and start walking to the pole
-	
-	; Get the first pose of the first dance and start
-	
+	registry._lockActor(dancer, spdWalkPackage, pole)
+	if _calculateDistance(dancer, pole)<50
+		RegisterForSingleUpdate(0.2)
+	else
+		RegisterForSingleUpdate(2.0)
+	endIf
+	stoppedTimes = 0
+	prevWalkX = 0.0
+	prevWalkY = 0.0
+	isPerformancePlaying = true
 
+	GoToState("Walking")
+	return false
 endFunction
 
 
@@ -550,267 +539,140 @@ endFunction
 
 Function abort(bool rightNow=false)
 endFunction
-	
-state Waiting
 
-	
-	; FIXME Set the start position
-	; FIXME Set the dances
-	; FIXME Set the stripping
-	; FIXME Set the tags
-	; FIXME Set the timing
-	; FIXME Set the hooks
-	
-	
-	
-	
+int stoppedTimes
+float prevWalkX
+float prevWalkY
 
-	
-		; Find a start position if missing and there are no dances
-		if startPose==none && danceList.length==0
-			startPose = registry.findRandomStartPose()
-		endIf
-		
-		; Make it walk close to the pole (add a temporary marker)
-		; TODO we may need to split this in a new state, not sure
-		
-		
-		; Find all anims that can start with the specified position, in case we have one and not a dances list
-		if startPose && danceList.length==0
-			nextDances = registry.findDance(startPose)
-			if nextDances==none || nextDances.length==0
-				if startPose
-					return "Could not find any valid Pole Dance (start position " + startPose.name + ")"
-				else
-					return "Could not find any valid Pole Dance (start position not defined)"
-				endIf
-			endIf
-		endIf
-		
-		
-		startTime = utility.getSystemRealTime()
-		duration = 0.0
-		currentAnimStarted = false
-		RegisterForSingleUpdate(0.1)
-		goToState("playing")
-		
-		sendEvent("PoleDanceStarted")
-		
-		return ""
-	endFunction
-	
-	string function setStartPose(string pose)
-		spdPose res = registry.findPose(pose)
-		if res==none
-			return "Could not find pose with name \"" + pose + "\"."
-		endIf
-		startPose = res
-	endFunction
-	
-	function setDances(string[] names)
-		danceList = names
-	endFunction
-	
-	float function setDancesAsString(string sPose="", string dances)
-		; Split by commas then call the other function
-		string[] dcs = StringUtil.split(dances, ",")
-		return setDancesAsArray(dcs)
-	endFunction
-
-	float function setDancesAsArray(string sPose="", string[] dances)
-		; Check if every single dance is known, and then generate the list (array) of all dances to be used. Return the total length of the dance
-	endFunction
-	
-	event OnUpdate()
-		goToState("waiting")
-	endEvent
-	
-	string function addHook(string hookName, string eventName)
-		; Check if the event name is valid, in case add the Hook to the specific event
-		; 	<Hook>_DanceInit(tid, dance, actor)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
-		; 	<Hook>_DanceStarting(tid, dance, actor, pose)	--> Sent when the Dance is starting and the initial animation is being played
-		; 	<Hook>_DanceStarted(tid, dance, actor)			--> Sent when the very first dance is played
-		; 	<Hook>_DanceChanged(tid, dance, actor)			--> Sent every time a dance is played
-		;	<Hook>_PoseUsed(tid, dance, actor, pose)		--> Sent every time a pose is being used by an actor
-		;	<Hook>_DanceEnding(tid, dance, actor, pose)		--> Sent when the last dance is completed and the ending anim is being played
-		;	<Hook>_DanceEnded(tid, actor)					--> Sent when the dance is fully completed an dthe actor has been released
-
-		string[] hooks
-		if eventName=="DanceInit"
-			hooks = danceInitHooks
-		elseIf eventName=="DanceStarting"
-			hooks = danceStartingHooks
-		elseIf eventName=="DanceStarted"
-			hooks = danceStartedHooks
-		elseIf eventName=="DanceChanged"
-			hooks = danceChangedHooks
-		elseIf eventName=="PoseUsed"
-			hooks = poseUsedHooks
-		elseIf eventName=="DanceEnding"
-			hooks = danceEndingHooks
-		elseIf eventName=="DanceEnded"
-			hooks = danceEndedHooks
-		else
-			return "Unkow event to register: " + eventName
-		endIf
-		if !hooks || hooks.length
-			hooks = new String[1]
-			hooks[0] = hookName
-		elseIf hooks.find(hookName)==-1
-			hooks = Utility.resizeStringArray(hooks, hooks.length + 1)
-			hooks[hooks.length - 1] = hookName
-		endIf
-		
-		return none
-	endFunction
-endState
-
-
-
-
-
-state playing
-
-	envent OnUpdate()
-		; Do the progresses, currentAnimStarted checks if we already played the anim or not
-		if nextDances==none || nextDances.length == 0
-			; No more dances, we need to end
-			goToState("ending")
-			return;
-		endIf
-
-		float remainingTime = Utility.getSystemRealTime() - currentAnimStartTime
-		if remainingTime<0.05
-			; Calculate the next anim
-			nextDances = registry.findDance(currentDance.startPose)
-			if nextDances==none || nextDances.length==0
-				; We need to end
-				Utility.wait(dance.duration)
-				goToState("ending")
-			endIf
-			currentAnimStarted = false
-		
-		endIf
-		
-		
-		if currentAnimStarted
-			; Just wait
-			if remainingTime>5.0
-				RegisterForSingleUpdate(5.0)
-			else
-				RegisterForSingleUpdate(remainingTime)
-			endIf
+state walking
+	Event OnUpdate()
+		if stoppedTimes>5
+			; Teleport in case there are no movements
+			float zAngle = dancer.getZAngle()
+			dancer.moveTo(pole, Math.cos(zAngle) * 50.0, Math.sin(zAngle) * 50.0, 0, true)
+			GoToState("Playing")
 			return
-		
-		else
-			; pick one of the anim
-			currentDance = nextDances[Utility.randomInt(0, nextDances.length - 1]
-			
-			; send the anim event
-			debug.sendAnimationEvent(dancer, currentDance.hkx)
-			currentAnimSpentTime = 0.0
-			currentAnimStarted = true
-			currentAnimStartTime = Utility.getSystemRealTime()
-		
-			sendEvent("PoleDanceDance" currentDance.name)
-		endIf
-
-		; Check if we have to end (depending on the expected time)
-		durantion = Utility.getSystemRealTime() - startTime
-		if duration + currentDance.duration > totalTime
-			; We need to end
-			Utility.wait(dance.duration)
-			RegisterForSingleUpdate(0.05)
-			goToState("ending")
 		endIf
 			
-		RegisterForSingleUpdate(5.0)
-	endEvent
-
-
-	function stop()
-		goToState("ending")
-	endFunction
-endState
-
-
-
-
-state ending
-	; Do what is needed to end the animation
-	
-	event OnUpdate()
-		; Stop the anim
-		
-		; Get the endAnim that starts with the endPose of the curretn anim (if any)
-		if currentDance
-			if currentDance.endPose
-				; Play it
-				Debug.sendAnimationEvent(dancer, currentDance.endPose.endHKX)
-				; Wait for the length
-				Utility.wait(currentDance.endPose.endTime)
+		; Wait until the actor is close, then remove the package, then start the intro anim
+		if _calculateDistance(dancer, pole) > 50
+			if Math.abs(prevWalkX - dancer.x) < 2 && Math.abs(prevWalkY - dancer.y) < 2
+				stoppedTimes+=1
 			endIf
+			prevWalkX = dancer.x
+			prevWalkY = dancer.y
+		else
+			GoToState("Playing")
+			return
 		endIf
-		
-		; Release the actor
-		registry.releaseActor(dancer)
-	
-		sendEvent("PoleDanceEnded")
-		if poleCreated
-			refPole.disable(true)
-			Utility.wait(0.2)
-			refPole.Delete(true)
-		endIf
-		
-		dancer = none
-		startPose = none
-		startTime = 0.0
-		duration = 0.0
-		totalTime = 0.0
-		nextDances = new spdDance[0]
-		currentDance = none
-		currentAnimSpentTime = 0.0
-		currentAnimStarted = false
-		refPole = none
-		poleCreated = false
-		
-		goToState(waiting)
+		RegisterForSingleUpdate(0.5)
+	endEvent
+endState
+
+int currentDance
+int prevDance
+float timeToWait
+float danceStartTime
+
+state Playing
+	Event OnBeginState()
+		registry._lockActor(dancer)
+		currentDance = 0
+		prevDance = -1 ; This will play right now the first dance
+		Debug.SendAnimationEvent(dancer, startingPose.startHKX)
+		RegisterForSingleUpdate(startingPose.startTime - 0.1)
 	endEvent
 	
-	
-	function stop()
-		UnregisterForUpdates()
-		
-		sendEvent("PoleDanceStopped")
-		; Release the actor
-		registry.releaseActor(dancer)
-		
-		if poleCreated
-			refPole.disable(true)
-			Utility.wait(0.2)
-			refPole.Delete(true)
+	Event OnUpdate()
+		; Play the current dance and wait a little between re-checking
+		if currentDance!=nextDance
+			Debug.sendAnimationEvent(dancer, dances[currentDance].hkx)
+			timeToWait = dances[currentDance].duration
+			danceStartTime = Utility.getCurrentRealTime()
+			prevDance = currentDance
 		endIf
 		
-		dancer = none
-		startPose = none
-		startTime = 0.0
-		duration = 0.0
-		totalTime = 0.0
-		nextDances = new spdDance[0]
-		currentDance = none
-		currentAnimSpentTime = 0.0
-		currentAnimStarted = false
-		refPole = none
-		poleCreated = false
-		
-		goToState(waiting)
-	endFunction
+		float timeToDo = Utility.getCurrentRealTime() - danceStartTime
+		if timeToWait - timeToDo < 0.2
+			; Do the next dance
+			if currentDance==dances.length - 1
+				GoToState("Ending")
+				return
+			endIf
+			currentDance += 1
+			RegisterForSingleUpdate(0.1)
+		elseIf timeToWait - timeToDo < 1.0
+			RegisterForSingleUpdate(timeToWait - timeToDo - 0.2)
+		else
+			RegisterForSingleUpdate(1.0)
+		endIf
+	endEvent
 
+endFunction
+
+state Ending
+	Event OnBeginState()
+		Debug.SendAnimationEvent(dancer, dances[dances.length - 1].endHKX)
+		RegisterForSingleUpdate(dances[dances.length - 1].endTime - 0.1)
+	endEvent
+	
+	Event OnUpdate()
+		if poleCreated
+			spdF.removePole(pole)
+		endIf
+		registry._unlockActor(dancer)
+		isPerformancePlaying = false
+		GoToState("")
+	endEvent
 endState
 
 
 
+; --------------------------------------------------------------------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------------------------------------------------------------------
+; --------------------------------------------------------------------------------------------------------------------------------------------
+	
 
+	
+string function addHook(string hookName, string eventName)
+	; Check if the event name is valid, in case add the Hook to the specific event
+	; 	<Hook>_DanceInit(tid, dance, actor)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
+	; 	<Hook>_DanceStarting(tid, dance, actor, pose)	--> Sent when the Dance is starting and the initial animation is being played
+	; 	<Hook>_DanceStarted(tid, dance, actor)			--> Sent when the very first dance is played
+	; 	<Hook>_DanceChanged(tid, dance, actor)			--> Sent every time a dance is played
+	;	<Hook>_PoseUsed(tid, dance, actor, pose)		--> Sent every time a pose is being used by an actor
+	;	<Hook>_DanceEnding(tid, dance, actor, pose)		--> Sent when the last dance is completed and the ending anim is being played
+	;	<Hook>_DanceEnded(tid, actor)					--> Sent when the dance is fully completed an dthe actor has been released
+
+	string[] hooks
+	if eventName=="DanceInit"
+		hooks = danceInitHooks
+	elseIf eventName=="DanceStarting"
+		hooks = danceStartingHooks
+	elseIf eventName=="DanceStarted"
+		hooks = danceStartedHooks
+	elseIf eventName=="DanceChanged"
+		hooks = danceChangedHooks
+	elseIf eventName=="PoseUsed"
+		hooks = poseUsedHooks
+	elseIf eventName=="DanceEnding"
+		hooks = danceEndingHooks
+	elseIf eventName=="DanceEnded"
+		hooks = danceEndedHooks
+	else
+		return "Unkow event to register: " + eventName
+	endIf
+	if !hooks || hooks.length
+		hooks = new String[1]
+		hooks[0] = hookName
+	elseIf hooks.find(hookName)==-1
+		hooks = Utility.resizeStringArray(hooks, hooks.length + 1)
+		hooks[hooks.length - 1] = hookName
+	endIf
+	
+	return none
+endFunction
 
 
 Function sendEvent(string eventName, string pose="")
@@ -1020,11 +882,4 @@ Function sendEvent(string eventName, string pose="")
 	endIf
 endFunction
 
-; Performance Hooks:
-; 	<Hook>_DanceInit(tid, actor, pose)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
-; 	<Hook>_DanceStarting(tid, actor, dance, pose)	--> Sent when the Dance is starting and the initial animation is being played
-; 	<Hook>_DanceStarted(tid, actor, dance)			--> Sent when the very first dance is played
-; 	<Hook>_DanceChanged(tid, actor, dance)			--> Sent every time a dance is played
-;	<Hook>_PoseUsed(tid, actor, dance, pose)		--> Sent every time a pose is being used by an actor
-;	<Hook>_DanceEnding(tid, actor, dance, pose)		--> Sent when the last dance is completed and the ending anim is being played
-;	<Hook>_DanceEnded(tid, actor)					--> Sent when the dance is fully completed an dthe actor has been released
+
