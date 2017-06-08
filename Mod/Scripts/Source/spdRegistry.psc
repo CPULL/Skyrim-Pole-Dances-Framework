@@ -16,13 +16,13 @@ function doInit(int version, spdPoleDances spd)
 	
 	spdF = spd
 	
-	; Threads
+	; Performances
 	int i = 0
-	threads = new spdThread[16]
-	while i<threads.length
-		threads[i] = new spdThread()
-		threads[i].id = i + 1
-		threadInUse[i] = false
+	performances = new spdPerformance[16]
+	while i<performances.length
+		performances[i] = new spdPerformance()
+		performances[i].id = i + 1
+		performanceInUse[i] = false
 	endWhile
 	
 	; Init all actors (if there is any, just free it quickly)
@@ -144,19 +144,19 @@ endFunction
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
-; ************                                             Threads                                                                                    ************
+; ************                                             Performances                                                                               ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-spdThread[] threads
-bool[] threadInUse
+spdPerformance[] performances
+bool[] performanceInUse
 
-spdThread Function _allocateThread()
+spdPerformance Function _allocateThread()
 	int i = 0
-	while i<threads.length
-		if !threadInUse[i]
-			threadInUse[i] = true
-			return threads[i]
+	while i<performances.length
+		if !performanceInUse[i]
+			performanceInUse[i] = true
+			return performances[i]
 		endIf
 		i+=1
 	endWhile

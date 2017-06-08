@@ -1,4 +1,4 @@
-# Pole Dance Threads (spdThread)
+# Pole Dance Performance (spdPerformance)
 Script used to run and control a Pole Dance performance
 
 

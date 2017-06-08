@@ -43,9 +43,9 @@ If there were errors, a detailed error is added to the error list. Use `getLastE
 
 
 
-## Threads
-Threads give you the full control of the Pole Dance performance.
-See [spdThread](spdThread.md) for further details.
+## Performances
+Performances give you the full control of the Pole Dance performance.
+See [spdPerformance](spdPerformances.md) for further details.
 Threads can be initialized in three different ways, depending on how to find the sub-animations.
 
 ### newThreadPose()
@@ -187,8 +187,8 @@ An _int_ that is the ID of the type of error.
 * 2 -> (Actors) the actor is "None"
 * 3 -> (Actors) the actor is performing an activity that will make impossible to dance, or is a child
 * 4 -> (Actors) an actor is already used for another dance
-* 10 -> (Threads) No more threads available
-* 11 -> Cannot update a playing thread
+* 10 -> (Performances) No more performances available
+* 11 -> Cannot update a playing performance
 
 20 (dances)
 20 start pose does not exist

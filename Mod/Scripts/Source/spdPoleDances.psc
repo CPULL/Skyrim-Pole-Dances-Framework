@@ -1,6 +1,6 @@
 Scriptname spdPoleDances Extends Quest
 
-; FIXME add the startThread with tags
+; FIXME add the startPerformance with tags
 ; FIXME add a global way to report errors
 
 
@@ -48,31 +48,31 @@ endFunction
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
-; ************                                             Threads and QuickStart                                                                     ************
+; ************                                             Performances and QuickStart                                                                     ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 ; ((-
 
 bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration=-1.0, string startingPose="")
-	spdThread th = Registry._allocateThread()
+	spdPerformance th = Registry._allocatePerformance()
 	if !th
-		_addError(10, "No threads available", "PoleDancesFramework", "QuickStart")
+		_addError(10, "No Performances available", "PoleDancesFramework", "QuickStart")
 		return true
 	endIf
 	th._doInit()
 	th.setBasicOption(dancer, pole, duration)
 	th.setStartingPose(startingPose)
 	if th.start()
-		Debug.Trace("SPD: problems starting a Pole Dance Thread.") ; FIXME
+		Debug.Trace("SPD: problems starting a Pole Dance Performance.") ; FIXME
 		return true
 	endIf
 	return false
 endFunction
 
-spdThread Function newThread(Actor dancer, ObjectReference pole=None, float duration=-1.0)
-	spdThread th = Registry._allocateThread(dancer, pole, duration)
+spdPerformance Function newPerformance(Actor dancer, ObjectReference pole=None, float duration=-1.0)
+	spdPerformance th = Registry._allocatePerformance(dancer, pole, duration)
 	if !th
-		_addError(10, "No threads available", "PoleDancesFramework", "QuickStart")
+		_addError(10, "No Performances available", "PoleDancesFramework", "QuickStart")
 		return None
 	endIf
 	th._doInit()
@@ -138,7 +138,7 @@ endFunction
 ; 2 the actor is "None"
 ; 3 the actor is performing an activity that will make impossible to dance, or is a child
 ; 4 an actor is already used for another dance
-; 10 No more threads available
+; 10 No more Performances available
 ; -))
 
 Function dumpErrors()
@@ -177,4 +177,4 @@ endFunction
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-; get the ones from the docs, and update the spdThread
+; get the ones from the docs, and update the spdPerformance

@@ -5,7 +5,9 @@ String[] tags
 bool[] tagNegatives
 string author
 string dance
-int[strip] ; -1 to dress, 0 to ignore, 1 to strip
+int[] strip ; -1 to dress, 0 to ignore, 1 to strip
+int[] sexys
+int[] skills
 
 static string Function _tryToParseTag(string tagCode, string[] validTags, string[] bodyParts)
 	; Empty string "" if the tag can be parsed and is valid (does not create the tag), a string with te error if any
@@ -87,6 +89,8 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 	tags = new string[0]
 	tagNegatives = new Bool[0]
 	strip = new int[32]
+	sexys = new int[0]
+	skills = new int[0]
 	numTags = 0
 	author = ""
 	dance = ""
@@ -159,7 +163,6 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 				endIf
 			endWhile
 			; Fill all slots that should be stripped
-			j = 
 			j = slots.length
 			while j
 				j-=1
@@ -174,48 +177,49 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 				endIf
 			endWhile
 		
-		elseIf theTag=="Sexy" || theTag=="Skill"
-			; We need to get the numbers
-			; Just check we have just numbers and |
-			int k=StringUtil.getLength(theValue)
-			while k
-				k-=1
-				string char = StringUtil.subString(theValue, k, 1)
-				if char!="|" && char!="0" && char!="1" && char!="2" && char!="3" && char!="4" && char!="5" && char!="6" && char!="7" && char!="8" && char!="9"
-					return "Not valid value for tag: " + theTag
+		elseIf theTag=="Sexy"
+			string[] nums = StringUtil.Split(theValue, "|")
+			j = nums.length
+			while j
+				j-=1
+				if nums[i]==""
+					nums[j]="-1"
 				endIf
+			endIf
+			sexys = Utility.CreateIntArray(nums.length)
+			j = nums.length
+			while j
+				j-=1
+				sexys[j] = nums[i] as int
 			endWhile
+		
+		elseIf theTag=="Skill"
+			string[] nums = StringUtil.Split(theValue, "|")
+			j = nums.length
+			while j
+				j-=1
+				if nums[i]==""
+					nums[j]="-1"
+				endIf
+			endIf
+			skills = Utility.CreateIntArray(nums.length)
+			j = nums.length
+			while j
+				j-=1
+				skills[j] = nums[i] as int
+			endWhile
+		
 		endIf
+		
+		; Save the actual tag
+		numTags+=1
+		tags = Utility.resizeStringArray(tags, numTags)
+		tagNegatives = Utility.resizeBoolArray(tagNegatives, numTags)
+		tags[numTags - 1] = theTag
+		tagNegatives[numTags - 1] = negative
 			
 	endWhile
 
-	return ""
-		
-
-		if isValue
-			; Check if the values are valid
-			string val = StringUtil.subString(theTag, StringUtil.getLength(validTags[pos]))
-			bool multipleValues = false
-			isGood = true
-			int k=StringUtil.getLength(val)
-			while k
-				k-=1
-				string char = StringUtil.subString(val, k, 1)
-				if char=="|"
-					multipleValues=true
-				elseIf char!="0" && char!="1" && char!="2" && char!="3" && char!="4" && char!="5" && char!="6" && char!="7" && char!="8" && char!="9"
-					isGood = false
-				endIf
-			endWhile
-		endIf
-		if !isGood
-			spdF._addError(33, "Invalid values (" + theTag + ")", "spdTag", "init")
-			return true
-		endIf
-		; TODO do also Auth: and the future Strip: (strip may have some pre-defined body slot names, or it is just a list of body slots)
-	endWhile
+	return false
 endFunction
 
-
-
-; FIXME tag is actually a tag group...

@@ -6,9 +6,12 @@
     - [ ] Add "strip:<values>" type of tag
 - [ ] **Framework**
     - [X] Add a newThreadTags() function (**CPU**)
-- [ ] **Threads**
+- [ ] **Performances**
     - [ ] Alter the thread to play with the different modes to define the animation (**CPU**)
-    - [ ] Rename everywhere "Thread" with "Performance" (**CPU**)
+	    - [ ] Only start pose and duration
+	    - [ ] Sequence of Dances
+	    - [ ] Sequence of Tags
+    - [X] Rename everywhere "Thread" with "Performance" (**CPU**)
 - [ ] **Stripping**
     - [ ] Add a way to control stripping during pole dances (**CPU**)
     - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)

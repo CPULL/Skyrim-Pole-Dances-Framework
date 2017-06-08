@@ -1,5 +1,5 @@
 # Registry (spdRegistry)
-The Registry keeps track of all the items handled by the mod and provide access to them ([Poses](spdPose.md), [Dances](spdDance.md), [Actors](spdActor.md), [Threads](spodThread.md), etc.)
+The Registry keeps track of all the items handled by the mod and provide access to them ([Poses](spdPose.md), [Dances](spdDance.md), [Actors](spdActor.md), [Performances](spdPerformance.md), etc.)
 
 
 ## SECTION
