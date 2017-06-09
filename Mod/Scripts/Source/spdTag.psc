@@ -407,15 +407,163 @@ endFunction
 string Function print()
 	string res = ""
 	
-	int numTags
-String[] tags
-bool[] tagNegatives
-string[] authors
-string[] dances
-int[] strip ; -1 to dress, 0 to ignore, 1 to strip
-int[] sexys
-int[] skills
-bool andMode
-
-	; FIXME do a string version of the current tag
+	int i=0
+	while i<numTags
+		if tagNegatives[i]
+			res+="!"
+		endIf
+		res+=tags[i]
+		
+		if i<numTags - 1
+			if andMode
+				res+="^"
+			else
+				res+=","
+			endIf
+		endIf
+	
+		i+=1
+	endWhile
+	
+	if authors[0]!=""
+		res+="^"
+		if authorsNegative
+			res+="!"
+		endIf
+		res+="authors:"
+		i = 0
+		bool doneOne = false
+		while i<8
+			if authors[i]!=""
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res+=authors[i]
+			endIf
+		endWhile
+	endIf
+	
+	if dances[0]!=""
+		res+="^"
+		if dancesNegative
+			res+="!"
+		endIf
+		res+="dances:"
+		i = 0
+		bool doneOne = false
+		while i<8
+			if dances[i]!=""
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res+=dances[i]
+			endIf
+		endWhile
+	endIf
+	
+	bool asNeg = false
+	bool asPos = false
+	i=0
+	while i<strip.length
+		is strip[i]<0
+			asNeg=true
+		elseIf strip[i]>0
+			asPos=true
+		endIf
+		i+=1
+	endWhile
+	if asNeg
+		res+=",!strip:"
+		i=0
+		bool doneOne=false
+		while i<strip.length
+			if strip[i]<0
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res += (30+i)
+			endIf
+			i+=1
+		endWhile
+	endIf
+	if asPos
+		res+=",strip:"
+		i=0
+		bool doneOne=false
+		while i<strip.length
+			if strip[i]<0
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res += (30+i)
+			endIf
+			i+=1
+		endWhile
+	endIf
+	
+	bool needed = false
+	i=0
+	while i<sexys.length && !needed
+		is sexys[i]!=0
+			needed=true
+		endIf
+		i+=1
+	endWhile
+	if needed
+		res+=",Sexy:"
+		i=0
+		bool doneOne=false
+		while i<sexys.length
+			if sexys[i]<0
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res += "!" + i
+			elseIf sexys[i]>0
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res += i
+			endIf
+			i+=1
+		endWhile
+	endIf
+	
+	needed = false
+	i=0
+	while i<skills.length && !needed
+		is skills[i]!=0
+			needed=true
+		endIf
+		i+=1
+	endWhile
+	if needed
+		res+=",Skill:"
+		i=0
+		bool doneOne=false
+		while i<skills.length
+			if skills[i]<0
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res += "!" + i
+			elseIf skills[i]>0
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res += i
+			endIf
+			i+=1
+		endWhile
+	endIf
+	
+	return res
 endFunction
