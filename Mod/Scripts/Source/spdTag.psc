@@ -1,20 +1,42 @@
 Scriptname spdTag
 
-; FIXME we should add a way to add the positive tags in OR mode
-
 int numTags
 String[] tags
 bool[] tagNegatives
-string author
-string dance
+string[] authors
+string[] dances
+bool authorsNegative
+bool dancesNegative
 int[] strip ; -1 to dress, 0 to ignore, 1 to strip
-int[] sexys
-int[] skills
+int[] sexys ; -1 to avoid, 0 to ignore, 1 to have
+int[] skills ; -1 to avoid, 0 to ignore, 1 to have
+bool andMode
+
+; String tag format
+;
+; [^][!][tagname[:value]],[!][tagname[:value]],...
+;
+; ^ at begin means all values are in AND mod (all tags have to be there), it applies to all tags except "dance:" and "strip"
+; ! means that the tag is in negative form, so !auth:cpu menas "not CPU as author", for stripping, "!strip:body" means "dress the body"
+;
 
 static string Function _tryToParseTag(string tagCode, string[] validTags, string[] bodyParts)
+	bool tryAndMode = false
+	bool alreadyAuthor = false
+	bool alreadyDance = false
+
 	; Empty string "" if the tag can be parsed and is valid (does not create the tag), a string with te error if any
 	if tagCode==""
 		return "Empty tag"
+	endIf
+	
+	; Check if the items have to be in AND or OR mode
+	if StringUtil.subString(tagCode, 0, 1)=="^"
+		tryAndMode = true
+		tagCode = StringUtil.subString(tagCode, 1)
+		if tagCode==""
+			return "Empty tag"
+		endIf
 	endIf
 
 	string[] parts = StringUtil.Split(tagCode, ",")
@@ -50,12 +72,23 @@ static string Function _tryToParseTag(string tagCode, string[] validTags, string
 		endIf
 		
 		if theTag=="Auth"
-			; Nothing special to verify
+			; in case we are in andMode we can have only one author, but authors can be separated by | (and are in OR mode)
+			if tryAndMode && alreadyAuthor
+				return "Only one author is possible in case the tags are in AND mode"
+			endIf
+			alreadyAuthor = true
+			
 		elseIf theTag=="Dance"
-			; The value should be a known dance
+			; The value should be a known dance, but dances can be separated by | (and are in OR mode)
 			if findDance(theValue)==None
 				return "Unknow dance for the tag: " + theValue;
 			endIf
+			; in case we are in andMode we can have only one author
+			if tryAndMode && alreadyDance
+				return "Only one dance is possible in case the tags are in AND mode"
+			endIf
+			alreadyDance = true
+			
 		elseIf theTag=="Strip"
 			if theValue==""
 				return "Part not specified for stripping tag"
@@ -94,15 +127,30 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 	tags = new string[0]
 	tagNegatives = new Bool[0]
 	strip = new int[32]
-	sexys = new int[0]
-	skills = new int[0]
+	sexys = new int[6]
+	skills = new int[6]
 	numTags = 0
-	author = ""
-	dance = ""
+	authors = new string[8]
+	authorsNegative = false
+	dances = new string[8]
+	dancesNegative = false
+	andMode = false
+	bool doneAuthors = false
+	bool doneDances = false
 
 	if tagCode==""
 		spdF._addError(34, "Empty tag", "spdTag", "init")
 		return true
+	endIf
+	
+	; Check if the items have to be in AND or OR mode
+	if StringUtil.subString(tagCode, 0, 1)=="^"
+		andMode = true
+		tagCode = StringUtil.subString(tagCode, 1)
+		if tagCode==""
+			spdF._addError(34, "Empty tag", "spdTag", "init")
+			return true
+		endIf
 	endIf
 
 	string[] parts = StringUtil.Split(tagCode, ",")
@@ -134,24 +182,83 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 		isValue = (StringUtil.find(theTag, ":")!=-1)
 		if isValue
 			theValue = StringUtil.subString(theValue, StringUtil.find(theTag, ":") + 1)
+			if theValue==""
+				spdF._addError(35, "Invalid tag (" + theTag + "), value is missing", "spdTag", "init")
+				return true
+			endIf
 			theTag = StringUtil.subString(theTag, 0, StringUtil.find(theTag, ":") - 1)
 		endIf
 		
+		bool needToSave = true
 		if theTag=="Auth"
-			; Only one author can be added
-			if author!=""
-				spdF._addError(36, "Not possible to specify multiple authors for a tag (" + theTag + ")", "spdTag", "init")
-				return true
+			if andMode
+				; If we are in AND mode then only one author is possible (but multiple authors can be in OR mode separated by |)
+				if doneAuthors
+					spdF._addError(36, "Not possible to specify multiple authors for a tag in AND mode, separate them with | wo have them in OR mode (" + theTag + ")", "spdTag", "init")
+					return true
+				endIf
+				authors = StringUtil.split(theValue, "|")
+				doneAuthors = true
+			else
+				; In normal OR mode we can have up to 8 authors
+				string[] auths = StringUtil.split(theValue, "|")
+				int a = auths.length
+				while a
+					a-=1
+					if authors.find(auths[a])==-1
+						int pos = authors.find("")
+						if pos==-1
+							spdF._addError(36, "[WARNING] Too many authors specified", "spdTag", "init")
+						else
+							authors[pos] = auths[a]
+						endIf
+					endIf
+				endWhile
+				doneAuthors = true
 			endIf
-			author = theValue
+			needToSave = false
+			authorsNegative = negative
 			
 		elseIf theTag=="Dance"
-			; The value should be a known dance
-			if findDance(theValue)==None
-				spdF._addError(37, "Unknow dance for the tag: " + theValue, "spdTag", "init")
-				return true
+			if andMode
+				; If we are in AND mode then only one dance is possible (but multiple dances can be in OR mode separated by |)
+				if doneDances
+					spdF._addError(37, "Not possible to specify multiple dances for a tag in AND mode, separate them with | wo have them in OR mode (" + theTag + ")", "spdTag", "init")
+					return true
+				endIf
+				dances = StringUtil.split(theValue, "|")
+				int a = dances.length
+				while a
+					a-=1
+					if findDance(dances[a])==None ; The value should be a known dance
+						spdF._addError(37, "Unknow dance for the tag: " + dances[a], "spdTag", "init")
+						return true
+					endIf
+				endWhile
+				doneDances = true
+			else
+				; In normal OR mode we can have up to 8 dances
+				string[] dans = StringUtil.split(theValue, "|")
+				int a = dans.length
+				while a
+					a-=1
+					if findDance(dans[a])==None ; The value should be a known dance
+						spdF._addError(37, "Unknow dance for the tag: " + dans[a], "spdTag", "init")
+						return true
+					endIf
+					if authors.find(dans[a])==-1
+						int pos = authors.find("")
+						if pos==-1
+							spdF._addError(37, "[WARNING] Too many dances specified", "spdTag", "init")
+						else
+							authors[pos] = dans[a]
+						endIf
+					endIf
+				endWhile
+				doneDances = true
 			endIf
-			dance = theValue
+			needToSave = false
+			dancesNegative = negative
 			
 		elseIf theTag=="Strip"
 			if theValue==""
@@ -181,47 +288,116 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 					strip[slot]=1
 				endIf
 			endWhile
+			needToSave = false
 		
 		elseIf theTag=="Sexy"
-			string[] nums = StringUtil.Split(theValue, "|")
-			j = nums.length
-			while j
-				j-=1
-				if nums[i]==""
-					nums[j]="-1"
-				endIf
-			endIf
-			sexys = Utility.CreateIntArray(nums.length)
-			j = nums.length
-			while j
-				j-=1
-				sexys[j] = nums[i] as int
+			; Sexy:0|1|2|3|4|5
+			int k = StringUtil.(theValue.length)
+			j = 0
+			while j<k
+				string item = StringUtil.subString(theValue, j, 1)
+				if item=="0"
+					if negative
+						sexys[0]=-1
+					else
+						sexys[0]=1
+					endIf
+				elseIf item=="1"
+					if negative
+						sexys[1]=-1
+					else
+						sexys[1]=1
+					endIf
+				elseIf item=="2"
+					if negative
+						sexys[2]=-1
+					else
+						sexys[2]=1
+					endIf
+				elseIf item=="3"
+					if negative
+						sexys[3]=-1
+					else
+						sexys[3]=1
+					endIf
+				elseIf item=="4"
+					if negative
+						sexys[4]=-1
+					else
+						sexys[4]=1
+					endIf
+				elseIf item=="5"
+					if negative
+						sexys[4]=-1
+					else
+						sexys[4]=1
+					endIf
+				elseIf item!="|"
+					spdF._addError(35, "[WARNING] Invalid tag (" + theTag + ":" + theValue + "), a part of the value is unkwnon: " + item, "spdTag", "init")
+				endIf 
+				j+=1
 			endWhile
+			needToSave = false
 		
 		elseIf theTag=="Skill"
-			string[] nums = StringUtil.Split(theValue, "|")
-			j = nums.length
-			while j
-				j-=1
-				if nums[i]==""
-					nums[j]="-1"
-				endIf
-			endIf
-			skills = Utility.CreateIntArray(nums.length)
-			j = nums.length
-			while j
-				j-=1
-				skills[j] = nums[i] as int
+			; Skill:0|1|2|3|4|5
+			int k = StringUtil.(theValue.length)
+			j = 0
+			while j<k
+				string item = StringUtil.subString(theValue, j, 1)
+				if item=="0"
+					if negative
+						skills[0]=-1
+					else
+						skills[0]=1
+					endIf
+				elseIf item=="1"
+					if negative
+						skills[1]=-1
+					else
+						skills[1]=1
+					endIf
+				elseIf item=="2"
+					if negative
+						skills[2]=-1
+					else
+						skills[2]=1
+					endIf
+				elseIf item=="3"
+					if negative
+						skills[3]=-1
+					else
+						skills[3]=1
+					endIf
+				elseIf item=="4"
+					if negative
+						skills[4]=-1
+					else
+						skills[4]=1
+					endIf
+				elseIf item=="5"
+					if negative
+						skills[4]=-1
+					else
+						skills[4]=1
+					endIf
+				elseIf item!="|"
+					spdF._addError(35, "[WARNING] Invalid tag (" + theTag + ":" + theValue + "), a part of the value is unkwnon: " + item, "spdTag", "init")
+				endIf 
+				j+=1
 			endWhile
+			needToSave = false
 		
 		endIf
 		
-		; Save the actual tag
-		numTags+=1
-		tags = Utility.resizeStringArray(tags, numTags)
-		tagNegatives = Utility.resizeBoolArray(tagNegatives, numTags)
-		tags[numTags - 1] = theTag
-		tagNegatives[numTags - 1] = negative
+		if needToSave
+			; Save the actual tag
+			numTags+=1
+			tags = Utility.resizeStringArray(tags, numTags)
+			tagNegatives = Utility.resizeBoolArray(tagNegatives, numTags)
+			tags[numTags - 1] = theTag
+			tagNegatives[numTags - 1] = negative
+		endIf
 			
 	endWhile
 
@@ -229,5 +405,17 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 endFunction
 
 string Function print()
+	string res = ""
+	
+	int numTags
+String[] tags
+bool[] tagNegatives
+string[] authors
+string[] dances
+int[] strip ; -1 to dress, 0 to ignore, 1 to strip
+int[] sexys
+int[] skills
+bool andMode
+
 	; FIXME do a string version of the current tag
 endFunction

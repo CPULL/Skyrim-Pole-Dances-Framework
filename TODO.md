@@ -1,9 +1,9 @@
 # TODO
 - [ ] **TAGS**
-    - [ ] Define how to use them and the list of them (all **contributors**)
+    - [X] Define how to use them and the list of them (all **contributors**)
     - [ ] Add code for tags and use them for Performances (**CPU**)
-    - [ ] Add "dance:<name>" type of tag
-    - [ ] Add "strip:<values>" type of tag
+    - [X] Add "dance:<name>" type of tag
+    - [X] Add "strip:<values>" type of tag
 - [ ] **Framework**
     - [X] Add a newThreadTags() function (**CPU**)
 - [ ] **Performances**
@@ -23,5 +23,7 @@
     - [ ] Add a way to preview-poses in the Framework MCM (**CPU**)
     - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
 - [ ] **Hooks**
+    - [ ] Add events in the playing of the performance
 - [ ] **Errors Management**
 	- [ ] Complete errors documentation (**CPU**)
+	- [ ] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
