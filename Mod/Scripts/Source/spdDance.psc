@@ -13,7 +13,7 @@ float _length
 bool _cyclic
 
 string Property name
-	int function get()
+	string function get()
 		return _name
 	endFunction
 endProperty
@@ -26,26 +26,26 @@ endProperty
 
 float Property duration
 	float function get()
-		return _lengtht
+		return _length
 	endFunction
 endProperty
 
 
 spdPose Property startPose
-	float function get()
+	spdPose function get()
 		return _startPose
 	endFunction
 endProperty
 
 spdPose Property endPose
-	float function get()
+	spdPose function get()
 		return _endPose
 	endFunction
 endProperty
 
 
 
-Function init(string name, string hkx, string sp, string ep, float len, bool cyclic)
+Function init(string name, string hkx, spdPose sp, spdPose ep, float len, bool cyclic)
 	_name = name
 	_animEvent = hkx
 	_startPose = sp

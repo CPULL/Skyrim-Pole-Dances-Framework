@@ -24,10 +24,7 @@ bool needPoleCreated
 bool poleCreated
 float duration
 float startTime
-int currentDance
 spdPose startingPose
-spdPose currentPose
-spdDance currentDance
 spdDance[] dances
 spdTag[] tags
 
@@ -39,12 +36,21 @@ string[] poseUsedHooks
 string[] danceEndingHooks
 string[] danceEndedHooks
 
+int stoppedTimes
+float prevWalkX
+float prevWalkY
+
+int currentDance
+int prevDance
+float timeToWait
+float danceStartTime
+
+
 Function __doInit(spdPoleDances s)
 	spdF = s
 	registry = s.registry
 	startingPose = None
-	currentPose = None
-	currentDance = None
+	currentDance = -1
 	if dancer
 		registry._releaseDancer(dancer)
 	endIf
@@ -55,8 +61,8 @@ Function __doInit(spdPoleDances s)
 	pole = None
 	poleCreated = false
 	needPoleCreated = false
-	dances = new spdDance[0]
-	tags = new spdTag[0]
+	dances = none ; new spdDance[0]
+	tags = none ; new spdTag[0]
 	isPerformancePlaying = false
 	isPerformanceValid = false
 endFunction
@@ -83,7 +89,7 @@ endFunction
 
 bool function isValid()
 	; Recalculate
-	isPerformanceValid = (dancer!=None && pole!=none && (duration!=-1.0 || (dances!=None && dances.length>0) || (tags!=None && tags.length>0))
+	isPerformanceValid = (dancer!=None && pole!=none && (duration!=-1.0 || (dances!=None && dances.length>0) || (tags!=None && tags.length>0)))
 	return isValid
 endFunction
 
@@ -118,8 +124,8 @@ bool Function setStartPose(string refStartingPose)
 		return true
 	endIf
 	; Clean the other stuff
-	dances = new spdDance[0]
-	tags = new spdTag[0]
+	dances = none
+	tags = none
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -176,7 +182,7 @@ bool Function setDancesString(string refDances)
 		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Performance", "setDancesString")
 	endIf
 	; Now allocate the array and fill it
-	dances = new spdDance[count]
+	dances = _reAllocateDances(dances, count)
 	i = 0
 	count = 0
 	while i<parts.length
@@ -189,7 +195,7 @@ bool Function setDancesString(string refDances)
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	tags = new spdTag[0]
+	tags = None
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -228,7 +234,7 @@ bool Function setDancesArray(string[] refDances)
 		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Performance", "setDancesArray")
 	endIf
 	; Now allocate the array and fill it
-	dances = new spdDance[count]
+	dances = _reAllocateDances(dances, count)
 	i = 0
 	count = 0
 	while i<refDances.length
@@ -241,7 +247,7 @@ bool Function setDancesArray(string[] refDances)
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	tags = new spdTag[0]
+	tags = none
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -282,7 +288,7 @@ bool Function setTagsString(string refTags)
 		spdF._addError(33, "[WARNING] Some of the tags are not valid: " + errs, "Performance", "setTagsString")
 	endIf
 	; Now allocate the array and fill it
-	tags = new spdTag[count]
+	tags = _allocateTags(count)
 	i = 0
 	count = 0
 	while i<parts.length
@@ -295,7 +301,7 @@ bool Function setTagsString(string refTags)
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	dances = new spdDance[0]
+	dances = none
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -334,7 +340,7 @@ bool Function setTagsArray(string[] refTags)
 		spdF._addError(33, "[WARNING] Some of the Tags are not valid: " + errs, "Performance", "setDancesArray")
 	endIf
 	; Now allocate the array and fill it
-	tags = new spdTag[count]
+	tags = _allocateTags(count)
 	i = 0
 	count = 0
 	while i<refTags.length
@@ -347,7 +353,7 @@ bool Function setTagsArray(string[] refTags)
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	dances = new spdDance[0]
+	dances = none
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -415,7 +421,7 @@ bool function start(bool forceTransitions = true)
 		
 	elseIf startingPose==None && dances.length>0 && tags.length==0
 		; Case tags -> Find the dances (try to respect the transitions in case the param is true)
-		dances = new spdDance[0]
+		dances = none ; new spdDance[0]
 		spdDance d = registry.findDanceByTags(tags[0])
 		if !d && forceTransitions
 			spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
@@ -433,7 +439,7 @@ bool function start(bool forceTransitions = true)
 			else
 				if prev.endPose != next.startPose && forceTransitions
 					; Add a transition
-					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
+					d = registry.findTransitionDance(prev.endPose, next.startPose)
 					if !d
 						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
 					endIf
@@ -477,7 +483,10 @@ endFunction
 
 
 Function _addDance(spdDance[] orig, spdDance d)
-	int num = orig.length
+	int num = 0
+	if orig
+		num = orig.length
+	endIf
 	orig = _reAllocateDances(orig, num + 1)
 	orig[num] = d
 	return orig
@@ -518,20 +527,63 @@ Function _reAllocateDances(spdDance[] origDances, int num)
 	else
 		newDances = new spdDance[16]
 	endIf
-	int i = origDances.length
-	while i
-		i-=1
-		newDances[i] = origDances[i]
-	endWhile
+	if origDances
+		int i = origDances.length
+		while i
+			i-=1
+			newDances[i] = origDances[i]
+		endWhile
+	endIf
 	return newDances
 endFunction
 
-Function abort(bool rightNow=false)
+spdTag[] Function _allocateTags(int num)
+	if num==0
+		return none
+	endIf
+	spdTag[] newTags
+	if num==1
+		newTags = new spdTag[1]
+	elseIf num==2
+		newTags = new spdTag[2]
+	elseIf num==3
+		newTags = new spdTag[3]
+	elseIf num==4
+		newTags = new spdTag[4]
+	elseIf num==5
+		newTags = new spdTag[5]
+	elseIf num==6
+		newTags = new spdTag[6]
+	elseIf num==7
+		newTags = new spdTag[7]
+	elseIf num==8
+		newTags = new spdTag[8]
+	elseIf num==9
+		newTags = new spdTag[9]
+	elseIf num==10
+		newTags = new spdTag[10]
+	elseIf num==11
+		newTags = new spdTag[11]
+	elseIf num==12
+		newTags = new spdTag[12]
+	elseIf num==13
+		newTags = new spdTag[13]
+	elseIf num==14
+		newTags = new spdTag[14]
+	elseIf num==15
+		newTags = new spdTag[15]
+	else
+		newTags = new spdTag[16]
+	endIf
+	return newDances
 endFunction
 
-int stoppedTimes
-float prevWalkX
-float prevWalkY
+
+
+Function abort(bool rightNow=false)
+	; TODO
+endFunction
+
 
 state walking
 	Event OnUpdate()
@@ -557,11 +609,6 @@ state walking
 		RegisterForSingleUpdate(0.5)
 	endEvent
 endState
-
-int currentDance
-int prevDance
-float timeToWait
-float danceStartTime
 
 state Playing
 	Event OnBeginState()
@@ -597,7 +644,7 @@ state Playing
 		endIf
 	endEvent
 
-endFunction
+endState
 
 state Ending
 	Event OnBeginState()

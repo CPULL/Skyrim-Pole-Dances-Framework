@@ -7,10 +7,13 @@ Scriptname spdActor extends ReferenceAlias
 
 int id
 Actor dancer
-Package doNothingPackage
+Package spdDoNothingPackage
+Faction spdDancingFaction
 
-Function init(int theID)
+Function init(int theID, Package pkg, Faction fac)
 	id = theID
+	spdDoNothingPackage = pkg
+	spdDancingFaction = fac
 	clear()
 endFunction
 
@@ -27,10 +30,10 @@ endFunction
 Function clear()
 	if dancer
 		dancer.removeFromFaction(spdDancingFaction)
-		ActorUtils.removePackageOverride(dancer, spdDoNothingPackage)
+		ActorUtil.removePackageOverride(dancer, spdDoNothingPackage)
 		if Self.getActorRef()
 			Self.getActorRef().removeFromFaction(spdDancingFaction)
-			ActorUtils.removePackageOverride(Self.getActorRef(), spdDoNothingPackage)
+			ActorUtil.removePackageOverride(Self.getActorRef(), spdDoNothingPackage)
 		endIf
 	endIf
 	dancer = none

@@ -316,6 +316,10 @@ endFunction
 
 spdTag Function parseTags(string tagCode, validTags, bodyParts)
 	spdTag res = new spdTag
+	
+	; FIXME add a property with the tags array, and return one free in parse tags
+	; FIXME do a way to release the used tags
+	
 	if res.init(tagCode, validTags, bodyParts, spdF)
 		return none
 	endIf
@@ -336,17 +340,21 @@ endFunction
 
 bool Function useGlobalHook(string eventName)
 	; check if the hook is global and return yes/no
+	; TODO
+	return false
 endFunction
 
 Function registerForGlobalHooks(string eventName)
 	; just add a yes/no for each known event
+	; TODO
+	return
 endFunction
 
 
 spdDaces[] Function allocateDances(int count)
 	if count<10
 		if count==0
-			return new spdDances[0]
+			return new none
 		elseIf count==1
 			return new spdDances[1]
 		elseIf count==2

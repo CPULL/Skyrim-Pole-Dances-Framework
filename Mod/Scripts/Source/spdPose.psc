@@ -8,7 +8,7 @@ float _startTime
 float _endTime
 
 string Property name
-	int function get()
+	string function get()
 		return _name
 	endFunction
 endProperty
