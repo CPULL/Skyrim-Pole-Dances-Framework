@@ -1,12 +1,12 @@
 # Pole Dance Hooks
-Hooks are used to send `ModEvents` to your code when something happen.
+Hooks are used to send `ModEvents` to your code when something is to happen.
 
-To receive the events is important to subscribe to them, and to register for Mod Events.
+To receive the events, it is important to subscribe to them and to register for Mod Events.
 
 ## Events Definition (by Hooks)
 
 ### \<Hook\>\_DanceStarting(tid, dancer, pose)
-Event sent when the pole Dance is being initialized and just started, and the actor begins to walk to the pole.
+Event sent when the pole Dance is being initialized and just started and the actor begins to walk to the pole.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
 ```Papyrus
@@ -19,14 +19,14 @@ Event HandleTheEvent(int threadId, Form dancer, string startPose)
 	debug.trace("The actor " + ((Actor)dancer).getDisplayName() + " is going to the pole and will start with the pose named " + startPose + ". The Pole Dance Thread has the id " + threadId)
 endEvent
 ```
-This is a hook event, so you have to define your own Hook name. The event to register for will have as name `<your hook name>`_`DanceStarting`.
+This is a hook event so you have to define your own Hook name. The event to register will have a name such as `<your hook name>`_`DanceStarting`.
 The event is sent only if someone registered for it.
 
-If Global Events are registered, also the event `GlobalDanceStarting` is sent.
+If Global Events are registered, the event `GlobalDanceStarting` is also sent.
 
 
 ### \<Hook\>\_DanceStarted(tid, dancer, dance, pose)
-Event sent when the actor reached the pole and start the actual dance.
+Event sent when the actor reaches the pole and starts the actual dance.
 * To receive this event you need to subscribe to it.
 * The subscription is done inside the [spdThread](spdThread.md) object.
 ```Papyrus
@@ -59,10 +59,10 @@ Event HandleTheEvent(int threadId, Form dancer, string danceName)
 	debug.trace("The actor " + ((Actor)dancer).getDisplayName() + " is performing the dance " + dance + " in the Thread " + threadId)
 endEvent
 ```
-This is a hook event, so you have to define your own Hook name. The event to register for will have as name `<your hook name>`_`DanceChanged`.
+This is a hook event so you have to define your own Hook name. The event to register will have a name such as `<your hook name>`_`DanceChanged`.
 The event is sent only if someone registered for it
 
-If Global Events are registered, also the event `GlobalDanceChanged` is sent.
+If Global Events are registered, the event `GlobalDanceChanged` is also sent.
 
 
 ### \<Hook\>\_PoseUsed(tid, dancer, prevDance, pose, nextDance)
