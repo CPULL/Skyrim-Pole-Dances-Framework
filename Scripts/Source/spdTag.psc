@@ -1,4 +1,4 @@
-Scriptname spdTag
+Scriptname spdTag extends ReferenceAlias
 
 spdPoleDances spdF
 spdRegistry registry

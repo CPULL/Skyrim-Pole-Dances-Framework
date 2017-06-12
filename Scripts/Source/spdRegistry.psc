@@ -5,6 +5,15 @@ spdPoleDances spdF
 package Property spdWalkPackage Auto
 package Property spdDoNothingPackage Auto
 
+string[] bodyParts
+spdPerformance[] performances
+spdDance[] dances
+spdPose[] poses
+spdTag[] tags
+int[] tagRegistry
+string[] validTags
+
+
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
 ; ************                                           Init Functions                                                                               ************
@@ -33,13 +42,15 @@ endFunction
 ; This will just check stuff, and call the mod event to have other mods to add their own dances
 Function reInit(int version, spdPoleDances spd)
 	; TODO
+
+debug.trace("SPD: Registry reInit")
 	
 	spdF = spd
 	; Load all known poses and dances
 	editing = true
 	
 	
-	
+	; ((- Body Parts
 	bodyParts = new String[64]
 	bodyParts[0] = "Head"
 	bodyParts[1] = "Hair"
@@ -107,7 +118,54 @@ Function reInit(int version, spdPoleDances spd)
 	bodyParts[62] = "60"
 	bodyParts[63] = "61"
 
+	; -))
 	
+	
+	; Performances TODO
+debug.trace("SPD: Registry init of performances")
+	int i = performances.length
+	while i
+		i-=1
+		performances[i]._doInit(spdF)
+	endWhile
+
+	performances = new spdPerformance[8]
+	dances = new spdDance[16]
+	poses = new spdPose[16]
+	tags = new spdTag[64]
+	
+	; Dances TODO
+	int countPerformances = 0
+	int countDances = 0
+	int countPoses = 0
+	int countTags = 0
+	Alias[] allAliases = GetAliases()
+	i = allAliases.length
+	while i
+		i-=1
+		if StringUtil.Find(allAliases[i].GetName(), "spdPerformance")!=-1
+			performances[countPerformances] = allAliases[i] as spdPerformance
+			countPerformances += 1
+		elseIf StringUtil.Find(allAliases[i].GetName(), "spdDance")!=-1
+			dances[countDances] = allAliases[i] as spdDance
+			countDances += 1
+		elseIf StringUtil.Find(allAliases[i].GetName(), "spdPose")!=-1
+			poses[countPoses] = allAliases[i] as spdPose
+			countPoses += 1
+		elseIf StringUtil.Find(allAliases[i].GetName(), "spdTag")!=-1
+			tags[countTags] = allAliases[i] as spdTag
+			countTags += 1
+		endIf
+	endWhile
+	
+debug.trace("SPD: Found " + countDances + " Dances")
+debug.trace("SPD: Found " + countPoses + " poses")
+debug.trace("SPD: Found " + countTags + " tags")
+	
+	
+	; Poses TODO
+	
+	; Tags TODO
 	
 	
 	; Send the event to register other poses and dances from mods
@@ -116,6 +174,7 @@ Function reInit(int version, spdPoleDances spd)
 	ModEvent.pushInt(modEvId, spdF.getVersion())
 	ModEvent.pushForm(modEvId, Self)
 	ModEvent.send(modEvId)
+debug.trace("SPD: Registry end")
 endFunction
 
 bool editing = false
@@ -143,8 +202,7 @@ endFunction
 ; ************                                             Performances                                                                               ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
-
-spdPerformance[] Property performances auto
+; ((-
 
 spdPerformance Function _allocatePerformance()
 	int i = 0
@@ -159,12 +217,14 @@ spdPerformance Function _allocatePerformance()
 	return None
 endFunction
 
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
 ; ************                                            Actors                                                                                      ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
+; ((-
 
 Faction Property spdDancingFaction Auto
 
@@ -221,14 +281,15 @@ Function _unlockActor(Actor a)
 	; FIXME
 endFunction
 
+; -))
+
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
 ; ************                                           Poses                                                                                        ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-; Poses
-spdPose[] poses
+; ((- Poses
 
 spdPose Function findRandomStartPose()
 	return poses[Utility.randomInt(0, poses.length - 1)]
@@ -247,7 +308,7 @@ spdPose Function findPose(string poseName)
 endFunction
 
 
-
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -258,7 +319,6 @@ endFunction
 ; ((-
 
 ; Dance Anims
-spdDance[] dances
 
 spdDance Function findDanceByPose(spdPose pose)
 	int count = 0
@@ -330,9 +390,7 @@ endFunction
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-string[] validTags
-spdTag[] Property tags Auto
-int[] Property tagRegistry Auto
+; ((- tags
 
 
 string Function tryToParseTags(string tagCode)
@@ -360,7 +418,7 @@ endFunction
 
 
 
-
+; -))
 ; TODO
 
 ; ****************************************************************************************************************************************************************
@@ -459,7 +517,6 @@ endFunction
 
 ; FIXME add better formatting
 
-string[] bodyParts
 
 
 

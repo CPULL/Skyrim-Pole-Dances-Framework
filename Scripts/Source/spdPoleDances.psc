@@ -21,21 +21,27 @@ int Function getVersion()
 endFunction
 
 Function _doInit()
+debug.trace("SPD: init doInit")
 	if currentVersion != getVersion()
+debug.trace("SPD: doUpdate")
 		_doUpdate()
 	endIf
 	currentVersion = getVersion()
-	
-	registry.reInit(currentVersion, Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
+debug.trace("SPD: getting version and init errors")
 	
 	errors = new string[32]
 	errorSources = new string[32]
 	errorMethods = new string[32]
 	numErrors = 0
 	
+debug.trace("SPD: reInit registry")
+	registry.reInit(currentVersion, Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
+debug.trace("SPD: sending mod event")
+	
 	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
 	ModEvent.pushInt(modEvId, currentVersion)
 	ModEvent.send(modEvId)
+debug.trace("SPD: init completed")
 endFunction
 
 Function _doUpdate()

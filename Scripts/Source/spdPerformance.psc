@@ -6,6 +6,11 @@ Scriptname spdPerformance extends ReferenceAlias
 ; FIXME Add stop() function
 ; FIXME Make private all functions that should be private
 ; FIXME 
+; FIXME pre-define the lenght of the dances
+; FIXME Remove the functions to re-allocate the dances
+; FIXME pre-define the lenght of the tags
+; FIXME Remove the functions to re-allocate the tags
+; FIXME 
 ; FIXME 
 ; FIXME 
 ; FIXME 
@@ -26,7 +31,9 @@ float duration
 float startTime
 spdPose startingPose
 spdDance[] dances
+int numDances
 spdTag[] tags
+int numTags
 
 string[] danceInitHooks
 string[] danceStartingHooks
@@ -61,8 +68,10 @@ Function _doInit(spdPoleDances s)
 	pole = None
 	poleCreated = false
 	needPoleCreated = false
-	dances = none ; new spdDance[0]
-	tags = none ; new spdTag[0]
+	dances = new spdDance[16]
+	numDances = 0
+	tags = new spdTag[16]
+	numTags = 0
 	isPerformancePlaying = false
 	isPerformanceValid = false
 endFunction
