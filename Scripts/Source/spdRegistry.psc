@@ -1,6 +1,9 @@
-Scriptname spdRegistry
+Scriptname spdRegistry extends Quest
 
 spdPoleDances spdF
+
+package Property spdWalkPackage Auto
+package Property spdDoNothingPackage Auto
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -9,29 +12,22 @@ spdPoleDances spdF
 ; ****************************************************************************************************************************************************************
 
 ; Init function (DoInit, called by OnGameStart and OnInit of main quest)
-function doInit(int version, spdPoleDances spd)
+function _doInit(int version, spdPoleDances spd)
 	; TODO init the arrays
 	; Register the ones we know (DancesDefaults)
 	; Call the events to register further dances and poses
 	
 	spdF = spd
 	
-	; Performances
-	int i = 0
-	performances = new spdPerformance[16]
-	while i<performances.length
-		performances[i] = new spdPerformance()
-		performances[i].id = i + 1
-		performanceInUse[i] = false
-	endWhile
 	
 	; Init all actors (if there is any, just free it quickly)
 	
-	quest.getAliases
-	resize the array
-	for each alias set it with a progressive id and initialize it
+	; FIXME
+;	quest.getAliases
+;	resize the array
+;	for each alias set it with a progressive id and initialize it
 	
-	reInit(version)
+	reInit(version, spd)
 endFunction
 
 ; This will just check stuff, and call the mod event to have other mods to add their own dances
@@ -117,7 +113,7 @@ Function reInit(int version, spdPoleDances spd)
 	; Send the event to register other poses and dances from mods
 	editing = false
 	int modEvId = ModEvent.Create("SkyrimPoleDancesRegistryUpdated")
-	ModEvent.pushInt(modEvId, currentVersion)
+	ModEvent.pushInt(modEvId, spdF.getVersion())
 	ModEvent.pushForm(modEvId, Self)
 	ModEvent.send(modEvId)
 endFunction
@@ -148,13 +144,13 @@ endFunction
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-spdPerformance[] performances
+spdPerformance[] Property performances auto
 
 spdPerformance Function _allocatePerformance()
 	int i = 0
 	while i<performances.length
-		if !performance[i].isInUse()
-			if !performance[i].use(spdF)
+		if !performances[i].isInUse()
+			if !performances[i].use(spdF)
 				return performances[i]
 			endIf
 		endIf
@@ -178,15 +174,16 @@ actor[] refActors
 
 bool function _allocateActor(Actor a)
 	if !a
-		spdF.addError(2, "Trying to allocate a null actor", "Registry", "allocateActor")
+		spdF._addError(2, "Trying to allocate a null actor", "Registry", "allocateActor")
 		return true ; Bad actor
 	endIf
-	if a.isOnMout() || a.isSwimming() || a.isFlying() || a.getActorbase().isChild() || a.isChild || a.isInCombat() || a.isDead() || a.IsUnconscious()
-		spdF.addError(3, "Trying to allocate a non valid actor: " + a.getDisplayName(), "Registry", "allocateActor")
+	
+	if a.isOnMount() || a.isSwimming() || a.isFlying() || a.getRace().IsChildRace() || a.isChild() || a.isInCombat() || a.isDead() || a.IsUnconscious()
+		spdF._addError(3, "Trying to allocate a non valid actor: " + a.getDisplayName(), "Registry", "allocateActor")
 		return true ; Bad actor
 	endIf
 	if a.isInFaction(spdDancingFaction) && refActors.find(a)!=-1
-		spdF.addError(4, "The actor " + a.getDisplayName() + " is already allocated and dancing", "Registry", "allocateActor")
+		spdF._addError(4, "The actor " + a.getDisplayName() + " is already allocated and dancing", "Registry", "allocateActor")
 		return true ; Already used
 	endIf
 	
@@ -201,9 +198,9 @@ bool function _allocateActor(Actor a)
 	return false
 endFunction
 
-function releaseActor(Actor a)
+function _releaseDancer(Actor a)
 	int pos = refActors.find(a)
-	if a==-1
+	if pos==-1
 		return
 	endIf
 	
@@ -211,6 +208,18 @@ function releaseActor(Actor a)
 	refActors[pos] = none
 endFunction
 
+Function _lockActor(Actor a, Package pkg, ObjectReference pole)
+	; Remove the controls in case is the player
+	; Set the package
+	; Associate with the pole
+	; FIXME
+endFunction
+
+Function _unlockActor(Actor a)
+	; Give back controls if player
+	; Remove the package
+	; FIXME
+endFunction
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -251,7 +260,7 @@ endFunction
 ; Dance Anims
 spdDance[] dances
 
-spdDance[] Function findDance(spdPose pose)
+spdDance Function findDanceByPose(spdPose pose)
 	int count = 0
 	int i = dances.length
 	while i
@@ -262,7 +271,7 @@ spdDance[] Function findDance(spdPose pose)
 	endWhile
 	
 	; Allocate the array (damn, a SKSE plugin will be beneficial here)
-	spdDance res = allocateDances(count)
+	spdDance[] res = allocateDances(count)
 	count = 0
 	i = dances.length
 	while i && count<res.length
@@ -273,10 +282,10 @@ spdDance[] Function findDance(spdPose pose)
 		endIf
 	endWhile
 	
-	return res
+	return res[Utility.randomInt(0, res.length - 1)]
 endFunction
 
-spdDance Function getDance(string name)
+spdDance Function findDanceByName(string name)
 	int i=dances.length
 	while i
 		i-=1
@@ -286,6 +295,22 @@ spdDance Function getDance(string name)
 	endWhile
 	return none
 endFunction
+
+spdDance Function findDanceByTags(spdTag tag)
+	; FIXME find all dances that are respecting the tag and return a random one
+	return dances[0]
+endFunction
+
+spdDance Function findRandomDance()
+	; FIXME pick one randomly
+	return dances[0]
+endFunction
+
+spdDance Function findTransitionDance(spdPose prev, spdPose next)
+	; FIXME check in all dances the ones that start with the prev and ends with next, then give one back randomly
+	return dances[0]
+endFunction
+
 
 ; -))
 
@@ -306,21 +331,28 @@ endFunction
 ; ****************************************************************************************************************************************************************
 
 string[] validTags
-
+spdTag[] Property tags Auto
+int[] Property tagRegistry Auto
 
 
 string Function tryToParseTags(string tagCode)
-	return spdTag._tryToParseTags(tagCode, validTags, bodyParts)
+	return spdTag._tryToParseTags(tagCode, validTags, bodyParts, Self)
 endFunction
 
+; FIXME do a way to release the used tags
 
-spdTag Function parseTags(string tagCode, validTags, bodyParts)
-	spdTag res = new spdTag
+spdTag Function parseTags(string tagCode)
+	; Allocate one of the tags
+	int pos = tagRegistry.find(0)
+	if pos==-1
+		spdF._addError(99, "No more available tags!", "Registry", "parseTag") ; FIXME change the error code
+		return none
+	endIf
+
+	spdTag res = tags[pos]
+	tagRegistry[pos] = 1
 	
-	; FIXME add a property with the tags array, and return one free in parse tags
-	; FIXME do a way to release the used tags
-	
-	if res.init(tagCode, validTags, bodyParts, spdF)
+	if res._init(tagCode, validTags, bodyParts, spdF)
 		return none
 	endIf
 	return res
@@ -351,75 +383,75 @@ Function registerForGlobalHooks(string eventName)
 endFunction
 
 
-spdDaces[] Function allocateDances(int count)
+spdDance[] Function allocateDances(int count)
 	if count<10
 		if count==0
-			return new none
+			return none
 		elseIf count==1
-			return new spdDances[1]
+			return new spdDance[1]
 		elseIf count==2
-			return new spdDances[2]
+			return new spdDance[2]
 		elseIf count==3
-			return new spdDances[3]
+			return new spdDance[3]
 		elseIf count==4
-			return new spdDances[4]
+			return new spdDance[4]
 		elseIf count==5
-			return new spdDances[5]
+			return new spdDance[5]
 		elseIf count==6
-			return new spdDances[6]
+			return new spdDance[6]
 		elseIf count==7
-			return new spdDances[7]
+			return new spdDance[7]
 		elseIf count==8
-			return new spdDances[8]
+			return new spdDance[8]
 		elseIf count==9
-			return new spdDances[9]
+			return new spdDance[9]
 		endIf
 	elseIf count<20
 		if count==10
-			return new spdDances[10]
+			return new spdDance[10]
 		elseIf count==11
-			return new spdDances[11]
+			return new spdDance[11]
 		elseIf count==12
-			return new spdDances[12]
+			return new spdDance[12]
 		elseIf count==13
-			return new spdDances[13]
+			return new spdDance[13]
 		elseIf count==14
-			return new spdDances[14]
+			return new spdDance[14]
 		elseIf count==15
-			return new spdDances[15]
+			return new spdDance[15]
 		elseIf count==16
-			return new spdDances[16]
+			return new spdDance[16]
 		elseIf count==17
-			return new spdDances[17]
+			return new spdDance[17]
 		elseIf count==18
-			return new spdDances[18]
+			return new spdDance[18]
 		elseIf count==19
-			return new spdDances[19]
+			return new spdDance[19]
 		endIf
 	elseIf count<30
 		if count==20
-			return new spdDances[20]
+			return new spdDance[20]
 		elseIf count==21
-			return new spdDances[21]
+			return new spdDance[21]
 		elseIf count==22
-			return new spdDances[22]
+			return new spdDance[22]
 		elseIf count==23
-			return new spdDances[23]
+			return new spdDance[23]
 		elseIf count==24
-			return new spdDances[24]
+			return new spdDance[24]
 		elseIf count==25
-			return new spdDances[25]
+			return new spdDance[25]
 		elseIf count==26
-			return new spdDances[26]
+			return new spdDance[26]
 		elseIf count==27
-			return new spdDances[27]
+			return new spdDance[27]
 		elseIf count==28
-			return new spdDances[28]
+			return new spdDance[28]
 		elseIf count==29
-			return new spdDances[29]
+			return new spdDance[29]
 		endIf
 	else
-		return new spdDances[30] ; FIXME in future handle more dances, right now it is nonsense
+		return new spdDance[30] ; FIXME in future handle more dances, right now it is nonsense
 	endIf
 endFunction
 

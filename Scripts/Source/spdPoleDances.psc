@@ -4,7 +4,7 @@ Scriptname spdPoleDances Extends Quest
 ; ((- Properties
 
 spdRegistry Property registry Auto
-Static Property mainPole
+Static Property spdMainPole Auto
 Actor Property PlayerRef Auto
 Package Property spdDoNothingPackage Auto
 Faction Property spdDancingFaction Auto
@@ -21,7 +21,7 @@ int Function getVersion()
 endFunction
 
 Function _doInit()
-	if currentV != getVersion()
+	if currentVersion != getVersion()
 		_doUpdate()
 	endIf
 	currentVersion = getVersion()
@@ -43,8 +43,8 @@ Function _doUpdate()
 	registry._doInit(getVersion(), Self) ; This will initialize all arrays
 endFunction
 
-spdPoleDances static Function getInstance()
-	return Game.getFormFormMod("Skyrim Pole Dances.esp", 0x000001) as spdPoleDances
+spdPoleDances Function getInstance() Global
+	return Game.GetFormFromFile(0x0012C4, "Skyrim Pole Dances.esp") as spdPoleDances
 endFunction
 
 ; -))
@@ -62,9 +62,9 @@ bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration
 		_addError(10, "No Performances available", "PoleDancesFramework", "QuickStart")
 		return true
 	endIf
-	th._doInit()
+	th._doInit(Self)
 	th.setBasicOption(dancer, pole, duration)
-	th.setStartingPose(startingPose)
+	th.setStartPose(startingPose)
 	if th.start()
 		Debug.Trace("SPD: problems starting a Pole Dance Performance.") ; FIXME
 		return true
@@ -73,12 +73,12 @@ bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration
 endFunction
 
 spdPerformance Function newPerformance(Actor dancer, ObjectReference pole=None, float duration=-1.0)
-	spdPerformance th = Registry._allocatePerformance(dancer, pole, duration)
+	spdPerformance th = Registry._allocatePerformance()
 	if !th
 		_addError(10, "No Performances available", "PoleDancesFramework", "newPerformance")
 		return None
 	endIf
-	th._doInit()
+	th._doInit(Self)
 	th.setBasicOption(dancer, pole, duration)
 	return th
 endFunction
@@ -94,14 +94,17 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
-ObjectReference Function placePole(ObjectReference location = None, float distance = 0.0, float rotation = 0.0)
-	ObjectRef re = location
+ObjectReference Function placePole(ObjectReference loc = None, float distance = 0.0, float rotation = 0.0)
+	ObjectReference ref = loc
 	if !ref
 		ref = PlayerRef
 	endIf
 	
 	float zAngle = ref.getAngleZ()
-	return location.placeAtMe(mainPole, Math.cos(zAngle + rotation) * distance, Math.sin(zAngle + rotation) * distance, ref.z, true)
+	ObjectReference res = loc.placeAtMe(spdMainPole, 1, false, true)
+	res.moveTo(loc, Math.cos(zAngle + rotation) * distance, Math.sin(zAngle + rotation) * distance, 0.0, true)
+	res.enable(true)
+	return res
 endFunction
 
 Function removePole(ObjectReference pole)

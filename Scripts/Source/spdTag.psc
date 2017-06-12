@@ -1,5 +1,7 @@
 Scriptname spdTag
 
+spdPoleDances spdF
+spdRegistry registry
 int numTags
 String[] tags
 bool[] tagNegatives
@@ -20,7 +22,7 @@ bool andMode
 ; ! means that the tag is in negative form, so !auth:cpu menas "not CPU as author", for stripping, "!strip:body" means "dress the body"
 ;
 
-static string Function _tryToParseTag(string tagCode, string[] validTags, string[] bodyParts)
+string Function _tryToParseTags(string tagCode, string[] validTags, string[] bodyParts, spdRegistry reg) global
 	bool tryAndMode = false
 	bool alreadyAuthor = false
 	bool alreadyDance = false
@@ -80,7 +82,7 @@ static string Function _tryToParseTag(string tagCode, string[] validTags, string
 			
 		elseIf theTag=="Dance"
 			; The value should be a known dance, but dances can be separated by | (and are in OR mode)
-			if findDance(theValue)==None
+			if reg.findDanceByName(theValue)==None
 				return "Unknow dance for the tag: " + theValue;
 			endIf
 			; in case we are in andMode we can have only one author
@@ -123,9 +125,9 @@ endFunction
 
 
 ; Returns true in case of errors
-bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleDances spdF)
-	tags = new string[0]
-	tagNegatives = new Bool[0]
+bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdPoleDances spd)
+	tags = new string[1]
+	tagNegatives = new Bool[1]
 	strip = new int[32]
 	sexys = new int[6]
 	skills = new int[6]
@@ -137,6 +139,8 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 	andMode = false
 	bool doneAuthors = false
 	bool doneDances = false
+	registry = spdF.registry
+	spdF = spd
 
 	if tagCode==""
 		spdF._addError(34, "Empty tag", "spdTag", "init")
@@ -155,6 +159,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 
 	string[] parts = StringUtil.Split(tagCode, ",")
 	int i=parts.length
+	int j=0
 	while i
 		i-=1
 		
@@ -165,20 +170,13 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 			negative = true
 		endIf
 		; Has to start with a known tag, in case the tag has values we need to check that the vaues are good
-		int j = validTags.length
-		bool isGood=false
+		bool isGood=(validTags.Find(theTag)!=-1)
 		bool isValue=false
-		while j
-			j-=1
-			if validTags[j].Find(theTag)!=-1
-				isGood=true
-				j=0
-			endIf
-		endWhile
 		if !isGood
 			spdF._addError(35, "Unknow tag (" + theTag + ")", "spdTag", "init")
 			return true
 		endIf
+		string theValue = ""
 		isValue = (StringUtil.find(theTag, ":")!=-1)
 		if isValue
 			theValue = StringUtil.subString(theValue, StringUtil.find(theTag, ":") + 1)
@@ -230,7 +228,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 				int a = dances.length
 				while a
 					a-=1
-					if findDance(dances[a])==None ; The value should be a known dance
+					if registry.findDanceByName(dances[a])==None ; The value should be a known dance
 						spdF._addError(37, "Unknow dance for the tag: " + dances[a], "spdTag", "init")
 						return true
 					endIf
@@ -242,7 +240,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 				int a = dans.length
 				while a
 					a-=1
-					if findDance(dans[a])==None ; The value should be a known dance
+					if registry.findDanceByName(dans[a])==None ; The value should be a known dance
 						spdF._addError(37, "Unknow dance for the tag: " + dans[a], "spdTag", "init")
 						return true
 					endIf
@@ -292,7 +290,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 		
 		elseIf theTag=="Sexy"
 			; Sexy:0|1|2|3|4|5
-			int k = StringUtil.(theValue.length)
+			int k = StringUtil.getLength(theValue)
 			j = 0
 			while j<k
 				string item = StringUtil.subString(theValue, j, 1)
@@ -341,7 +339,7 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 		
 		elseIf theTag=="Skill"
 			; Skill:0|1|2|3|4|5
-			int k = StringUtil.(theValue.length)
+			int k = StringUtil.getLength(theValue)
 			j = 0
 			while j<k
 				string item = StringUtil.subString(theValue, j, 1)
@@ -394,7 +392,9 @@ bool Function _init(string tag, string[] validTags, string[] bodyParts, spdPoleD
 			; Save the actual tag
 			numTags+=1
 			tags = Utility.resizeStringArray(tags, numTags)
-			tagNegatives = Utility.resizeBoolArray(tagNegatives, numTags)
+			if tagNegatives.length!=numTags
+				tagNegatives = Utility.resizeBoolArray(tagNegatives, numTags)
+			endIf
 			tags[numTags - 1] = theTag
 			tagNegatives[numTags - 1] = negative
 		endIf
@@ -467,7 +467,7 @@ string Function print()
 	bool asPos = false
 	i=0
 	while i<strip.length
-		is strip[i]<0
+		if strip[i]<0
 			asNeg=true
 		elseIf strip[i]>0
 			asPos=true
@@ -508,7 +508,7 @@ string Function print()
 	bool needed = false
 	i=0
 	while i<sexys.length && !needed
-		is sexys[i]!=0
+		if sexys[i]!=0
 			needed=true
 		endIf
 		i+=1
@@ -538,7 +538,7 @@ string Function print()
 	needed = false
 	i=0
 	while i<skills.length && !needed
-		is skills[i]!=0
+		if skills[i]!=0
 			needed=true
 		endIf
 		i+=1
