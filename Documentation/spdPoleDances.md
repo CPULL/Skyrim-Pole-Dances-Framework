@@ -194,16 +194,12 @@ An _int_ that is the ID of the type of error.
 * 21 -> (Performances) The requested dances are not valid (empty string to declare dances)
 * 22 -> (Performances) No one of the requested dances is valid
 * 23 -> [WARNING] Some of the dances are not valid: \<_list of dance names_\> (this is just a warning and will not stop the Performance)
-* 30 -> (Tags) Generic error on Tags
-* 31 -> (Tags) The requested Tags are not valid (empty string to declare tags)
-* 32 -> (Tags) No one of the requested tags is valid
-* 33 -> (Tags) [WARNING] Some of the tags are not valid: \<_list of tags_\> (this is just a warning and will not stop the Performance)
-* 34 -> (Tags) Empty tag
-* 35 -> (Tags) Unknow tag
-* 36 -> (Tags) Not possible to specify multiple authors for a tag \<_tag_\>
-* 37 -> (Tags) Unknow dance for the tag \<_tag_\> (applies to tags of the form "dance\<_dance name_\>")
-* 38 -> (Tags) Part not specified for stripping tag \<_tag_\>
-* 39 -> (Tags) Unknown part \<_body slot name or number_\> for stripping tag
+* 30 -> (Registry) No more slots available for Poses \<_Pose name_\>
+* 31 -> (Registry) No more slots available for Dances \<_Dance name_\>
+* 32 -> (Registry) Start pose \<_Pose name_\> for Dance \<_Dance name_\> does not exist!
+* 33 -> (Registry) End pose \<_Pose name_\> for Dance \<_Dance name_\> does not exist!
+* 34 -> (Registry) No more space available for tags!
+* 35 -> (Registry)
 * 40 -> (Performances) Generic error on playing performances
 * 41 -> (Performances) The performance is already playing, it cannot be started again
 * 42 -> (Performances) The performance is not valid, it cannot be started
@@ -211,6 +207,21 @@ An _int_ that is the ID of the type of error.
 * 44 -> (Performances) Could not find a dance starting with pose \<_pose name_\>
 * 45 -> (Performances) Could not find an intermediate dance starting with pose \<_pose name_\>
 * 46 -> (Performances) Could not find a dance for tags \<_tag_\>
+* 50 -> (Tags) The requested Tags is empty and not valid (empty string to declare tags)
+* 51 -> (Tags) Unknow tag \<_tag_\>
+* 52 -> (Tags) Invalid tag \<_tag_\>, the value is missing
+* 53 -> (Tags) Not possible to specify multiple authors for a tag \<_tag_\>
+* 54 -> (Tags) [WARNING] Too many authors specified
+* 55 -> (Tags) Not possible to specify multiple dances for a tag in AND mode, separate them with | wo have them in OR mode (\<_tag_\>)
+* 56 -> (Tags) Unknow dance for the tag \<_tag_\> (applies to tags of the form "dance\<_dance name_\>")
+* 57 -> (Tags) [WARNING] Too many dances specified
+* 58 -> (Tags) Part not specified for stripping tag \<_tag_\>
+* 59 -> (Tags) Unknown part \<_body slot name or number_\> for stripping tag
+* 60 -> (Tags) [WARNING] Invalid tag (\<_tag_\>), a part of the value is unkwnon: \<_value\> (applies to Sexy and Skill tags)
+* 61 -> (Tags) The requested Tags are not valid (generated inside a Performance)
+* 62 -> (Tags) No one of the requested Tags is valid (generated inside a Performance)
+* 62 -> (Tags) [WARNING] Some of the Tags are not valid: \<_errors_\> (generated inside a Performance)
+
 
 
 <br><br><hr><br><br>

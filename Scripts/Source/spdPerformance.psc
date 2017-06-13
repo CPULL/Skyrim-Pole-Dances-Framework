@@ -16,13 +16,54 @@ Scriptname spdPerformance extends ReferenceAlias
 ; FIXME 
 
 
-int id
 spdPoleDances spdF
 spdRegistry registry
+bool _inUse
+
+bool Property inUse
+	bool Function get()
+		return _inUse
+	endFunction
+endProperty
+
+Function _allocate()
+	_inUse = true
+endFunction
+
+Function release()
+	; Stop it, release actors if any
+	startingPose = None
+	currentDance = -1
+	if dancer
+		registry._releaseDancer(dancer)
+	endIf
+	dancer = none
+	if pole && poleCreated
+		spdF.removePole(pole)
+	endIf
+	pole = None
+	poleCreated = false
+	needPoleCreated = false
+	int i=dances.length
+	while i
+		i-=1
+		dances[i] = none
+	endWhile
+	numDances = 0
+	i=tags.length
+	while i
+		i-=1
+		tags[i] = none
+	endWhile
+	numTags = 0
+	isPerformancePlaying = false
+	isPerformanceValid = false
+	_inUse = false
+endFunction
+
 
 bool isPerformanceValid = false
 bool isPerformancePlaying = false
-bool isPerformanceInUse = false
 Actor dancer
 ObjectReference pole
 bool needPoleCreated
@@ -72,6 +113,7 @@ Function _doInit(spdPoleDances s)
 	numDances = 0
 	tags = new spdTag[16]
 	numTags = 0
+	_inUse = false
 	isPerformancePlaying = false
 	isPerformanceValid = false
 endFunction
@@ -81,19 +123,7 @@ bool function isPlaying()
 	return isPerformancePlaying
 endFunction
 
-bool function isInUse()
-	return isPerformanceInUse
-endFunction
-
-bool function use(spdPoleDances s)
-	if isPerformanceInUse
-		s._addError(12, "Trying to use a performance that is already being used (" + id + ")", "Performance", "use")
-		return true
-	endIf
-
-	isPerformanceInUse = true
-	_doInit(s)
-	return false
+bool function use(spdPoleDances s) ; FIXME do not use that, do it automatically in allocatePerformance
 endFunction
 
 bool function isValid()
@@ -127,7 +157,7 @@ bool Function setStartPose(string refStartingPose)
 		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setStartPose")
 		return true
 	endIf
-	startingPose = registry.findPose(refStartingPose)
+	startingPose = registry.findPoseByName(refStartingPose)
 	if startingPose==None
 		spdF._addError(20, "The requested starting pose \"" + refStartingPose + "\" does not exist", "Performance", "setStartPose")
 		return true
@@ -322,7 +352,7 @@ bool Function setTagsArray(string[] refTags)
 		return true
 	endIf
 	if !refTags || refTags.length==0
-		spdF._addError(31, "The requested Tags are not valid", "Performance", "setDancesArray")
+		spdF._addError(61, "The requested Tags are not valid", "Performance", "setDancesArray")
 		return true
 	endIf
 	
@@ -342,11 +372,11 @@ bool Function setTagsArray(string[] refTags)
 		i+=1
 	endWhile
 	if count==0
-		spdF._addError(32, "No one of the requested Tags is valid", "Performance", "setDancesArray")
+		spdF._addError(62, "No one of the requested Tags is valid", "Performance", "setDancesArray")
 		return true
 	endIf
 	if errs!=""
-		spdF._addError(33, "[WARNING] Some of the Tags are not valid: " + errs, "Performance", "setDancesArray")
+		spdF._addError(63, "[WARNING] Some of the Tags are not valid: " + errs, "Performance", "setDancesArray")
 	endIf
 	; Now allocate the array and fill it
 	tags = _allocateTags(count)
@@ -727,7 +757,7 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(danceInitHooks[i] + "_DanceInit")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if startingPose
 					ModEvent.pushString(modEvId, startingPose.name)
@@ -739,7 +769,7 @@ Function sendEvent(string eventName, string pose="")
 		endIf
 		if registry.useGlobalHook("DanceInit")
 			int modEvId = ModEvent.create("GlobalDanceInit")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if startingPose
 				ModEvent.pushString(modEvId, startingPose.name)
@@ -755,7 +785,7 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(danceStartingHooks[i] + "_DanceStarting")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if currentDance!=-1
 					ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -772,7 +802,7 @@ Function sendEvent(string eventName, string pose="")
 		endIf
 		if registry.useGlobalHook("DanceStarting")
 			int modEvId = ModEvent.create("GlobalDanceStarting")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if currentDance!=-1
 				ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -793,7 +823,7 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(danceStartedHooks[i] + "_DanceStarted")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if currentDance!=-1
 					ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -805,7 +835,7 @@ Function sendEvent(string eventName, string pose="")
 		endIf
 		if registry.useGlobalHook("DanceStarted")
 			int modEvId = ModEvent.create("GlobalDanceChanged")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if currentDance!=-1
 				ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -821,7 +851,7 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(danceChangedHooks[i] + "_DanceChanged")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if currentDance!=-1
 					ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -833,7 +863,7 @@ Function sendEvent(string eventName, string pose="")
 		endIf
 		if registry.useGlobalHook("DanceChanged")
 			int modEvId = ModEvent.create("GlobalDanceChanged")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if currentDance!=-1
 				ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -849,7 +879,7 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(poseUsedHooks[i] + "_PoseUsed")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if currentDance!=-1
 					ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -862,7 +892,7 @@ Function sendEvent(string eventName, string pose="")
 		endIf
 		if registry.useGlobalHook("DanceEnding")
 			int modEvId = ModEvent.create("GlobalDanceEnding")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if currentDance!=-1
 				ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -879,7 +909,7 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(danceEndingHooks[i] + "_DanceEnding")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if currentDance!=-1
 					ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -892,7 +922,7 @@ Function sendEvent(string eventName, string pose="")
 		endIf
 		if registry.useGlobalHook("DanceEnding")
 			int modEvId = ModEvent.create("GlobalDanceEnding")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if currentDance!=-1
 				ModEvent.pushString(modEvId, dances[currentDance].name)
@@ -909,14 +939,14 @@ Function sendEvent(string eventName, string pose="")
 			while i
 				i-=1
 				int modEvId = ModEvent.create(danceEndedHooks[i] + "_DanceEnded")
-				ModEvent.pushInt(modEvId, id)
+				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				ModEvent.send(modEvId)
 			endWhile
 		endIf
 		if registry.useGlobalHook("DanceEnded")
 			int modEvId = ModEvent.create("GlobalDanceEnded")
-			ModEvent.pushInt(modEvId, id)
+			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			ModEvent.send(modEvId)
 		endIf

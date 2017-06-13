@@ -50,9 +50,9 @@ bool Property inUse
 	endFunction
 endProperty
 
-Function _init(string name, string hkx, spdPose sp, spdPose ep, float len, bool cyclic)
-	_name = name
-	_animEvent = hkx
+Function _init(string dname, string animEvent, spdPose sp, spdPose ep, float len, bool cyclic)
+	_name = dname
+	_animEvent = animEvent
 	_startPose = sp
 	_endPose = ep
 	_length = len

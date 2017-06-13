@@ -20,30 +20,16 @@ string[] validTags
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-; Init function (DoInit, called by OnGameStart and OnInit of main quest)
-function _doInit(int version, spdPoleDances spd)
-	; TODO init the arrays
-	; Register the ones we know (DancesDefaults)
-	; Call the events to register further dances and poses
-	
-	spdF = spd
-	
-	
-	; Init all actors (if there is any, just free it quickly)
-	
-	; FIXME
-;	quest.getAliases
-;	resize the array
-;	for each alias set it with a progressive id and initialize it
-	
-	reInit(version, spd)
+Function reInit(spdPoleDances spd)
+	_doInit(spd)
 endFunction
 
+; Init function (DoInit, called by OnGameStart and OnInit of main quest)
 ; This will just check stuff, and call the mod event to have other mods to add their own dances
-Function reInit(int version, spdPoleDances spd)
+function _doInit(spdPoleDances spd)
 	; TODO
 
-debug.trace("SPD: Registry reInit")
+debug.trace("SPD: Registry Init")
 	
 	spdF = spd
 	; Load all known poses and dances
@@ -121,52 +107,62 @@ debug.trace("SPD: Registry reInit")
 	; -))
 	
 	
-	; Performances TODO
-debug.trace("SPD: Registry init of performances")
-	int i = performances.length
-	while i
-		i-=1
-		performances[i]._doInit(spdF)
-	endWhile
-
-	performances = new spdPerformance[8]
-	dances = new spdDance[16]
-	poses = new spdPose[16]
-	tags = new spdTag[64]
+	; Performances, Poses, Dances, Tags initialization
+	if !performances
+debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
+		; Full init
+		performances = new spdPerformance[8]
+		dances = new spdDance[16]
+		poses = new spdPose[16]
+		tags = new spdTag[64]
+	endIf
 	
-	; Dances TODO
+	; Some of the items can be already there, do not re-init them
 	int countPerformances = 0
 	int countDances = 0
 	int countPoses = 0
 	int countTags = 0
 	Alias[] allAliases = GetAliases()
-	i = allAliases.length
+	int i = allAliases.length
 	while i
 		i-=1
 		if StringUtil.Find(allAliases[i].GetName(), "spdPerformance")!=-1
-			performances[countPerformances] = allAliases[i] as spdPerformance
-			countPerformances += 1
+			spdPerformance p = allAliases[i] as spdPerformance
+			int pos = performances.Find(None)
+			if performances.Find(p)==-1 && pos!=-1
+				performances[pos] = p
+				performances[pos]._doInit(spdF)
+				countPerformances += 1
+			endIf
 		elseIf StringUtil.Find(allAliases[i].GetName(), "spdDance")!=-1
-			dances[countDances] = allAliases[i] as spdDance
-			countDances += 1
+			spdDance d = allAliases[i] as spdDance
+			int pos = dances.Find(None)
+			if dances.Find(d)==-1 && pos!=-1
+				dances[pos] = d
+				countDances += 1
+			endIf
 		elseIf StringUtil.Find(allAliases[i].GetName(), "spdPose")!=-1
-			poses[countPoses] = allAliases[i] as spdPose
-			countPoses += 1
+			spdPose p = allAliases[i] as spdPose
+			int pos = poses.Find(None)
+			if poses.Find(p)==-1 && pos!=-1
+				poses[pos] = p
+				countPoses += 1
+			endIf
 		elseIf StringUtil.Find(allAliases[i].GetName(), "spdTag")!=-1
-			tags[countTags] = allAliases[i] as spdTag
-			countTags += 1
+			spdTag t = allAliases[i] as spdTag
+			int pos = tags.Find(None)
+			if tags.Find(t)==-1 && pos!=-1
+				tags[countTags] = t
+				tags[countPerformances]._doInit(spdF)
+				countTags += 1
+			endIf
 		endIf
 	endWhile
 	
-debug.trace("SPD: Found " + countDances + " Dances")
-debug.trace("SPD: Found " + countPoses + " poses")
-debug.trace("SPD: Found " + countTags + " tags")
-	
-	
-	; Poses TODO
-	
-	; Tags TODO
-	
+debug.trace("SPD: Found " + countPerformances + "/" + performances.length + " Performances")
+debug.trace("SPD: Found " + countDances + "/" + dances.length + " Dances")
+debug.trace("SPD: Found " + countPoses + "/" + poses.length + " poses")
+debug.trace("SPD: Found " + countTags + "/" + tags.length + " tags")
 	
 	; Send the event to register other poses and dances from mods
 	editing = false
@@ -195,6 +191,9 @@ Function completeEdit()
 	editing = false
 endFunction
 
+Function dumpErrors()
+	spdF.dumpErrors()
+endFunction
 
 
 ; ****************************************************************************************************************************************************************
@@ -204,18 +203,30 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
+spdPerformance Function getPerformanceById(int id)
+	int i = performances.length
+	while i
+		i-=1
+		if performances[i].getID()==id
+			return performances[i]
+		endIf
+	endWhile
+	return None
+endFunction
+
 spdPerformance Function _allocatePerformance()
 	int i = 0
 	while i<performances.length
-		if !performances[i].isInUse()
-			if !performances[i].use(spdF)
-				return performances[i]
-			endIf
+		if !performances[i].inUse
+			performances[i]._allocate()
+			return performances[i]
 		endIf
 		i+=1
 	endWhile
 	return None
 endFunction
+
+
 
 ; -))
 
@@ -296,17 +307,47 @@ spdPose Function findRandomStartPose()
 endFunction
 
 
-spdPose Function findPose(string poseName)
+spdPose Function findPoseByName(string poseName)
 	int i=poses.length
 	while i
 		i-=1
-		if poses[i].name==poseName
+		if poses[i] && poses[i].name==poseName
 			return poses[i]
 		endIf
 	endWhile
 	return none
 endFunction
 
+; Returns 1 in case there were errors
+int Function registerPose(string name, string poseAnimEvent, string startingAnimEvent, string endingAnimEvent, float startTime, float endTime)
+	; Allocate one, but check if we already have the name
+	int pos = -1
+	int i = poses.length
+	while i
+		i-=1
+		if poses[i] && poses[i].name==name
+			pos = i
+			i=0
+		endIf
+	endWhile
+	if pos==-1
+		i = poses.length
+		while i
+			i-=1
+			if poses[i] && !poses[i].inUse
+				pos = i
+				i = 0
+			endIf
+		endWhile
+	endIf
+	if pos==-1
+		spdF._addError(30, "No more slots available for Poses! (" + name + ")", "Registry", "registerPose")
+		return 1
+	endIf
+	spdPose p = poses[pos]
+	p._init(name, poseAnimEvent, startingAnimEvent, endingAnimEvent, startTime, endTime)
+	return 0
+endFunction
 
 ; -))
 
@@ -318,7 +359,46 @@ endFunction
 
 ; ((-
 
-; Dance Anims
+; Returns 1 in case there were errors
+int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, bool isCyclic)
+	; Allocate one, but check if we already have the name
+	int pos = -1
+	int i = dances.length
+	while i
+		i-=1
+		if dances[i] && dances[i].name==name
+			pos = i
+			i=0
+		endIf
+	endWhile
+	if pos==-1
+		i = dances.length
+		while i
+			i-=1
+			if dances[i] && !dances[i].inUse
+				pos = i
+				i = 0
+			endIf
+		endWhile
+	endIf
+	if pos==-1
+		spdF._addError(31, "No more slots available for Dances! (" + name + ")", "Registry", "registerDance")
+		return 1
+	endIf
+	spdDance d = dances[pos]
+	spdPose sp = findPoseByName(startPose)
+	if sp==none
+		spdF._addError(32, "Start pose \"" + startPose + "\" for Dance \"" + name + "\" does not exist!", "Registry", "registerDance")
+		return 1
+	endIf
+	spdPose ep = findPoseByName(endPose)
+	if ep==none
+		spdF._addError(33, "End pose \"" + endPose + "\" for Dance \"" + name + "\" does not exist!", "Registry", "registerDance")
+		return 1
+	endIf
+	d._init(name, animEvent, sp, ep, duration, isCyclic)
+	return 0
+endFunction
 
 spdDance Function findDanceByPose(spdPose pose)
 	int count = 0
@@ -403,7 +483,7 @@ spdTag Function parseTags(string tagCode)
 	; Allocate one of the tags
 	int pos = tagRegistry.find(0)
 	if pos==-1
-		spdF._addError(99, "No more available tags!", "Registry", "parseTag") ; FIXME change the error code
+		spdF._addError(34, "No more space available for tags!", "Registry", "parseTag")
 		return none
 	endIf
 

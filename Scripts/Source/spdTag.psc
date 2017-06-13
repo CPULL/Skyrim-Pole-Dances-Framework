@@ -13,6 +13,20 @@ int[] strip ; -1 to dress, 0 to ignore, 1 to strip
 int[] sexys ; -1 to avoid, 0 to ignore, 1 to have
 int[] skills ; -1 to avoid, 0 to ignore, 1 to have
 bool andMode
+bool _inUse
+
+bool Property inUse
+	bool Function get()
+		return _inUse
+	endFunction
+endProperty
+
+Function _doInit(spdPoleDances spd)
+	spdF = spd
+	registry = spd.registry
+endFunction
+
+
 
 ; String tag format
 ;
@@ -143,7 +157,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 	spdF = spd
 
 	if tagCode==""
-		spdF._addError(34, "Empty tag", "spdTag", "init")
+		spdF._addError(50, "Empty tag", "spdTag", "init")
 		return true
 	endIf
 	
@@ -152,7 +166,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 		andMode = true
 		tagCode = StringUtil.subString(tagCode, 1)
 		if tagCode==""
-			spdF._addError(34, "Empty tag", "spdTag", "init")
+			spdF._addError(50, "Empty tag", "spdTag", "init")
 			return true
 		endIf
 	endIf
@@ -173,7 +187,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 		bool isGood=(validTags.Find(theTag)!=-1)
 		bool isValue=false
 		if !isGood
-			spdF._addError(35, "Unknow tag (" + theTag + ")", "spdTag", "init")
+			spdF._addError(51, "Unknow tag (" + theTag + ")", "spdTag", "init")
 			return true
 		endIf
 		string theValue = ""
@@ -181,7 +195,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 		if isValue
 			theValue = StringUtil.subString(theValue, StringUtil.find(theTag, ":") + 1)
 			if theValue==""
-				spdF._addError(35, "Invalid tag (" + theTag + "), value is missing", "spdTag", "init")
+				spdF._addError(52, "Invalid tag (" + theTag + "), value is missing", "spdTag", "init")
 				return true
 			endIf
 			theTag = StringUtil.subString(theTag, 0, StringUtil.find(theTag, ":") - 1)
@@ -192,7 +206,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			if andMode
 				; If we are in AND mode then only one author is possible (but multiple authors can be in OR mode separated by |)
 				if doneAuthors
-					spdF._addError(36, "Not possible to specify multiple authors for a tag in AND mode, separate them with | wo have them in OR mode (" + theTag + ")", "spdTag", "init")
+					spdF._addError(53, "Not possible to specify multiple authors for a tag in AND mode, separate them with | wo have them in OR mode (" + theTag + ")", "spdTag", "init")
 					return true
 				endIf
 				authors = StringUtil.split(theValue, "|")
@@ -206,7 +220,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 					if authors.find(auths[a])==-1
 						int pos = authors.find("")
 						if pos==-1
-							spdF._addError(36, "[WARNING] Too many authors specified", "spdTag", "init")
+							spdF._addError(54, "[WARNING] Too many authors specified", "spdTag", "init")
 						else
 							authors[pos] = auths[a]
 						endIf
@@ -221,7 +235,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			if andMode
 				; If we are in AND mode then only one dance is possible (but multiple dances can be in OR mode separated by |)
 				if doneDances
-					spdF._addError(37, "Not possible to specify multiple dances for a tag in AND mode, separate them with | wo have them in OR mode (" + theTag + ")", "spdTag", "init")
+					spdF._addError(55, "Not possible to specify multiple dances for a tag in AND mode, separate them with | wo have them in OR mode (" + theTag + ")", "spdTag", "init")
 					return true
 				endIf
 				dances = StringUtil.split(theValue, "|")
@@ -229,7 +243,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 				while a
 					a-=1
 					if registry.findDanceByName(dances[a])==None ; The value should be a known dance
-						spdF._addError(37, "Unknow dance for the tag: " + dances[a], "spdTag", "init")
+						spdF._addError(56, "Unknow dance for the tag: " + dances[a], "spdTag", "init")
 						return true
 					endIf
 				endWhile
@@ -241,13 +255,13 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 				while a
 					a-=1
 					if registry.findDanceByName(dans[a])==None ; The value should be a known dance
-						spdF._addError(37, "Unknow dance for the tag: " + dans[a], "spdTag", "init")
+						spdF._addError(56, "Unknow dance for the tag: " + dans[a], "spdTag", "init")
 						return true
 					endIf
 					if authors.find(dans[a])==-1
 						int pos = authors.find("")
 						if pos==-1
-							spdF._addError(37, "[WARNING] Too many dances specified", "spdTag", "init")
+							spdF._addError(57, "[WARNING] Too many dances specified", "spdTag", "init")
 						else
 							authors[pos] = dans[a]
 						endIf
@@ -260,7 +274,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			
 		elseIf theTag=="Strip"
 			if theValue==""
-				spdF._addError(38, "Part not specified for stripping tag", "spdTag", "init")
+				spdF._addError(68, "Part not specified for stripping tag", "spdTag", "init")
 				return true
 			endIf
 			; Can be body location(s) or a set of body slots (numbers)
@@ -269,7 +283,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			while j
 				j-=1
 				if bodyParts.find(slots[j])==-1
-					spdF._addError(39, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
+					spdF._addError(59, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
 				endIf
 			endWhile
 			; Fill all slots that should be stripped
@@ -331,7 +345,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 						sexys[4]=1
 					endIf
 				elseIf item!="|"
-					spdF._addError(35, "[WARNING] Invalid tag (" + theTag + ":" + theValue + "), a part of the value is unkwnon: " + item, "spdTag", "init")
+					spdF._addError(60, "[WARNING] Invalid tag (" + theTag + ":" + theValue + "), a part of the value is unkwnon: " + item, "spdTag", "init")
 				endIf 
 				j+=1
 			endWhile
@@ -380,7 +394,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 						skills[4]=1
 					endIf
 				elseIf item!="|"
-					spdF._addError(35, "[WARNING] Invalid tag (" + theTag + ":" + theValue + "), a part of the value is unkwnon: " + item, "spdTag", "init")
+					spdF._addError(60, "[WARNING] Invalid tag (" + theTag + ":" + theValue + "), a part of the value is unkwnon: " + item, "spdTag", "init")
 				endIf 
 				j+=1
 			endWhile

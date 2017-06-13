@@ -22,20 +22,20 @@ endFunction
 
 Function _doInit()
 debug.trace("SPD: init doInit")
-	if currentVersion != getVersion()
-debug.trace("SPD: doUpdate")
-		_doUpdate()
-	endIf
-	currentVersion = getVersion()
-debug.trace("SPD: getting version and init errors")
-	
 	errors = new string[32]
 	errorSources = new string[32]
 	errorMethods = new string[32]
 	numErrors = 0
 	
+	if currentVersion != getVersion()
+debug.trace("SPD: doUpdate")
+		_doUpdate()
+	endIf
+	currentVersion = getVersion()
+	
+	
 debug.trace("SPD: reInit registry")
-	registry.reInit(currentVersion, Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
+	registry._doInit(Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
 debug.trace("SPD: sending mod event")
 	
 	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
@@ -46,7 +46,6 @@ endFunction
 
 Function _doUpdate()
 	; Nothing to do yet
-	registry._doInit(getVersion(), Self) ; This will initialize all arrays
 endFunction
 
 spdPoleDances Function getInstance() Global
@@ -127,13 +126,17 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
-string[] errors
-string[] errorSources
-string[] errorMethods
-int[] errorIDs
+string[] Property errors Auto
+string[] Property errorSources Auto
+string[] Property errorMethods Auto
+int[] Property errorIDs Auto
 int numErrors
 
 Function _addError(int id, string error, string source, string method)
+	if !errors
+		debug.trace("SPD: [" + id + "] " + error + " [" + source + "]." + method)
+		return
+	endIf
 	if numErrors == errors.length
 		dumpErrors()
 	endIf
