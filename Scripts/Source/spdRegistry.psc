@@ -2,11 +2,12 @@ Scriptname spdRegistry extends Quest
 
 spdPoleDances spdF
 
-package Property spdWalkPackage Auto
 package Property spdDoNothingPackage Auto
 
 string[] bodyParts
-spdPerformance[] performances
+spdPerformance[] Property performances Auto
+ReferenceAlias[] Property poleAliases Auto
+Package[] Property walkPackages Auto
 spdDance[] dances
 spdPose[] poses
 spdTag[] tags
@@ -111,7 +112,6 @@ debug.trace("SPD: Registry Init")
 	if !performances
 debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 		; Full init
-		performances = new spdPerformance[8]
 		dances = new spdDance[16]
 		poses = new spdPose[16]
 		tags = new spdTag[64]
@@ -131,7 +131,7 @@ debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 			int pos = performances.Find(None)
 			if performances.Find(p)==-1 && pos!=-1
 				performances[pos] = p
-				performances[pos]._doInit(spdF)
+				performances[pos]._doInit(spdF, poleAliases[pos], walkPackages[pos])
 				countPerformances += 1
 			endIf
 		elseIf StringUtil.Find(allAliases[i].GetName(), "spdDance")!=-1
@@ -302,6 +302,26 @@ endFunction
 
 ; ((- Poses
 
+int Function _getPosesNum(bool all)
+	if all
+		return poses.length
+	endIf
+	int num = 0
+	int i = poses.length
+	while i
+		i-=1
+		if poses[i] && poses[i].inUse
+			num+=1
+		endIf
+	endWhile
+	return num
+endFunction
+
+spdPose Function _getPoseByIndex(int index)
+	return poses[index]
+endFunction
+
+
 spdPose Function findRandomStartPose()
 	return poses[Utility.randomInt(0, poses.length - 1)]
 endFunction
@@ -358,6 +378,27 @@ endFunction
 ; ****************************************************************************************************************************************************************
 
 ; ((-
+
+
+int Function _getDancesNum(bool all)
+	if all
+		return dances.length
+	endIf
+	int num = 0
+	int i = dances.length
+	while i
+		i-=1
+		if dances[i] && dances[i].inUse
+			num+=1
+		endIf
+	endWhile
+	return num
+endFunction
+
+spdDance Function _getDanceByIndex(int index)
+	return dances[index]
+endFunction
+
 
 ; Returns 1 in case there were errors
 int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, bool isCyclic)

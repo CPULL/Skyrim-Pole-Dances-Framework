@@ -30,7 +30,7 @@ Function _allocate()
 	_inUse = true
 endFunction
 
-Function release()
+Function _release()
 	; Stop it, release actors if any
 	startingPose = None
 	currentDance = -1
@@ -59,6 +59,7 @@ Function release()
 	isPerformancePlaying = false
 	isPerformanceValid = false
 	_inUse = false
+	GoToState("")
 endFunction
 
 
@@ -93,8 +94,10 @@ int prevDance
 float timeToWait
 float danceStartTime
 
+ReferenceAlias poleRef
+Package walkPackage
 
-Function _doInit(spdPoleDances s)
+Function _doInit(spdPoleDances s, ReferenceAlias refPole, Package refWalkPkg)
 	spdF = s
 	registry = s.registry
 	startingPose = None
@@ -116,14 +119,14 @@ Function _doInit(spdPoleDances s)
 	_inUse = false
 	isPerformancePlaying = false
 	isPerformanceValid = false
+	; Set the RefAlias and the package, they go together
+	poleRef = refPole
+	walkPackage = refWalkPkg
 endFunction
 
 
 bool function isPlaying()
 	return isPerformancePlaying
-endFunction
-
-bool function use(spdPoleDances s) ; FIXME do not use that, do it automatically in allocatePerformance
 endFunction
 
 bool function isValid()
@@ -142,7 +145,7 @@ Bool Function setBasicOption(Actor refDancer, ObjectReference refPole=none, floa
 		return true ; The error is addded by the allocateActor
 	endIf
 	dancer = refDancer
-	duration = refDuration ; FIXME in the start function we need to check if we have a list of anims, in case we don't then we need to set a duration
+	duration = refDuration
 	; Set the pole, or create one on the fly where the actor is
 	needPoleCreated = (refPole==none)
 	pole = refPole ; in case it is not valid it will be generated when the performance will start
@@ -502,10 +505,10 @@ bool function start(bool forceTransitions = true)
 	else
 		poleCreated = false
 	endIf
-	
+	poleRef.forceRefTo(pole)
 	
 	; Allocate the actor (block it) and start walking to the pole
-	registry._lockActor(dancer, registry.spdWalkPackage, pole)
+	registry._lockActor(dancer, walkPackage, pole)
 	if _calculateDistance(dancer, pole)<50
 		RegisterForSingleUpdate(0.2)
 	else
@@ -620,7 +623,13 @@ endFunction
 
 
 Function abort(bool rightNow=false)
+	if rightNow || GetState()!="Playing"
+		_release()
+		return
+	endIf
 	; TODO
+	; Stop the current dance, and play the ending anim
+	GoToState("Ending")
 endFunction
 
 
@@ -697,7 +706,7 @@ state Ending
 		endIf
 		registry._unlockActor(dancer)
 		isPerformancePlaying = false
-		GoToState("")
+		_release()
 	endEvent
 endState
 

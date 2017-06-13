@@ -67,7 +67,6 @@ bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration
 		_addError(10, "No Performances available", "PoleDancesFramework", "QuickStart")
 		return true
 	endIf
-	th._doInit(Self)
 	th.setBasicOption(dancer, pole, duration)
 	th.setStartPose(startingPose)
 	if th.start()
@@ -83,7 +82,6 @@ spdPerformance Function newPerformance(Actor dancer, ObjectReference pole=None, 
 		_addError(10, "No Performances available", "PoleDancesFramework", "newPerformance")
 		return None
 	endIf
-	th._doInit(Self)
 	th.setBasicOption(dancer, pole, duration)
 	return th
 endFunction
@@ -147,15 +145,6 @@ Function _addError(int id, string error, string source, string method)
 	numErrors+=1
 endFunction
 
-; ((- Error IDs
-; 0 not an error
-; 1 not valid actor (generic, as fallback)
-; 2 the actor is "None"
-; 3 the actor is performing an activity that will make impossible to dance, or is a child
-; 4 an actor is already used for another dance
-; 10 No more Performances available
-; -))
-
 Function dumpErrors()
 	int i = 0
 	while i<numErrors
@@ -192,4 +181,4 @@ endFunction
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-; get the ones from the docs, and update the spdPerformance
+; FIXME get the ones from the docs, and update the spdPerformance

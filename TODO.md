@@ -1,7 +1,7 @@
 # TODO
 - [ ] **TAGS**
     - [X] Define how to use them and the list of them (all **contributors**)
-    - [ ] Add code for tags and use them for Performances (**CPU**)
+    - [X] Add code for tags and use them for Performances (**CPU**)
     - [X] Add "dance:<name>" type of tag
     - [X] Add "strip:<values>" type of tag
 - [ ] **Framework**
@@ -25,12 +25,12 @@
 - [ ] **Hooks**
     - [ ] Add events in the playing of the performance
 - [ ] **Errors Management**
-	- [ ] Complete errors documentation (**CPU**)
+	- [X] Complete errors documentation (**CPU**)
 	- [ ] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
 - [ ] **Registry**
-    - [ ] Add code to find dances by name (**CPU**)
+    - [X] Add code to find dances by name (**CPU**)
     - [ ] Add code to find dances by tags (**CPU**)
-    - [ ] Add code to find poses by name (**CPU**)
+    - [X] Add code to find poses by name (**CPU**)
 - [ ] **Animations**
     - [ ] Convert the poses from 3DS format to HKX files (**Komotor**)
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
