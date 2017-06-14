@@ -1,9 +1,5 @@
 Scriptname spdDance Extends ReferenceAlias
 
-; FIXME Add the tags
-; FIXME 
-; FIXME 
-
 string _name
 string _animEvent
 string _startPoseName

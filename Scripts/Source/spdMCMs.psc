@@ -10,6 +10,11 @@ spdRegistry reg
 event OnConfigInit()
 	opts = new int[128]
 	ids = new int[128]
+endEvent
+
+event OnConfigOpen()
+	currentPose=-1
+	thePage=""
 	spdF = spdPoleDances.getInstance()
 	reg = spdF.registry
 endEvent
@@ -32,6 +37,9 @@ event OnPageReset(string page)
 	elseIf page=="Poses"
 		thePage = "Poses"
 		generatePoses()
+	elseIf page=="Preview"
+		thePage = "Preview"
+		generatePreview()
 	endIf
 endEvent
 
@@ -64,7 +72,7 @@ Function generatePoses()
 	while i<reg._getPosesNum(true)
 		spdPose p = reg._getPoseByIndex(i)
 		if p && p.inUse
-			opts[num] = AddTextOption(p.name, "", OPTION_FLAG_DISABLED)
+			opts[num] = AddTextOption(p.name, "")
 			ids[num] = i
 			num+=1
 		endIf
@@ -73,6 +81,18 @@ Function generatePoses()
 endFunction
 
 
+Function generatePreview()
+	if currentPose==-1
+		UnloadCustomContent()
+		AddTextOption("Select a Pose for the preview", "", OPTION_FLAG_DISABLED)
+		return
+	endIf
+	spdPose p = reg._getPoseByIndex(ids[currentPose])
+	if p
+		LoadCustomContent("Skyrim Pole Dances/PosesPreview/" + p.name + ".dds", 0.0, 0.0)
+	endIf
+endFunction
+
 Function cleanOptions()
 	int i = opts.length
 	while i
@@ -80,6 +100,7 @@ Function cleanOptions()
 		opts[i]=-1
 		ids[i]=-1
 	endWhile
+	currentPose=-1
 endFunction
 
 Event OnOptionHighlight(int opt)
@@ -90,13 +111,18 @@ Event OnOptionHighlight(int opt)
 			String msg = "Dance: " + d.name + " StartPose: " + d.startPose.name + " EndPose: " + d.endPose.name + " Duration: " + d.duration + "\n"
 			if d.danceTags
 				msg += d.danceTags.print()
-			else
-debug.trace("SPD SPD: no tag")
 			endIf
 			SetInfoText (msg)
 		endIf
 	
 	elseIf thePage=="Poses"
+	endIf
+endEvent
+
+Event OnOptionSelect(int option)
+	currentPose=-1
+	if thePage=="Poses"
+		currentPose = opts.find(option)
 	endIf
 endEvent
 

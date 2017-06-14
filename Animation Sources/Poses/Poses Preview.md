@@ -4,9 +4,9 @@ Here a preview of the poses:
 
 | Pose | Front Preview  | Side Preview |
 | ------------- | ------------- | ------------- |
-| Pose 1 | ![Pose 1 Front](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/PoleProject-Kpose1-1.jpg)  | ![Pose 1 Side](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/PoleProject-Kpose1-2.jpg)  |
-| Pose 2 | ![Pose 2 Front](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/PoleProject-Kpose2-1.jpg) | ![Pose 2 Side](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/PoleProject-Kpose2-2.jpg) |
-| Pose 3 | ![Pose 3 Front](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/PoleProject-Kpose3-1.jpg) | ![Pose 3 Side](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/PoleProject-Kpose3-2.jpg) |
+| Standing Grab Pole 1 | ![Standing Grab Pole 1 - Front](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/Standing Grab Pole 1-F.jpg)  | ![Standing Grab Pole 1 - Side](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/Standing Grab Pole 1-S.jpg)  |
+| Down Grab Pole 1 | ![Down Grab Pole 1 - Front](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/Down Grab Pole 1-F.jpg) | ![Down Grab Pole 1 - Side](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/Down Grab Pole 1-S.jpg) |
+| Moving RLegUp 1 | ![Moving RLegUp 1 - Front](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/Moving RLegUp 1-F.jpg) | ![Moving RLegUp 1 - Side](https://github.com/CPULL/Skyrim-Pole-Dances/blob/master/Animation%20Sources/Poses/Moving RLegUp 1-S.jpg) |
 
 
 

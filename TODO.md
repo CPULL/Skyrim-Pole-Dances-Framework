@@ -4,7 +4,7 @@
     - [X] Add code for tags and use them for Performances (**CPU**)
     - [X] Add "dance:<name>" type of tag
     - [X] Add "strip:<values>" type of tag
-	- [ ] Add to the Dance definition its tags, and add a function in the init to add the tags to the anim
+	- [X] Add to the Dance definition its tags, and add a function in the init to add the tags to the anim
 	- [ ] Implement the Pose tag
 - [ ] **Framework**
     - [X] Add a newThreadTags() function (**CPU**)
@@ -18,8 +18,16 @@
 - [ ] **Stripping**
     - [ ] Add a way to control stripping during pole dances (**CPU**)
     - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
+	    - [X] Tags
+		- [ ] Dances
 - [ ] **Documentation**
     - [ ] Complete the documentation of APIs (**CPU**, **Rydin**)
+	    - [ ] Main framework
+	    - [ ] Hooks
+	    - [ ] Dances
+	    - [ ] Poses
+	    - [ ] Tags
+	    - [ ] Examples
     - [ ] For all doc pages, add an index at begin, and use a single line (not two) to split the sections (**CPU**)
 - [ ] **MCM**
     - [ ] Add a MCM to the framework (**CPU**)
@@ -37,3 +45,29 @@
 - [ ] **Animations**
     - [ ] Convert the poses from 3DS format to HKX files (**Komotor**)
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
+
+	
+	
+	
+```
+FIXME Mode (just for CPU)
+; FIXME Re-set the events, right now they are not perfect in timing and parameters
+; FIXME Add functions to strip and redress
+; FIXME Add a method to specify the next dance on the fly (to be used during events)
+; FIXME Add stop() function
+; FIXME Make private all functions that should be private
+; FIXME pre-define the lenght of the dances
+; FIXME Remove the functions to re-allocate the dances
+; FIXME pre-define the lenght of the tags
+; FIXME Remove the functions to re-allocate the tags
+; FIXME Add hint of the poses in the MCM
+; FIXME Build the tool to test
+; FIXME Try to preview a pose (or dance) in MCM
+; FIXME 
+; FIXME 
+; FIXME 
+
+
+
+
+```

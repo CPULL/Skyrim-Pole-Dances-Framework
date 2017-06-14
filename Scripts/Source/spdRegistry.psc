@@ -509,13 +509,57 @@ spdDance Function findDanceByTags(spdTag tag)
 endFunction
 
 spdDance Function findRandomDance()
-	; FIXME pick one randomly
-	return dances[0]
+	; Just be sure the used dances are at the begin...
+	int i=0
+	while i<dances.length
+		spdDance d = dances[i]
+		if !d || !d.inUse
+			; Grab the next valid one and swap
+			int j=i+1
+			while j<dances.length
+				spdDance o = dances[j]
+				if d && d.inUse
+					spdDance tmp = d
+					dances[i] = dances[j]
+					dances[j] = tmp
+					j = 100000
+				endIf
+			endWhile
+		endIf
+		i+=1
+	endWhile
+	int numValid = _getDancesNum(false)
+	; Pick one randomly
+	if numValid == 0
+		return None
+	endIf
+	return dances[Utility.randomInt(0, numValid - 1)]
 endFunction
 
 spdDance Function findTransitionDance(spdPose prev, spdPose next)
-	; FIXME check in all dances the ones that start with the prev and ends with next, then give one back randomly
-	return dances[0]
+	int num=0
+	int i=0
+	while i<dances.length && num<16
+		spdDance d = dances[i]
+		if d && d.inUse && d.startPose==prev && d.endPose==next
+			num+=1
+		endIf
+		i+=1
+	endWhile
+	if num==0
+		return none
+	endIf
+	spdDance[] valids = allocateDances(num)
+i=0
+	while i<dances.length && num<16
+		spdDance d = dances[i]
+		if d && d.inUse && d.startPose==prev && d.endPose==next
+			num-=1
+			valids[num] = d
+		endIf
+		i+=1
+	endWhile	
+	return valids[Utility.randomInt(0, valids.length - 1)]
 endFunction
 
 
@@ -539,12 +583,18 @@ endFunction
 
 ; ((- tags
 
+Function cleanUpTags()
+	; FIXME
+	; Go for all tags
+	; Check if a tag is referenced in a dance or an active performance
+	; if not remove it (make it not used)
+
+
+endFunction
 
 string Function tryToParseTags(string tagCode)
 	return spdTag._tryToParseTags(tagCode, validTags, bodyParts, Self)
 endFunction
-
-; FIXME do a way to release the used tags
 
 spdTag Function parseTags(string tagCode)
 	; Allocate one of the tags
