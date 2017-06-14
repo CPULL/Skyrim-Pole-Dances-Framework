@@ -11,6 +11,8 @@ Faction Property spdDancingFaction Auto
 
 int currentVersion
 
+bool Property immediateDumps Auto
+
 
 ; -))
 
@@ -21,6 +23,8 @@ int Function getVersion()
 endFunction
 
 Function _doInit()
+	immediateDumps = true ; FIXME just for debug
+
 debug.trace("SPD: init doInit")
 	errors = new string[32]
 	errorSources = new string[32]
@@ -131,7 +135,7 @@ int[] Property errorIDs Auto
 int numErrors
 
 Function _addError(int id, string error, string source, string method)
-	if !errors
+	if !errors || immediateDumps
 		debug.trace("SPD: [" + id + "] " + error + " [" + source + "]." + method)
 		return
 	endIf

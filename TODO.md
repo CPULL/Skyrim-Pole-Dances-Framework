@@ -4,6 +4,8 @@
     - [X] Add code for tags and use them for Performances (**CPU**)
     - [X] Add "dance:<name>" type of tag
     - [X] Add "strip:<values>" type of tag
+	- [ ] Add to the Dance definition its tags, and add a function in the init to add the tags to the anim
+	- [ ] Implement the Pose tag
 - [ ] **Framework**
     - [X] Add a newThreadTags() function (**CPU**)
 - [ ] **Performances**
@@ -11,12 +13,13 @@
 	    - [ ] Only start pose and duration
 	    - [ ] Sequence of Dances
 	    - [ ] Sequence of Tags
+	- [ ] Destroy the thread after it ends and return it to the pool
     - [X] Rename everywhere "Thread" with "Performance" (**CPU**)
 - [ ] **Stripping**
     - [ ] Add a way to control stripping during pole dances (**CPU**)
     - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
 - [ ] **Documentation**
-    - [ ] Complete the documentation of APIs (**CPU**)
+    - [ ] Complete the documentation of APIs (**CPU**, **Rydin**)
     - [ ] For all doc pages, add an index at begin, and use a single line (not two) to split the sections (**CPU**)
 - [ ] **MCM**
     - [ ] Add a MCM to the framework (**CPU**)
@@ -26,7 +29,7 @@
     - [ ] Add events in the playing of the performance
 - [ ] **Errors Management**
 	- [X] Complete errors documentation (**CPU**)
-	- [ ] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
+	- [X] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
 - [ ] **Registry**
     - [X] Add code to find dances by name (**CPU**)
     - [ ] Add code to find dances by tags (**CPU**)

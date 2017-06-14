@@ -10,6 +10,7 @@ string[] dances
 bool authorsNegative
 bool dancesNegative
 int[] strip ; -1 to dress, 0 to ignore, 1 to strip
+int[] stripAn ; -1 to dress, 0 to ignore, 1 to strip
 int[] sexys ; -1 to avoid, 0 to ignore, 1 to have
 int[] skills ; -1 to avoid, 0 to ignore, 1 to have
 bool andMode
@@ -105,7 +106,7 @@ string Function _tryToParseTags(string tagCode, string[] validTags, string[] bod
 			endIf
 			alreadyDance = true
 			
-		elseIf theTag=="Strip"
+		elseIf theTag=="Strip" || theTag=="StripAn"
 			if theValue==""
 				return "Part not specified for stripping tag"
 			endIf
@@ -114,6 +115,9 @@ string Function _tryToParseTags(string tagCode, string[] validTags, string[] bod
 			j = slots.length
 			while j
 				j-=1
+				if StringUtil.subString(slots[j], 0, 1)=="!"
+					slots[j] = StringUtil.subString(slots[j], 1)
+				endIf
 				if bodyParts.find(slots[j])==-1
 					return "Unknown part \"" + slots[j] + "\" for stripping tag"
 				endIf
@@ -143,6 +147,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 	tags = new string[1]
 	tagNegatives = new Bool[1]
 	strip = new int[32]
+	stripAn = new int[32]
 	sexys = new int[6]
 	skills = new int[6]
 	numTags = 0
@@ -153,8 +158,9 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 	andMode = false
 	bool doneAuthors = false
 	bool doneDances = false
-	registry = spdF.registry
 	spdF = spd
+	registry = spdF.registry
+	_inUse = true
 
 	if tagCode==""
 		spdF._addError(50, "Empty tag", "spdTag", "init")
@@ -184,21 +190,21 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			negative = true
 		endIf
 		; Has to start with a known tag, in case the tag has values we need to check that the vaues are good
-		bool isGood=(validTags.Find(theTag)!=-1)
 		bool isValue=false
-		if !isGood
-			spdF._addError(51, "Unknow tag (" + theTag + ")", "spdTag", "init")
-			return true
-		endIf
 		string theValue = ""
 		isValue = (StringUtil.find(theTag, ":")!=-1)
 		if isValue
-			theValue = StringUtil.subString(theValue, StringUtil.find(theTag, ":") + 1)
+			theValue = StringUtil.subString(theTag, StringUtil.find(theTag, ":") + 1)
 			if theValue==""
 				spdF._addError(52, "Invalid tag (" + theTag + "), value is missing", "spdTag", "init")
 				return true
 			endIf
-			theTag = StringUtil.subString(theTag, 0, StringUtil.find(theTag, ":") - 1)
+			theTag = StringUtil.subString(theTag, 0, StringUtil.find(theTag, ":"))
+		endIf
+		bool isGood=(validTags.Find(theTag)!=-1)
+		if !isGood
+			spdF._addError(51, "Unknow tag (" + theTag + ")", "spdTag", "init")
+			return true
 		endIf
 		
 		bool needToSave = true
@@ -282,6 +288,46 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			j = slots.length
 			while j
 				j-=1
+				string tmpSlot = slots[j]
+				if StringUtil.subString(tmpSlot, 0, 1)=="!"
+					tmpSlot = StringUtil.subString(tmpSlot, 1)
+				endIf
+				if bodyParts.find(slots[j])==-1
+					spdF._addError(59, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
+				endIf
+			endWhile
+			; Fill all slots that should be stripped
+			j = slots.length
+			while j
+				j-=1
+				string tmpSlot = slots[j]
+				bool doNeg = false
+				if StringUtil.subString(tmpSlot, 0, 1)=="!"
+					tmpSlot = StringUtil.subString(tmpSlot, 1)
+					doNeg = true
+				endIf
+				int slot = bodyParts.find(slots[j])
+				if slot>31
+					slot-=32
+				endIf
+				if negative || doNeg
+					strip[slot]=-1
+				else
+					strip[slot]=1
+				endIf
+			endWhile
+			needToSave = false
+		
+		elseIf theTag=="StripAn"
+			if theValue==""
+				spdF._addError(68, "Part not specified for stripping tag", "spdTag", "init")
+				return true
+			endIf
+			; Can be body location(s) or a set of body slots (numbers)
+			string[] slots = StringUtil.Split(theValue, "|")
+			j = slots.length
+			while j
+				j-=1
 				if bodyParts.find(slots[j])==-1
 					spdF._addError(59, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
 				endIf
@@ -295,9 +341,9 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 					slot-=32
 				endIf
 				if negative
-					strip[slot]=-1
+					stripAn[slot]=-1
 				else
-					strip[slot]=1
+					stripAn[slot]=1
 				endIf
 			endWhile
 			needToSave = false
@@ -418,6 +464,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 	return false
 endFunction
 
+; FIX, the "and" is impossible to understand
 string Function print()
 	string res = ""
 	
@@ -430,40 +477,21 @@ string Function print()
 		
 		if i<numTags - 1
 			if andMode
-				res+="^"
+				res+="+ "
 			else
-				res+=","
+				res+=", "
 			endIf
 		endIf
 	
 		i+=1
 	endWhile
 	
-	if authors[0]!=""
-		res+="^"
-		if authorsNegative
-			res+="!"
-		endIf
-		res+="authors:"
-		i = 0
-		bool doneOne = false
-		while i<8
-			if authors[i]!=""
-				if doneOne
-					res+="|"
-				endIf
-				doneOne=true
-				res+=authors[i]
-			endIf
-		endWhile
-	endIf
-	
 	if dances[0]!=""
-		res+="^"
+		res+="+ "
 		if dancesNegative
 			res+="!"
 		endIf
-		res+="dances:"
+		res+="Dances:"
 		i = 0
 		bool doneOne = false
 		while i<8
@@ -474,6 +502,7 @@ string Function print()
 				doneOne=true
 				res+=dances[i]
 			endIf
+			i+=1
 		endWhile
 	endIf
 	
@@ -489,7 +518,7 @@ string Function print()
 		i+=1
 	endWhile
 	if asNeg
-		res+=",!strip:"
+		res+=", !Strip:"
 		i=0
 		bool doneOne=false
 		while i<strip.length
@@ -504,7 +533,7 @@ string Function print()
 		endWhile
 	endIf
 	if asPos
-		res+=",strip:"
+		res+=", Strip:"
 		i=0
 		bool doneOne=false
 		while i<strip.length
@@ -528,7 +557,7 @@ string Function print()
 		i+=1
 	endWhile
 	if needed
-		res+=",Sexy:"
+		res+=", Sexy:"
 		i=0
 		bool doneOne=false
 		while i<sexys.length
@@ -558,7 +587,7 @@ string Function print()
 		i+=1
 	endWhile
 	if needed
-		res+=",Skill:"
+		res+=", Skill:"
 		i=0
 		bool doneOne=false
 		while i<skills.length
@@ -579,5 +608,67 @@ string Function print()
 		endWhile
 	endIf
 	
+	if authors[0]!=""
+		res+=", "
+		if authorsNegative
+			res+="!"
+		endIf
+		res+="Authors:"
+		i = 0
+		bool doneOne = false
+		while i<8
+			if authors[i]!=""
+				if doneOne
+					res+="|"
+				endIf
+				doneOne=true
+				res+=authors[i]
+			endIf
+			i+=1
+		endWhile
+	endIf
+	
 	return res
+endFunction
+
+function cleanTagForDance()
+	; Invalid tags: Strip, StripAn, Dance
+	andMode = false
+	int i=numTags
+	while i<tags.length
+		tags[i]=""
+		i+=1
+	endWhile
+	i = 0
+	while i<tags.length
+		string part = tags[i]
+		if part=="Strip" || part=="StripAn" || part=="Dance"
+			int j=i
+			while j<tags.length - 1
+				tags[j] = tags[j+1]
+				j+=1
+			endWhile
+			tags[tags.length - 1] = ""
+			numTags-=1
+		endIf
+		i+=1
+	endWhile
+	i = tagNegatives.length
+	while i
+		i-=1
+		tagNegatives[i]=false
+	endWhile
+	i = strip.length
+	while i
+		i-=1
+		strip[i] = 0
+		stripAn[i] = 0
+	endWhile
+	i = dances.length
+	while i
+		i-=1
+		dances[i] = ""
+	endWhile
+	authorsNegative = false
+	dancesNegative = false
 endFunction

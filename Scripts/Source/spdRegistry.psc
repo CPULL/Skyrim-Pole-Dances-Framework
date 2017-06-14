@@ -11,7 +11,6 @@ Package[] Property walkPackages Auto
 spdDance[] dances
 spdPose[] poses
 spdTag[] tags
-int[] tagRegistry
 string[] validTags
 
 
@@ -37,7 +36,7 @@ debug.trace("SPD: Registry Init")
 	editing = true
 	
 	
-	; ((- Body Parts
+	; ((- Body Parts and Tags
 	bodyParts = new String[64]
 	bodyParts[0] = "Head"
 	bodyParts[1] = "Hair"
@@ -105,11 +104,33 @@ debug.trace("SPD: Registry Init")
 	bodyParts[62] = "60"
 	bodyParts[63] = "61"
 
+	validTags = new string[20]
+	validTags[0] = "Auth"
+	validTags[1] = "Stand"
+	validTags[2] = "Kneel"
+	validTags[3] = "Sit"
+	validTags[4] = "Front"
+	validTags[5] = "Back"
+	validTags[6] = "Grab"
+	validTags[7] = "SingleGrab"
+	validTags[8] = "DoubleGrab"
+	validTags[9] = "Float"
+	validTags[10] = "Spread"
+	validTags[11] = "Bend"
+	validTags[12] = "LegsUp"
+	validTags[13] = "Duration"
+	validTags[14] = "Skill"
+	validTags[15] = "Sexy"
+	validTags[16] = "Strip"
+	validTags[17] = "StripAn"
+	validTags[18] = "Dance"
+	validTags[19] = "Pose"
+	
 	; -))
 	
 	
-	; Performances, Poses, Dances, Tags initialization
-	if !performances
+	; Poses, Dances, Tags initialization
+	if !dances
 debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 		; Full init
 		dances = new spdDance[16]
@@ -401,7 +422,7 @@ endFunction
 
 
 ; Returns 1 in case there were errors
-int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, bool isCyclic)
+int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, bool isCyclic, string tag="")
 	; Allocate one, but check if we already have the name
 	int pos = -1
 	int i = dances.length
@@ -438,6 +459,11 @@ int Function registerDance(string name, string animEvent, string startPose, stri
 		return 1
 	endIf
 	d._init(name, animEvent, sp, ep, duration, isCyclic)
+	if tag
+		if d.setTags(tag)
+			return 1
+		endIf
+	endIf
 	return 0
 endFunction
 
@@ -522,15 +548,20 @@ endFunction
 
 spdTag Function parseTags(string tagCode)
 	; Allocate one of the tags
-	int pos = tagRegistry.find(0)
-	if pos==-1
+	spdTag res = none
+	int pos = tags.length
+	while pos
+		pos-=1
+		if tags[pos] && !tags[pos].inUse
+			res = tags[pos]
+			pos=0
+		endIf
+	endWhile
+	if res==none
 		spdF._addError(34, "No more space available for tags!", "Registry", "parseTag")
 		return none
 	endIf
 
-	spdTag res = tags[pos]
-	tagRegistry[pos] = 1
-	
 	if res._init(tagCode, validTags, bodyParts, spdF)
 		return none
 	endIf
