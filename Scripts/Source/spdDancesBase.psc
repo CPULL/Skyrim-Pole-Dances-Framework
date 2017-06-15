@@ -10,7 +10,7 @@ Event RegisterDances(int version, Form reg)
 	debug.trace("SPD: begin registration of Poses")
 	
 	spdRegistry r = reg as spdRegistry
-	
+	r.beginEdit("spdDancesBase")
 	
 	int errors = 0
 	errors += r.registerPose("Standing Grab Pole 1", "IdleForceDefaultState", "spdPose1_Start", "spdPose1_End", 1.0, 1.0)
@@ -27,5 +27,6 @@ Event RegisterDances(int version, Form reg)
 
 	debug.trace("SPD: Dances registration completed, " + errors + " errors")
 	r.dumpErrors()
+	r.completeEdit()
 endEvent
 

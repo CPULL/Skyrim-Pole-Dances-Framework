@@ -63,6 +63,18 @@ Function generateDances()
 endFunction
 
 Function generatePoses()
+	if currentPose!=-1
+		spdPose p = reg._getPoseByIndex(ids[currentPose])
+		if p
+			LoadCustomContent("Skyrim Pole Dances/PosesPreview/" + p.name + ".dds", 0.0, 0.0)
+			Utility.waitMenuMode(3.0)
+			currentPose=-1
+			ForcePageReset()
+			return
+		endIf
+	endIf
+	
+	UnloadCustomContent()
 	cleanOptions()
 	SetCursorFillMode(LEFT_TO_RIGHT)
 	AddHeaderOption("Poses: " + reg._getPosesNum(false) + "/" + reg._getPosesNum(true))
@@ -112,10 +124,11 @@ Event OnOptionHighlight(int opt)
 			if d.danceTags
 				msg += d.danceTags.print()
 			endIf
-			SetInfoText (msg)
+			SetInfoText(msg)
 		endIf
 	
 	elseIf thePage=="Poses"
+		SetInfoText("Click on a pose to see a preview of it for 3 seconds.")
 	endIf
 endEvent
 
@@ -123,6 +136,10 @@ Event OnOptionSelect(int option)
 	currentPose=-1
 	if thePage=="Poses"
 		currentPose = opts.find(option)
+		if currentPose!=-1
+			ForcePageReset()
+			return
+		endIf
 	endIf
 endEvent
 
