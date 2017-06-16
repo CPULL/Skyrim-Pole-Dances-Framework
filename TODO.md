@@ -47,7 +47,7 @@
     - [ ] Add code to get a strip by a special pose name (**CPU**)
     - [ ] Add code to get a pose (animated) by a special pose name (**CPU**)
 - [ ] **Animations**
-    - [ ] Convert the poses from 3DS format to HKX files (**Komotor**)
+    - [ ] Convert the dances from 3DS format to HKX files (**Komotor**)
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
 - [ ] **Remote Future**
     - [ ] Add music
