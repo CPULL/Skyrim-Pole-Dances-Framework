@@ -7,14 +7,15 @@
 	- [X] Add to the Dance definition its tags, and add a function in the init to add the tags to the anim
 	- [ ] Implement the Pose tag
 - [ ] **Framework**
-    - [X] Add a newThreadTags() function (**CPU**)
+    - [X] Add a newPerformance() function (**CPU**)
 - [ ] **Performances**
-    - [ ] Alter the thread to play with the different modes to define the animation (**CPU**)
-	    - [ ] Only start pose and duration
-	    - [ ] Sequence of Dances
-	    - [ ] Sequence of Tags
-	- [ ] Destroy the thread after it ends and return it to the pool
+    - [X] Alter the performance to play with the different modes to define the animation (**CPU**)
+	    - [X] Only start pose and duration
+	    - [X] Sequence of Dances
+	    - [X] Sequence of Tags
+	- [x] Destroy the performance after it ends and return it to the pool
     - [X] Rename everywhere "Thread" with "Performance" (**CPU**)
+    - [ ] Implement the Stop method (**CPU**)
 - [ ] **Stripping**
     - [ ] Add a way to control stripping during pole dances (**CPU**)
     - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
@@ -34,7 +35,8 @@
     - [ ] Add a way to preview-poses in the Framework MCM (**CPU**)
     - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
 - [ ] **Hooks**
-    - [ ] Add events in the playing of the performance
+    - [X] Add events in the playing of the performance
+    - [ ] Add global events register functions
 - [ ] **Errors Management**
 	- [X] Complete errors documentation (**CPU**)
 	- [X] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
@@ -42,9 +44,14 @@
     - [X] Add code to find dances by name (**CPU**)
     - [ ] Add code to find dances by tags (**CPU**)
     - [X] Add code to find poses by name (**CPU**)
+    - [ ] Add code to get a strip by a special pose name (**CPU**)
+    - [ ] Add code to get a pose (animated) by a special pose name (**CPU**)
 - [ ] **Animations**
     - [ ] Convert the poses from 3DS format to HKX files (**Komotor**)
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
+- [ ] **Remote Future**
+    - [ ] Add music
+    - [ ] Add dances without a pole
 
 	
 	
