@@ -90,6 +90,15 @@ spdPerformance Function newPerformance(Actor dancer, ObjectReference pole=None, 
 	return th
 endFunction
 
+spdPerformance Function getPerformanceById(int performanceId)
+	return registry.getPerformanceById(performanceId)
+endFunction
+
+spdPerformance Function getGlobalPerformanceById(int performanceId) Global
+	spdPoleDances mySelf = Game.GetFormFromFile(0x0012C4, "Skyrim Pole Dances.esp") as spdPoleDances
+	return mySelf.registry.getPerformanceById(performanceId)
+endFunction
+
 
 ; -))
 

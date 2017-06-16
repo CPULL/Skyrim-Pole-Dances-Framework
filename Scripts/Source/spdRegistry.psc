@@ -422,7 +422,7 @@ endFunction
 
 
 ; Returns 1 in case there were errors
-int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, bool isCyclic, string tag="")
+int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, string tag="", string preAnimEvent="", float preAnimDuration=0.0, string postAnimEvent="", float postAnimDuration=0.0)
 	; Allocate one, but check if we already have the name
 	int pos = -1
 	int i = dances.length
@@ -458,7 +458,12 @@ int Function registerDance(string name, string animEvent, string startPose, stri
 		spdF._addError(33, "End pose \"" + endPose + "\" for Dance \"" + name + "\" does not exist!", "Registry", "registerDance")
 		return 1
 	endIf
-	d._init(name, animEvent, sp, ep, duration, isCyclic)
+	d._init(name, animEvent, sp, ep, duration)
+	if preAnimEvent!="" && preAnimDuration!=0.0 && postAnimEvent!="" && postAnimDuration!=0.0
+		d._initCycle(preAnimEvent, preAnimDuration, postAnimEvent, postAnimDuration)
+	elseIf preAnimEvent!="" || preAnimDuration!=0.0 || postAnimEvent!="" || postAnimDuration!=0.0
+		spdF._addError(33, "Not possible to specify only a sub-set of the cycle for a dance: \"" + name + "\"", "Registry", "registerDance") ; FIXME fix the ID
+	endIf
 	if tag
 		if d.setTags(tag)
 			return 1
@@ -504,8 +509,21 @@ spdDance Function findDanceByName(string name)
 endFunction
 
 spdDance Function findDanceByTags(spdTag tag)
-	; FIXME find all dances that are respecting the tag and return a random one
-	return dances[0]
+	; find all dances that are respecting the tag and return a random one
+	spdDance[] res = new spdDance[16]
+	int numValid = 0
+	int i=dances.length
+	while i
+		i-=1
+		if dances[i] && dances[i].inUse && dances[i].hasTags(tag)
+			res[numValid] = dances[i]
+			numValid+=1
+		endIf
+	endWhile
+	if numValid==0
+		return None
+	endIf
+	return res[Utility.randomInt(0, numValid - 1)]
 endFunction
 
 spdDance Function findRandomDance()
@@ -550,7 +568,7 @@ spdDance Function findTransitionDance(spdPose prev, spdPose next)
 		return none
 	endIf
 	spdDance[] valids = allocateDances(num)
-i=0
+	i=0
 	while i<dances.length && num<16
 		spdDance d = dances[i]
 		if d && d.inUse && d.startPose==prev && d.endPose==next
@@ -583,13 +601,41 @@ endFunction
 
 ; ((- tags
 
-Function cleanUpTags()
-	; FIXME
+Function cleanUpTags() ; FIXME call this when releasing a performance
 	; Go for all tags
-	; Check if a tag is referenced in a dance or an active performance
-	; if not remove it (make it not used)
-
-
+	int i = tags.length
+	while i
+		i-=1
+		spdTag t = tags[i]
+		if t && t.inUse
+			bool used = false
+			; Check if a tag is referenced in a dance or an active performance
+			int j = dances.length
+			while j && !used
+				j-=1
+				spdDance d = dances[i]
+				if d && d.inUse
+					if d._isTag(t)
+						used = true
+						j=0
+					endIf
+				endIf
+			endWhile
+			j = performances.length
+			while j && !used
+				j-=1
+				spdPerformance p = performances[i]
+				if p && p.inUse && p._isTagUsed(t)
+					used = true
+					j=0
+				endIf
+			endWhile
+			; if not remove it (make it not used)
+			if !used
+				t._release()
+			endIf
+		endIf
+	endWhile
 endFunction
 
 string Function tryToParseTags(string tagCode)

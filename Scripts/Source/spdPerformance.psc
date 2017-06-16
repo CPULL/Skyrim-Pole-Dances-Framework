@@ -2,14 +2,11 @@ Scriptname spdPerformance extends ReferenceAlias
 
 ; FIXME Re-set the events, right now they are not perfect in timing and parameters
 ; FIXME Add functions to strip and redress
+; FIXME Add a specific "Dance Name" to strip and redress (use the same way we do tags)
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
 ; FIXME Add stop() function
 ; FIXME Make private all functions that should be private
 ; FIXME 
-; FIXME pre-define the lenght of the dances
-; FIXME Remove the functions to re-allocate the dances
-; FIXME pre-define the lenght of the tags
-; FIXME Remove the functions to re-allocate the tags
 ; FIXME 
 ; FIXME 
 ; FIXME 
@@ -58,6 +55,14 @@ Function _release()
 	numTags = 0
 	isPerformancePlaying = false
 	isPerformanceValid = false
+	performanceStartingHooks = None
+	performanceBeginsHooks = None
+	performanceStartedHooks = None
+	danceChangingHooks = None
+	danceChangedHooks = None
+	poseUsedHooks = None
+	performanceEndingHooks = None
+	performanceEndedHooks = None
 	_inUse = false
 	GoToState("")
 endFunction
@@ -77,13 +82,14 @@ int numDances
 spdTag[] tags
 int numTags
 
-string[] danceInitHooks
-string[] danceStartingHooks
-string[] danceStartedHooks
+string[] performanceStartingHooks
+string[] performanceBeginsHooks
+string[] performanceStartedHooks
+string[] danceChangingHooks
 string[] danceChangedHooks
 string[] poseUsedHooks
-string[] danceEndingHooks
-string[] danceEndedHooks
+string[] performanceEndingHooks
+string[] performanceEndedHooks
 
 int stoppedTimes
 float prevWalkX
@@ -112,9 +118,9 @@ Function _doInit(spdPoleDances s, ReferenceAlias refPole, Package refWalkPkg)
 	pole = None
 	poleCreated = false
 	needPoleCreated = false
-	dances = new spdDance[16]
+	dances = new spdDance[32]
 	numDances = 0
-	tags = new spdTag[16]
+	tags = new spdTag[32]
 	numTags = 0
 	_inUse = false
 	isPerformancePlaying = false
@@ -223,11 +229,11 @@ bool Function setDancesString(string refDances)
 	if errs!=""
 		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Performance", "setDancesString")
 	endIf
-	; Now allocate the array and fill it
-	dances = _reAllocateDances(dances, count)
+	
+	numDances = count
 	i = 0
 	count = 0
-	while i<parts.length
+	while i<numDances
 		spdDance d = registry.findDanceByName(parts[i]) ; It will get both actual dances and strips
 		if d!=None
 			dances[count] = d
@@ -237,7 +243,10 @@ bool Function setDancesString(string refDances)
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	tags = None
+	while numTags
+		numTags-=1
+		tags[numTags] = None
+	endWhile
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -276,10 +285,10 @@ bool Function setDancesArray(string[] refDances)
 		spdF._addError(23, "[WARNING] Some of the dances are not valid: " + errs, "Performance", "setDancesArray")
 	endIf
 	; Now allocate the array and fill it
-	dances = _reAllocateDances(dances, count)
+	numDances = count
 	i = 0
 	count = 0
-	while i<refDances.length
+	while i<numDances
 		spdDance d = registry.findDanceByName(refDances[i]) ; It will get both actual dances and strips
 		if d!=None
 			dances[count] = d
@@ -289,7 +298,10 @@ bool Function setDancesArray(string[] refDances)
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	tags = none
+	while numTags
+		numTags-=1
+		tags[numTags] = None
+	endWhile
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -329,21 +341,18 @@ bool Function setTagsString(string refTags)
 	if errs!=""
 		spdF._addError(33, "[WARNING] Some of the tags are not valid: " + errs, "Performance", "setTagsString")
 	endIf
-	; Now allocate the array and fill it
-	tags = _allocateTags(count)
+	numTags = count
 	i = 0
-	count = 0
-	while i<parts.length
-		spdTag t = registry.parseTags(parts[i])
-		if t!=None
-			tags[count] = t
-			count+=1
-		endIf
+	while i<numTags
+		tags[i] = registry.parseTags(parts[i])
 		i+=1
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	dances = none
+	while numDances
+		numDances-=1
+		dances[numDances] = None
+	endWhile
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -381,21 +390,18 @@ bool Function setTagsArray(string[] refTags)
 	if errs!=""
 		spdF._addError(63, "[WARNING] Some of the Tags are not valid: " + errs, "Performance", "setDancesArray")
 	endIf
-	; Now allocate the array and fill it
-	tags = _allocateTags(count)
+	numTags = count
 	i = 0
-	count = 0
-	while i<refTags.length
-		spdTag t = registry.parseTags(refTags[i])
-		if t!=None
-			tags[count] = t
-			count+=1
-		endIf
+	while i<numTags
+		tags[i] = registry.parseTags(refTags[i])
 		i+=1
 	endWhile
 	; Clean the other stuff
 	startingPose = None
-	dances = none
+	while numDances
+		numDances-=1
+		dances[numDances] = None
+	endWhile
 	isValid() ; To recalculate
 	return false
 endFunction
@@ -419,7 +425,8 @@ bool function start(bool forceTransitions = true)
 			spdF._addError(44, "Could not find a dance starting with pose \"" + startingPose.name + "\"", "Performance", "start")
 			return true
 		endIf
-		dances = _addDance(dances, d)
+		dances[0] = d
+		numDances = 1
 		float calculatedDuration = d.duration
 		while calculatedDuration<duration
 			spdPose endPose = d.endPose
@@ -433,65 +440,69 @@ bool function start(bool forceTransitions = true)
 				d = registry.findRandomDance()
 			endIf
 			calculatedDuration += d.duration
-			dances = _addDance(dances, d)
+			dances[numDances] = d
+			numDances==1
 		endWhile
 		
-	elseIf startingPose==None && dances.length>0 && tags.length==0
+	elseIf startingPose==None && numDances>0 && numTags==0
 		; Case dances -> Add transitions in case the dances are not in sequence and the param is true
 		if forceTransitions
-			spdDance[] reDances = new spdDance[1]
-			reDances[0] = dances[0]
-			startingPose = dances[0].startPose
-			int i=1
-			while i<dances.length
+			int i = numDances
+			while i>0
 				spdDance next = dances[i]
-				spdDance prev = reDances[reDances.length - 1]
-				if prev.endPose != next.startPose
-					; Add a transition
+				spdDance prev = dances[i - 1]
+				if next.startPose != prev.endPose
+					; Check if we have a transition dance
 					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
-					if !d
+					if d
+						int j = numDances
+						while j > i+1
+							j-=1
+							dances[j] = dances[j - 1]
+						endWhile
+						dances[i] = d
+						numDances+=1
+					else
 						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
 					endIf
-					if d
-						reDances = _addDance(reDances, d)
-					endIf
 				endIf
-				reDances = _addDance(reDances, next)
-				i+=1
 			endWhile
 		endIf
 		
-	elseIf startingPose==None && dances.length>0 && tags.length==0
+	elseIf startingPose==None && numDances==0 && numTags>0
 		; Case tags -> Find the dances (try to respect the transitions in case the param is true)
-		dances = none ; new spdDance[0]
-		spdDance d = registry.findDanceByTags(tags[0])
-		if !d && forceTransitions
-			spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
-			return true
-		endIf
-		_addDance(dances, d)
-		startingPose = dances[0].startPose
-		int i = 1
-		while i<tags.length
-			spdDance prev = dances[dances.length - 1]
-			spdDance next = registry.findDanceByTags(tags[i])
-			if next==none
-				; missing dance, trace but don't stop
+		int i=0
+		while i<numTags
+			spdDance d = registry.findDanceByTags(tags[i])
+			if !d
 				spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
-			else
-				if prev.endPose != next.startPose && forceTransitions
-					; Add a transition
-					d = registry.findTransitionDance(prev.endPose, next.startPose)
-					if !d
+				return true
+			endIf
+			dances[numDances] = d
+			numDances+=1
+		endWhile
+		if forceTransitions
+			i = numDances
+			while i>0
+				spdDance next = dances[i]
+				spdDance prev = dances[i - 1]
+				if next.startPose != prev.endPose
+					; Check if we have a transition dance
+					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
+					if d
+						int j = numDances
+						while j > i+1
+							j-=1
+							dances[j] = dances[j - 1]
+						endWhile
+						dances[i] = d
+						numDances+=1
+					else
 						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
 					endIf
-					if d
-						dances = _addDance(dances, d)
-					endIf
 				endIf
-				_addDance(dances, next)
-			endIf
-		endWhile
+			endWhile
+		endIf
 		
 	else
 		; Something wrong
@@ -507,9 +518,11 @@ bool function start(bool forceTransitions = true)
 	endIf
 	poleRef.forceRefTo(pole)
 	
+	sendEvent("PerformanceStarting")
+	
 	; Allocate the actor (block it) and start walking to the pole
 	registry._lockActor(dancer, walkPackage, pole)
-	if _calculateDistance(dancer, pole)<50
+	if dancer.getDistance(pole)<50
 		RegisterForSingleUpdate(0.2)
 	else
 		RegisterForSingleUpdate(2.0)
@@ -521,103 +534,6 @@ bool function start(bool forceTransitions = true)
 
 	GoToState("Walking")
 	return false
-endFunction
-
-
-spdDance[] Function _addDance(spdDance[] orig, spdDance d)
-	int num = 0
-	if orig
-		num = orig.length
-	endIf
-	orig = _reAllocateDances(orig, num + 1)
-	orig[num] = d
-	return orig
-endFunction
-
-spdDance[] Function _reAllocateDances(spdDance[] origDances, int num)
-	spdDance[] newDances
-	if num==1
-		newDances = new spdDance[1]
-	elseIf num==2
-		newDances = new spdDance[2]
-	elseIf num==3
-		newDances = new spdDance[3]
-	elseIf num==4
-		newDances = new spdDance[4]
-	elseIf num==5
-		newDances = new spdDance[5]
-	elseIf num==6
-		newDances = new spdDance[6]
-	elseIf num==7
-		newDances = new spdDance[7]
-	elseIf num==8
-		newDances = new spdDance[8]
-	elseIf num==9
-		newDances = new spdDance[9]
-	elseIf num==10
-		newDances = new spdDance[10]
-	elseIf num==11
-		newDances = new spdDance[11]
-	elseIf num==12
-		newDances = new spdDance[12]
-	elseIf num==13
-		newDances = new spdDance[13]
-	elseIf num==14
-		newDances = new spdDance[14]
-	elseIf num==15
-		newDances = new spdDance[15]
-	else
-		newDances = new spdDance[16]
-	endIf
-	if origDances
-		int i = origDances.length
-		while i
-			i-=1
-			newDances[i] = origDances[i]
-		endWhile
-	endIf
-	return newDances
-endFunction
-
-spdTag[] Function _allocateTags(int num)
-	if num==0
-		return none
-	endIf
-	spdTag[] newTags
-	if num==1
-		newTags = new spdTag[1]
-	elseIf num==2
-		newTags = new spdTag[2]
-	elseIf num==3
-		newTags = new spdTag[3]
-	elseIf num==4
-		newTags = new spdTag[4]
-	elseIf num==5
-		newTags = new spdTag[5]
-	elseIf num==6
-		newTags = new spdTag[6]
-	elseIf num==7
-		newTags = new spdTag[7]
-	elseIf num==8
-		newTags = new spdTag[8]
-	elseIf num==9
-		newTags = new spdTag[9]
-	elseIf num==10
-		newTags = new spdTag[10]
-	elseIf num==11
-		newTags = new spdTag[11]
-	elseIf num==12
-		newTags = new spdTag[12]
-	elseIf num==13
-		newTags = new spdTag[13]
-	elseIf num==14
-		newTags = new spdTag[14]
-	elseIf num==15
-		newTags = new spdTag[15]
-	else
-		newTags = new spdTag[16]
-	endIf
-	return newTags
 endFunction
 
 
@@ -644,7 +560,7 @@ state walking
 		endIf
 			
 		; Wait until the actor is close, then remove the package, then start the intro anim
-		if _calculateDistance(dancer, pole) > 50
+		if dancer.getDistance(pole) > 50
 			if Math.abs(prevWalkX - dancer.x) < 2 && Math.abs(prevWalkY - dancer.y) < 2
 				stoppedTimes+=1
 			endIf
@@ -660,11 +576,15 @@ endState
 
 state Playing
 	Event OnBeginState()
+		sendEvent("PerformanceStarted")
 		registry._lockActor(dancer, registry.spdDoNothingPackage, pole)
 		currentDance = 0
+		sendEvent("DanceChanging")
 		prevDance = -1 ; This will play right now the first dance
 		Debug.SendAnimationEvent(dancer, startingPose.startHKX)
 		RegisterForSingleUpdate(startingPose.startTime - 0.1)
+		sendEvent("DanceChanged")
+		sendEvent("PerformanceStarted")
 	endEvent
 	
 	Event OnUpdate()
@@ -674,6 +594,7 @@ state Playing
 			timeToWait = dances[currentDance].duration
 			danceStartTime = Utility.getCurrentRealTime()
 			prevDance = currentDance
+			sendEvent("DanceChanged")
 		endIf
 		
 		float timeToDo = Utility.getCurrentRealTime() - danceStartTime
@@ -684,6 +605,7 @@ state Playing
 				return
 			endIf
 			currentDance += 1
+			sendEvent("DanceChanging")
 			RegisterForSingleUpdate(0.1)
 		elseIf timeToWait - timeToDo < 1.0
 			RegisterForSingleUpdate(timeToWait - timeToDo - 0.2)
@@ -696,6 +618,7 @@ endState
 
 state Ending
 	Event OnBeginState()
+		sendEvent("PerformanceEnding")
 		Debug.SendAnimationEvent(dancer, dances[dances.length - 1].endPose.endHKX)
 		RegisterForSingleUpdate(dances[dances.length - 1].endPose.endTime - 0.1)
 	endEvent
@@ -706,6 +629,7 @@ state Ending
 		endIf
 		registry._unlockActor(dancer)
 		isPerformancePlaying = false
+		sendEvent("PerformanceEnded")
 		_release()
 	endEvent
 endState
@@ -721,31 +645,32 @@ endState
 	
 string function addHook(string hookName, string eventName)
 	; Check if the event name is valid, in case add the Hook to the specific event
-	; 	<Hook>_DanceInit(tid, dance, actor)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
-	; 	<Hook>_DanceStarting(tid, dance, actor, pose)	--> Sent when the Dance is starting and the initial animation is being played
-	; 	<Hook>_DanceStarted(tid, dance, actor)			--> Sent when the very first dance is played
+	; 	<Hook>_PerformanceBegins(tid, actor)				--> Sent when the Dance is being initialized and the actor begins to walk to the pole
+	; 	<Hook>_PerformanceStarting(tid, actor)	--> Sent when the Dance is starting and the initial animation is being played
+	; 	<Hook>_PerformanceStarted(tid, actor)			--> Sent when the very first dance is played
+	; 	<Hook>_DanceChanging(tid, actor, newDance)			--> Sent every time a dance is played
 	; 	<Hook>_DanceChanged(tid, dance, actor)			--> Sent every time a dance is played
 	;	<Hook>_PoseUsed(tid, dance, actor, pose)		--> Sent every time a pose is being used by an actor
 	;	<Hook>_DanceEnding(tid, dance, actor, pose)		--> Sent when the last dance is completed and the ending anim is being played
 	;	<Hook>_DanceEnded(tid, actor)					--> Sent when the dance is fully completed an dthe actor has been released
 
 	string[] hooks
-	if eventName=="DanceInit"
-		hooks = danceInitHooks
-	elseIf eventName=="DanceStarting"
-		hooks = danceStartingHooks
-	elseIf eventName=="DanceStarted"
-		hooks = danceStartedHooks
+	if eventName=="PerformanceBegins"
+		hooks = performanceBeginsHooks
+	elseIf eventName=="PerformanceStarting"
+		hooks = performanceStartingHooks
+	elseIf eventName=="PerformanceStarted"
+		hooks = performanceStartedHooks
+	elseIf eventName=="DanceChanging"
+		hooks = danceChangingHooks
 	elseIf eventName=="DanceChanged"
 		hooks = danceChangedHooks
-	elseIf eventName=="PoseUsed"
-		hooks = poseUsedHooks
-	elseIf eventName=="DanceEnding"
-		hooks = danceEndingHooks
-	elseIf eventName=="DanceEnded"
-		hooks = danceEndedHooks
+	elseIf eventName=="PerformanceEnding"
+		hooks = performanceEndingHooks
+	elseIf eventName=="PerformanceEnded"
+		hooks = performanceEndedHooks
 	else
-		return "Unkow event to register: " + eventName
+		return "Unknow event to register: " + eventName
 	endIf
 	if !hooks || hooks.length
 		hooks = new String[1]
@@ -759,79 +684,52 @@ string function addHook(string hookName, string eventName)
 endFunction
 
 
-Function sendEvent(string eventName, string pose="")
-	if eventName=="DanceInit"
-		if danceInitHooks && danceInitHooks.length>0
-			int i = danceInitHooks.length
+Function sendEvent(string eventName)
+
+"PerformanceBegins"
+
+	if eventName=="PerformanceStarting"
+		if performanceStartingHooks && performanceStartingHooks.length>0
+			int i = performanceStartingHooks.length
 			while i
 				i-=1
-				int modEvId = ModEvent.create(danceInitHooks[i] + "_DanceInit")
+				int modEvId = ModEvent.create(performanceStartingHooks[i] + "_PerformanceStarting")
 				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
-				if startingPose
-					ModEvent.pushString(modEvId, startingPose.name)
-				else
-					ModEvent.pushString(modEvId, "")
-				endIf
 				ModEvent.send(modEvId)
 			endWhile
 		endIf
-		if registry.useGlobalHook("DanceInit")
-			int modEvId = ModEvent.create("GlobalDanceInit")
+		if registry.useGlobalHook("PerformanceStarting")
+			int modEvId = ModEvent.create("GlobalPerformanceStarting")
 			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
-			if startingPose
-				ModEvent.pushString(modEvId, startingPose.name)
-			else
-				ModEvent.pushString(modEvId, "")
-			endIf
 			ModEvent.send(modEvId)
 		endIf
 		
-	elseIf eventName=="DanceStarting"
-		if danceStartingHooks && danceStartingHooks.length>0
-			int i = danceStartingHooks.length
+	elseIf eventName=="PerformanceStarted"
+		if performanceStartedHooks && performanceStartedHooks.length>0
+			int i = performanceStartedHooks.length
 			while i
 				i-=1
-				int modEvId = ModEvent.create(danceStartingHooks[i] + "_DanceStarting")
+				int modEvId = ModEvent.create(performanceStartedHooks[i] + "_PerformanceStarted")
 				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
-				if currentDance!=-1
-					ModEvent.pushString(modEvId, dances[currentDance].name)
-				else
-					ModEvent.pushString(modEvId, "")
-				endIf
-				if startingPose
-					ModEvent.pushString(modEvId, startingPose.name)
-				else
-					ModEvent.pushString(modEvId, "")
-				endIf
 				ModEvent.send(modEvId)
 			endWhile
 		endIf
-		if registry.useGlobalHook("DanceStarting")
-			int modEvId = ModEvent.create("GlobalDanceStarting")
+		if registry.useGlobalHook("PerformanceStarted")
+			int modEvId = ModEvent.create("GlobalPerformanceStarted")
 			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
-			if currentDance!=-1
-				ModEvent.pushString(modEvId, dances[currentDance].name)
-			else
-				ModEvent.pushString(modEvId, "")
-			endIf
-			if startingPose
-				ModEvent.pushString(modEvId, startingPose.name)
-			else
-				ModEvent.pushString(modEvId, "")
-			endIf
 			ModEvent.send(modEvId)
 		endIf
 		
-	elseIf eventName=="DanceStarted"
-		if danceStartedHooks && danceStartedHooks.length>0
-			int i = danceStartedHooks.length
+	elseIf eventName=="DanceChanging"
+		if danceChangingHooks && danceChangingHooks.length>0
+			int i = danceChangingHooks.length
 			while i
 				i-=1
-				int modEvId = ModEvent.create(danceStartedHooks[i] + "_DanceStarted")
+				int modEvId = ModEvent.create(danceChangingHooks[i] + "_DanceChanging")
 				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				if currentDance!=-1
@@ -842,8 +740,8 @@ Function sendEvent(string eventName, string pose="")
 				ModEvent.send(modEvId)
 			endWhile
 		endIf
-		if registry.useGlobalHook("DanceStarted")
-			int modEvId = ModEvent.create("GlobalDanceChanged")
+		if registry.useGlobalHook("DanceChanging")
+			int modEvId = ModEvent.create("GlobalDanceChanging")
 			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			if currentDance!=-1
@@ -853,7 +751,7 @@ Function sendEvent(string eventName, string pose="")
 			endIf
 			ModEvent.send(modEvId)
 		endIf
-		
+
 	elseIf eventName=="DanceChanged"
 		if danceChangedHooks && danceChangedHooks.length>0
 			int i = danceChangedHooks.length
@@ -881,80 +779,38 @@ Function sendEvent(string eventName, string pose="")
 			endIf
 			ModEvent.send(modEvId)
 		endIf
-		
-	elseIf eventName=="PoseUsed"
-		if poseUsedHooks && poseUsedHooks.length>0
-			int i = poseUsedHooks.length
+
+	elseIf eventName=="PerformanceEnding"
+		if performanceEndingHooks && performanceEndingHooks.length>0
+			int i = performanceEndingHooks.length
 			while i
 				i-=1
-				int modEvId = ModEvent.create(poseUsedHooks[i] + "_PoseUsed")
+				int modEvId = ModEvent.create(performanceEndingHooks[i] + "_PerformanceEnding")
 				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
-				if currentDance!=-1
-					ModEvent.pushString(modEvId, dances[currentDance].name)
-				else
-					ModEvent.pushString(modEvId, "")
-				endIf
-				ModEvent.pushString(modEvId, pose)
 				ModEvent.send(modEvId)
 			endWhile
 		endIf
-		if registry.useGlobalHook("DanceEnding")
-			int modEvId = ModEvent.create("GlobalDanceEnding")
+		if registry.useGlobalHook("PerformanceEnding")
+			int modEvId = ModEvent.create("GlobalPerformanceEnding")
 			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
-			if currentDance!=-1
-				ModEvent.pushString(modEvId, dances[currentDance].name)
-			else
-				ModEvent.pushString(modEvId, "")
-			endIf
-			ModEvent.pushString(modEvId, pose)
 			ModEvent.send(modEvId)
 		endIf
 		
-	elseIf eventName=="DanceEnding"
-		if danceEndingHooks && danceEndingHooks.length>0
-			int i = danceEndingHooks.length
+	elseIf eventName=="PerformanceEnded"
+		if performanceEndedHooks && performanceEndedHooks.length>0
+			int i = performanceEndedHooks.length
 			while i
 				i-=1
-				int modEvId = ModEvent.create(danceEndingHooks[i] + "_DanceEnding")
-				ModEvent.pushInt(modEvId, getID())
-				ModEvent.pushForm(modEvId, dancer)
-				if currentDance!=-1
-					ModEvent.pushString(modEvId, dances[currentDance].name)
-				else
-					ModEvent.pushString(modEvId, "")
-				endIf
-				ModEvent.pushString(modEvId, pose)
-				ModEvent.send(modEvId)
-			endWhile
-		endIf
-		if registry.useGlobalHook("DanceEnding")
-			int modEvId = ModEvent.create("GlobalDanceEnding")
-			ModEvent.pushInt(modEvId, getID())
-			ModEvent.pushForm(modEvId, dancer)
-			if currentDance!=-1
-				ModEvent.pushString(modEvId, dances[currentDance].name)
-			else
-				ModEvent.pushString(modEvId, "")
-			endIf
-			ModEvent.pushString(modEvId, pose)
-			ModEvent.send(modEvId)
-		endIf
-		
-	elseIf eventName=="DanceEnded"
-		if danceEndedHooks && danceEndedHooks.length>0
-			int i = danceEndedHooks.length
-			while i
-				i-=1
-				int modEvId = ModEvent.create(danceEndedHooks[i] + "_DanceEnded")
+				int modEvId = ModEvent.create(performanceEndedHooks[i] + "_PerformanceEnded")
 				ModEvent.pushInt(modEvId, getID())
 				ModEvent.pushForm(modEvId, dancer)
 				ModEvent.send(modEvId)
 			endWhile
 		endIf
-		if registry.useGlobalHook("DanceEnded")
-			int modEvId = ModEvent.create("GlobalDanceEnded")
+		if registry.useGlobalHook("PerformanceEnded")
+			int modEvId = ModEvent.create("GlobalPerformanceEnded")
 			ModEvent.pushInt(modEvId, getID())
 			ModEvent.pushForm(modEvId, dancer)
 			ModEvent.send(modEvId)
@@ -967,6 +823,9 @@ Function sendEvent(string eventName, string pose="")
 endFunction
 
 
-float Function _calculateDistance(ObjectReference a, ObjectReference b)
-	return a.getDistance(b)
+bool Function _isTagUsed(spdTag theTag)
+	if !tags
+		return false
+	endIf
+	return tags.find(theTag)!=-1
 endFunction

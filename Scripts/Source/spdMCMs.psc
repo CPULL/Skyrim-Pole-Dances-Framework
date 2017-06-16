@@ -3,6 +3,7 @@ Scriptname spdMCMs extends SKI_ConfigBase
 int[] opts
 int[] ids
 int currentPose
+int currentDance
 string thePage
 spdPoleDances spdF
 spdRegistry reg
@@ -13,6 +14,7 @@ event OnConfigInit()
 endEvent
 
 event OnConfigOpen()
+	currentDance=-1
 	currentPose=-1
 	thePage=""
 	spdF = spdPoleDances.getInstance()
@@ -45,6 +47,18 @@ endEvent
 
 
 Function generateDances()
+	if currentDance!=-1
+		spdDance d = reg._getDanceByIndex(ids[currentDance])
+		if d
+			LoadCustomContent("Skyrim Pole Dances/DancesPreview/" + d.name + ".swf", 0.0, 0.0)
+			Utility.waitMenuMode(3.0)
+			currentDance=-1
+			ForcePageReset()
+			return
+		endIf
+	endIf
+	
+	UnloadCustomContent()
 	cleanOptions()
 	SetCursorFillMode(LEFT_TO_RIGHT)
 	AddHeaderOption("Dances: " + reg._getDancesNum(false) + "/" + reg._getDancesNum(true))
@@ -134,7 +148,13 @@ endEvent
 
 Event OnOptionSelect(int option)
 	currentPose=-1
-	if thePage=="Poses"
+	if thePage=="Dances"
+		currentDance = opts.find(option)
+		if currentDance!=-1
+			ForcePageReset()
+			return
+		endIf
+	elseIf thePage=="Poses"
 		currentPose = opts.find(option)
 		if currentPose!=-1
 			ForcePageReset()

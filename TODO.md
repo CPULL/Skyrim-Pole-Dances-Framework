@@ -56,13 +56,7 @@ FIXME Mode (just for CPU)
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
 ; FIXME Add stop() function
 ; FIXME Make private all functions that should be private
-; FIXME pre-define the lenght of the dances
-; FIXME Remove the functions to re-allocate the dances
-; FIXME pre-define the lenght of the tags
-; FIXME Remove the functions to re-allocate the tags
-; FIXME Add hint of the poses in the MCM
 ; FIXME Build the tool to test
-; FIXME Try to preview a pose (or dance) in MCM
 ; FIXME 
 ; FIXME 
 ; FIXME 

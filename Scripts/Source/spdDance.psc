@@ -2,13 +2,18 @@ Scriptname spdDance Extends ReferenceAlias
 
 string _name
 string _animEvent
+string _animEventBeforeCycle
+string _animEventAfterCycle
 string _startPoseName
 spdPose _startPose
 spdPose _endPose
 float _length
+float _lengthBeforeCycle
+float _lengthAfterCycle
 bool _cyclic
 bool _inUse
 spdTag _tag
+bool _isAStrip
 
 string Property name
 	string function get()
@@ -53,15 +58,23 @@ spdTag Property danceTags
 	endFunction
 endProperty
 
-Function _init(string dname, string animEvent, spdPose sp, spdPose ep, float len, bool cyclic)
+Function _init(string dname, string animEvent, spdPose sp, spdPose ep, float len)
 	_name = dname
 	_animEvent = animEvent
 	_startPose = sp
 	_endPose = ep
 	_length = len
-	_cyclic = cyclic	
+	_cyclic = false
 	_inUse = true
 	_tag = None
+endFunction
+
+Function _initCycle(string preAnimEvent, float preAnimDuration, string postAnimEvent, float postAnimDuration)
+	_animEventBeforeCycle = preAnimEvent
+	_animEventAfterCycle = postAnimEvent
+	_lengthBeforeCycle = preAnimDuration
+	_lengthAfterCycle = postAnimDuration
+	_cyclic = true
 endFunction
 
 bool Function setTags(string tags)
@@ -81,3 +94,10 @@ bool Function setTags(string tags)
 	return false
 endFunction
 
+bool Function hasTags(spdTag tag)
+	; Check if what is specified in the tag is compatible with the defined tag for the dance
+endFunction
+
+bool Function _isTag(spdTag t)
+	return _tag==t
+endFunction

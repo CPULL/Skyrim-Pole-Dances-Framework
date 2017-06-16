@@ -27,7 +27,9 @@ Function _doInit(spdPoleDances spd)
 	registry = spd.registry
 endFunction
 
-
+Function _release()
+	_inUse = false
+endFunction
 
 ; String tag format
 ;
