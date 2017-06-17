@@ -12,6 +12,9 @@ spdDance[] dances
 spdPose[] poses
 spdTag[] tags
 string[] validTags
+spdActor[] actors
+actor[] refActors
+
 
 
 ; ****************************************************************************************************************************************************************
@@ -136,6 +139,8 @@ debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 		dances = new spdDance[16]
 		poses = new spdPose[16]
 		tags = new spdTag[64]
+		actors = new spdActor[16]
+		refActors = new actor[16]
 	endIf
 	
 	; Some of the items can be already there, do not re-init them
@@ -143,6 +148,7 @@ debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 	int countDances = 0
 	int countPoses = 0
 	int countTags = 0
+	int countActors = 0
 	Alias[] allAliases = GetAliases()
 	int i = allAliases.length
 	while i
@@ -174,8 +180,16 @@ debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 			int pos = tags.Find(None)
 			if tags.Find(t)==-1 && pos!=-1
 				tags[countTags] = t
-				tags[countPerformances]._doInit(spdF)
+				tags[countTags]._doInit(spdF)
 				countTags += 1
+			endIf
+		elseIf StringUtil.Find(allAliases[i].GetName(), "spdActor")!=-1
+			spdActor t = allAliases[i] as spdActor
+			int pos = actors.Find(None)
+			if actors.Find(t)==-1 && pos!=-1
+				actors[countActors] = t
+				actors[countActors]._doInit(spdF)
+				countActors += 1
 			endIf
 		endIf
 	endWhile
@@ -184,6 +198,7 @@ debug.trace("SPD: Found " + countPerformances + "/" + performances.length + " Pe
 debug.trace("SPD: Found " + countDances + "/" + dances.length + " Dances")
 debug.trace("SPD: Found " + countPoses + "/" + poses.length + " poses")
 debug.trace("SPD: Found " + countTags + "/" + tags.length + " tags")
+debug.trace("SPD: Found " + countActors + "/" + actors.length + " actors")
 	
 	; Send the event to register other poses and dances from mods
 	editing = false
@@ -258,12 +273,6 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
-Faction Property spdDancingFaction Auto
-
-; Actors
-spdActor[] actors
-actor[] refActors
-
 bool function _allocateActor(Actor a)
 	if !a
 		spdF._addError(2, "Trying to allocate a null actor", "Registry", "allocateActor")
@@ -274,7 +283,7 @@ bool function _allocateActor(Actor a)
 		spdF._addError(3, "Trying to allocate a non valid actor: " + a.getDisplayName(), "Registry", "allocateActor")
 		return true ; Bad actor
 	endIf
-	if a.isInFaction(spdDancingFaction) && refActors.find(a)!=-1
+	if a.isInFaction(spdF.spdDancingFaction) && refActors.find(a)!=-1
 		spdF._addError(4, "The actor " + a.getDisplayName() + " is already allocated and dancing", "Registry", "allocateActor")
 		return true ; Already used
 	endIf
@@ -286,7 +295,7 @@ bool function _allocateActor(Actor a)
 	endIf
 	
 	refActors[pos] = a
-	actors[pos].set(a) ; This will lock the actor effectively
+	actors[pos].setTo(a) ; This will lock the actor effectively
 	return false
 endFunction
 

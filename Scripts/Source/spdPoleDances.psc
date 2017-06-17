@@ -8,6 +8,7 @@ Static Property spdMainPole Auto
 Actor Property PlayerRef Auto
 Package Property spdDoNothingPackage Auto
 Faction Property spdDancingFaction Auto
+Keyword Property spdNoStrip Auto
 
 int currentVersion
 

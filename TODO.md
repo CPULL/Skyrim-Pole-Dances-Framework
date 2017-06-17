@@ -21,6 +21,8 @@
     - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
 	    - [X] Tags
 		- [ ] Dances
+	- [X] Add strip functions inside the spdActor
+	- [ ] Call spdActor's strip functions inside the performances
 - [ ] **Documentation**
     - [ ] Complete the documentation of APIs (**CPU**, **Rydin**)
 	    - [ ] Main framework
@@ -49,6 +51,8 @@
 - [ ] **Animations**
     - [ ] Convert the dances from 3DS format to HKX files (**Komotor**)
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
+- [ ] **Actors**
+    - [ ] Remove the local properties and call always the property from the main framework
 - [ ] **Remote Future**
     - [ ] Add music
     - [ ] Add dances without a pole
@@ -64,6 +68,7 @@ FIXME Mode (just for CPU)
 ; FIXME Add stop() function
 ; FIXME Make private all functions that should be private
 ; FIXME Build the tool to test
+; FIXME (spdActors) Add face expressions?
 ; FIXME 
 ; FIXME 
 ; FIXME 
