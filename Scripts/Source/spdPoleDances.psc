@@ -4,7 +4,7 @@ Scriptname spdPoleDances Extends Quest
 ; ((- Properties
 
 spdRegistry Property registry Auto
-Static Property spdMainPole Auto
+Static Property spdWoodPole Auto
 Actor Property PlayerRef Auto
 Package Property spdDoNothingPackage Auto
 Faction Property spdDancingFaction Auto
@@ -111,14 +111,20 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
-ObjectReference Function placePole(ObjectReference loc = None, float distance = 0.0, float rotation = 0.0)
+ObjectReference Function placePole(ObjectReference loc = None, float distance = 0.0, float rotation = 0.0, int whichPole = 0)
 	ObjectReference ref = loc
 	if !ref
 		ref = PlayerRef
 	endIf
 	
 	float zAngle = ref.getAngleZ()
-	ObjectReference res = loc.placeAtMe(spdMainPole, 1, false, true)
+	Static poleS
+	if whichPole==0
+		poleS = spdWoodPole
+	else
+		poleS = spdWoodPole ; Fallback
+	endIf
+	ObjectReference res = loc.placeAtMe(spdWoodPole, 1, false, true)
 	res.moveTo(loc, Math.cos(zAngle + rotation) * distance, Math.sin(zAngle + rotation) * distance, 0.0, true)
 	res.enable(true)
 	return res
@@ -196,3 +202,13 @@ endFunction
 ; ****************************************************************************************************************************************************************
 
 ; FIXME get the ones from the docs, and update the spdPerformance
+
+
+
+
+int Property woodPole
+	int Function get()
+		return 0
+	endFunction
+endProperty
+

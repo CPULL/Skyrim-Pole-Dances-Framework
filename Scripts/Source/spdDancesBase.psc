@@ -21,10 +21,9 @@ Event RegisterDances(int version, Form reg)
 
 	debug.trace("SPD: begin registration of Dances")
 	errors = 0
-	errors += r.registerDance("Dance 1", "spdDance1", "Standing Grab Pole 1", "Down Grab Pole 1", 15.0, false, "Auth:Rydin,Sexy:0,Stand,Grab")
-	errors += r.registerDance("Dance 2", "spdDance2", "Standing Grab Pole 1", "Standing Grab Pole 1", 15.0, true, "Auth:CPU,Sexy:2|3,Strip:body|feet")
-	errors += r.registerDance("Dance 3", "spdDance3", "Down Grab Pole 1", "Standing Grab Pole 1", 15.0, false, "Auth:komotor,Float,Grab,Sexy:3|4,Bend,Spread")
-
+	errors += r.registerDance("Dance 1", "spdDance1", "Standing Grab Pole 1", "Down Grab Pole 1", 15.0, "Auth:Rydin,Sexy:0,Stand,Grab")
+	errors += r.registerDance("Dance 2", "spdDance2", "Standing Grab Pole 1", "Standing Grab Pole 1", 15.0, "Auth:CPU,Sexy:2|3,Strip:body|feet")
+	errors += r.registerDance("Dance 3", "spdDance3", "Down Grab Pole 1", "Standing Grab Pole 1", 15.0, "Auth:komotor,Float,Grab,Sexy:3|4,Bend,Spread")
 	debug.trace("SPD: Dances registration completed, " + errors + " errors")
 	r.dumpErrors()
 	r.completeEdit()
