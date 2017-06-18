@@ -33,15 +33,12 @@ debug.trace("SPD: init doInit")
 	numErrors = 0
 	
 	if currentVersion != getVersion()
-debug.trace("SPD: doUpdate")
 		_doUpdate()
 	endIf
 	currentVersion = getVersion()
 	
 	
-debug.trace("SPD: reInit registry")
 	registry._doInit(Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
-debug.trace("SPD: sending mod event")
 	
 	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
 	ModEvent.pushInt(modEvId, currentVersion)
@@ -71,6 +68,9 @@ bool Function quickStart(Actor dancer, ObjectReference pole=None, float duration
 	if !th
 		_addError(10, "No Performances available", "PoleDancesFramework", "QuickStart")
 		return true
+	endIf
+	if duration==-1.0
+		duration = 30.0
 	endIf
 	th.setBasicOption(dancer, pole, duration)
 	th.setStartPose(startingPose)
@@ -124,13 +124,20 @@ ObjectReference Function placePole(ObjectReference loc = None, float distance = 
 	else
 		poleS = spdWoodPole ; Fallback
 	endIf
-	ObjectReference res = loc.placeAtMe(spdWoodPole, 1, false, true)
-	res.moveTo(loc, Math.cos(zAngle + rotation) * distance, Math.sin(zAngle + rotation) * distance, 0.0, true)
+	ObjectReference res = loc.placeAtMe(poleS, 1, false, true)
+	res.moveTo(loc, Math.sin(zAngle + rotation) * distance, Math.cos(zAngle + rotation) * distance, 0.0, false)
+	res.setAngle(0.0, 0.0, ref.getAngleZ())
 	res.enable(true)
+debug.trace("SPD: SPD: pole is added")
+	
 	return res
 endFunction
 
 Function removePole(ObjectReference pole)
+debug.trace("SPD: SPD: pole was removed")
+	if !pole
+		return
+	endIf
 	pole.disable(true)
 	pole.delete()
 endFunction

@@ -134,7 +134,7 @@ debug.trace("SPD: Registry Init")
 	
 	; Poses, Dances, Tags initialization
 	if !dances
-debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
+debug.trace("SPD: Registry full init of performances, poses, dances, and tags")
 		; Full init
 		dances = new spdDance[16]
 		poses = new spdPose[16]
@@ -153,15 +153,15 @@ debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 	int i = allAliases.length
 	while i
 		i-=1
-		if StringUtil.Find(allAliases[i].GetName(), "spdPerformance")!=-1
-			spdPerformance p = allAliases[i] as spdPerformance
-			int pos = performances.Find(None)
-			if performances.Find(p)==-1 && pos!=-1
-				performances[pos] = p
-				performances[pos]._doInit(spdF, poleAliases[pos], walkPackages[pos])
-				countPerformances += 1
-			endIf
-		elseIf StringUtil.Find(allAliases[i].GetName(), "spdDance")!=-1
+;		if StringUtil.Find(allAliases[i].GetName(), "spdPerformance")!=-1
+;			spdPerformance p = allAliases[i] as spdPerformance
+;			int pos = performances.Find(None)
+;			if performances.Find(p)==-1 && pos!=-1
+;				performances[pos] = p
+;				performances[pos]._doInit(spdF, poleAliases[pos], walkPackages[pos])
+;				countPerformances += 1
+;			endIf
+		if StringUtil.Find(allAliases[i].GetName(), "spdDance")!=-1
 			spdDance d = allAliases[i] as spdDance
 			int pos = dances.Find(None)
 			if dances.Find(d)==-1 && pos!=-1
@@ -191,6 +191,16 @@ debug.trace("SPD: Registry full init of performances, poses, dances, adn tags")
 				actors[countActors]._doInit(spdF)
 				countActors += 1
 			endIf
+		endIf
+	endWhile
+	
+	; Re-init performances
+	i = performances.length
+	while i
+		i-=1
+		if performances[i]
+			performances[i]._doInit(spdF, poleAliases[i], walkPackages[i])
+			countPerformances += 1
 		endIf
 	endWhile
 	
@@ -295,7 +305,7 @@ bool function _allocateActor(Actor a)
 	endIf
 	
 	refActors[pos] = a
-	actors[pos].setTo(a) ; This will lock the actor effectively
+	actors[pos].setTo(a) ; The actor will be locked with the _lockActor call later
 	return false
 endFunction
 
@@ -305,21 +315,27 @@ function _releaseDancer(Actor a)
 		return
 	endIf
 	
-	actors[pos].clear()
+	_unlockActor(a)
+	actors[pos].free()
 	refActors[pos] = none
 endFunction
 
-Function _lockActor(Actor a, Package pkg, ObjectReference pole)
-	; Remove the controls in case is the player
-	; Set the package
-	; Associate with the pole
-	; FIXME
+Function _lockActor(Actor a, Package pkg)
+	; Find the spdActor
+	int pos = refActors.find(a)
+	if pos==-1
+		return
+	endIf
+	actors[pos]._lock(pkg)
 endFunction
 
 Function _unlockActor(Actor a)
-	; Give back controls if player
-	; Remove the package
-	; FIXME
+	; Find the spdActor
+	int pos = refActors.find(a)
+	if pos==-1
+		return
+	endIf
+	actors[pos].free()
 endFunction
 
 ; -))
@@ -358,6 +374,9 @@ endFunction
 
 
 spdPose Function findPoseByName(string poseName)
+	if !poseName
+		return poses[0] ; Fixme get a random one
+	endIf
 	int i=poses.length
 	while i
 		i-=1
@@ -486,10 +505,14 @@ spdDance Function findDanceByPose(spdPose pose)
 	int i = dances.length
 	while i
 		i-=1
-		if dances[i].startPose==pose
+		if dances[i] && dances[i].startPose==pose
 			count += 1
 		endIf
 	endWhile
+	if count==0
+		debug.trace("Could not find a dance starting with pose: " + pose.name)
+		return dances[0]
+	endIf
 	
 	; Allocate the array (damn, a SKSE plugin will be beneficial here)
 	spdDance[] res = allocateDances(count)
@@ -497,7 +520,7 @@ spdDance Function findDanceByPose(spdPose pose)
 	i = dances.length
 	while i && count<res.length
 		i-=1
-		if dances[i].startPose==pose
+		if dances[i] && dances[i].startPose==pose
 			res[count] = dances[i]
 			count += 1
 		endIf
@@ -701,7 +724,8 @@ endFunction
 spdDance[] Function allocateDances(int count)
 	if count<10
 		if count==0
-			return none
+			debug.tracestack("SPD: warning asked to allocate an array of zero dances!")
+			return new spdDance[1]
 		elseIf count==1
 			return new spdDance[1]
 		elseIf count==2

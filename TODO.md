@@ -53,6 +53,9 @@
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
 - [ ] **Actors**
     - [ ] Remove the local properties and call always the property from the main framework
+- [ ] **Test Tool**
+    - [X] Build a small test tool _Pole Dance Maker_ to quickly start a pole dance on actors or player (like MatchMaker)
+	- [ ] Add another spell to set a specific dance to be tested
 - [ ] **Remote Future**
     - [ ] Add music
     - [ ] Add dances without a pole
@@ -62,13 +65,12 @@
 	
 ```
 FIXME Mode (just for CPU)
-; FIXME Re-set the events, right now they are not perfect in timing and parameters
-; FIXME Add functions to strip and redress
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
-; FIXME Add stop() function
+; FIXME Complete the abort() function to be able to complete the current dance
 ; FIXME Make private all functions that should be private
-; FIXME Build the tool to test
 ; FIXME (spdActors) Add face expressions?
+; FIXME The walk seems to be not good, and the free camera is stuck in case the player is dancing
+; FIXME The pole has crappy colors. Wait t.ara for something better.
 ; FIXME 
 ; FIXME 
 ; FIXME 

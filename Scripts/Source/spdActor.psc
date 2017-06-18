@@ -5,6 +5,7 @@ Scriptname spdActor extends ReferenceAlias
 
 Actor dancer
 spdPoleDances spdF
+Package currentPkg
 Form[] slots
 
 
@@ -21,16 +22,49 @@ Function setTo(Actor a)
 	dancer = a
 	ForceRefTo(a)
 	a.addToFaction(spdF.spdDancingFaction)
+	currentPkg = None
 endFunction
 
+Function _lock(Package pkg)
+	if !dancer
+		return
+	endIf
+	; Remove the controls in case is the player
+	if dancer==spdF.PlayerRef
+		Game.SetPlayerAIDriven(true)
+	endIf
+	; Set the package
+	if currentPkg
+		ActorUtil.removePackageOverride(dancer, currentPkg)
+	endIf
+	dancer.stopCombat()
+	dancer.sheatheWeapon()
+	currentPkg = pkg
+	ActorUtil.addPackageOverride(dancer, pkg)
+	dancer.evaluatePackage()
+	debug.trace("SPD: Adding to " + dancer.getDisplayName() + " the package " + pkg)
+endFunction
 
 Function free()
 	if dancer
+		Debug.SendAnimationEvent(dancer, "IdleForceDefaultState")
 		dancer.removeFromFaction(spdF.spdDancingFaction)
-		ActorUtil.removePackageOverride(dancer, spdF.spdDoNothingPackage)
-		if Self.getActorRef()
+		if currentPkg
+			ActorUtil.removePackageOverride(dancer, currentPkg) ; Remove the package
+			dancer.evaluatePackage()
+			currentPkg = None
+		endIf
+		if Self.getActorRef() && Self.getActorRef()!=dancer
+			Debug.SendAnimationEvent(Self.getActorRef(), "IdleForceDefaultState")
 			Self.getActorRef().removeFromFaction(spdF.spdDancingFaction)
-			ActorUtil.removePackageOverride(Self.getActorRef(), spdF.spdDoNothingPackage)
+			if currentPkg
+				ActorUtil.removePackageOverride(Self.getActorRef(), currentPkg) ; Remove the package
+				currentPkg = None
+			endIf
+		endIf
+		; Give back controls if player
+		if dancer==spdF.PlayerRef || Self.getActorRef()==spdF.PlayerRef
+			Game.SetPlayerAIDriven(false)
 		endIf
 	endIf
 	dancer = none
@@ -40,7 +74,7 @@ endFunction
 ; toStrip: -1 to dress, 0 to ignore, 1 to strip
 Function strip(bool animate, int[] toStrip)
 	if animate
-		Debug.SendAnimationEvent(dancer, "anims") ; FIXME use some better strip anims
+		Debug.SendAnimationEvent(dancer, "Arrok_Undress_G1") ; FIXME use some better strip anims
 	endIf
 
 	Form item
@@ -81,7 +115,7 @@ endFunction
 
 Function redress(bool animate)
 	if animate
-		Debug.SendAnimationEvent(dancer, "anims") ; FIXME use some better strip anims
+		Debug.SendAnimationEvent(dancer, "Arrok_Undress_G1") ; FIXME use some better strip anims
 	endIf
 
 	Form item
