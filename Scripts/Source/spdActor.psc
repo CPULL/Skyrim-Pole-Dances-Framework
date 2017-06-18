@@ -38,11 +38,16 @@ Function _lock(Package pkg)
 		ActorUtil.removePackageOverride(dancer, currentPkg)
 	endIf
 	dancer.stopCombat()
-	dancer.sheatheWeapon()
+	_removeWeapons(dancer)
 	currentPkg = pkg
 	ActorUtil.addPackageOverride(dancer, pkg)
 	dancer.evaluatePackage()
 	debug.trace("SPD: Adding to " + dancer.getDisplayName() + " the package " + pkg)
+endFunction
+
+Function _removeWeapons(Actor a) Global
+	a.UnequipItemEX(a.GetEquippedObject(1), 1, false)
+	a.UnequipItemEX(a.GetEquippedObject(0), 2, false)
 endFunction
 
 Function free()

@@ -69,8 +69,9 @@ FIXME Mode (just for CPU)
 ; FIXME Complete the abort() function to be able to complete the current dance
 ; FIXME Make private all functions that should be private
 ; FIXME (spdActors) Add face expressions?
-; FIXME The walk seems to be not good, and the free camera is stuck in case the player is dancing
-; FIXME The pole has crappy colors. Wait t.ara for something better.
+; FIXME 
+; FIXME The marker is not always correctly aligned
+; FIXME 
 ; FIXME 
 ; FIXME 
 ; FIXME 

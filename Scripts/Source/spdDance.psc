@@ -77,6 +77,39 @@ Function _initCycle(string preAnimEvent, float preAnimDuration, string postAnimE
 	_cyclic = true
 endFunction
 
+
+
+bool Property isCyclic
+	bool Function get()
+		return _cyclic
+	endFunction
+endProperty
+
+string Property preHKX
+	string Function get()
+		return _animEventBeforeCycle
+	endFunction
+endProperty
+
+string Property postHKX
+	string Function get()
+		return _animEventAfterCycle
+	endFunction
+endProperty
+
+float Property preDuration
+	float Function get()
+		return _lengthBeforeCycle
+	endFunction
+endProperty
+
+float Property postDuration
+	float Function get()
+		return _lengthAfterCycle
+	endFunction
+endProperty
+
+
 bool Function setTags(string tags)
 	spdPoleDances spdF = spdPoleDances.getInstance()
 	spdRegistry reg = spdF.registry
@@ -101,3 +134,4 @@ endFunction
 bool Function _isTag(spdTag t)
 	return _tag==t
 endFunction
+

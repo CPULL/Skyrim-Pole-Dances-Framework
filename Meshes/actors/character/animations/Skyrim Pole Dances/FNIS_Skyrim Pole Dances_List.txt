@@ -39,6 +39,6 @@ Version V0.01
 b -a,Tn piw PoseIntroWalk.hkx
 b -a,Tn piwp3 PoseIntroWalkToPose3.hkx
 b -a,Tn fip3 FullIntro-toPose3.hkx
-b -a,Tn spdDance1 spdDance1.hkx
+b spdDance1 spdDance1.hkx
 b -a,Tn spdPose1_End spdPose1_End.hkx
 b -a,Tn spdPose1_Start spdPose1_Start.hkx

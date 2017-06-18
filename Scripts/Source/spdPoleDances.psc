@@ -9,6 +9,7 @@ Actor Property PlayerRef Auto
 Package Property spdDoNothingPackage Auto
 Faction Property spdDancingFaction Auto
 Keyword Property spdNoStrip Auto
+MiscObject Property spdMarker Auto
 
 int currentVersion
 
@@ -124,17 +125,17 @@ ObjectReference Function placePole(ObjectReference loc = None, float distance = 
 	else
 		poleS = spdWoodPole ; Fallback
 	endIf
-	ObjectReference res = loc.placeAtMe(poleS, 1, false, true)
-	res.moveTo(loc, Math.sin(zAngle + rotation) * distance, Math.cos(zAngle + rotation) * distance, 0.0, false)
+	ObjectReference res = loc.placeAtMe(poleS, 1, false, false)
+	float newAngle = zAngle + rotation
+	if newAngle>360.0
+		newAngle-=360.0
+	endIf
+	res.moveTo(loc, Math.sin(newAngle) * distance, Math.cos(newAngle) * distance, 0.0, false)
 	res.setAngle(0.0, 0.0, ref.getAngleZ())
-	res.enable(true)
-debug.trace("SPD: SPD: pole is added")
-	
 	return res
 endFunction
 
 Function removePole(ObjectReference pole)
-debug.trace("SPD: SPD: pole was removed")
 	if !pole
 		return
 	endIf
