@@ -4,17 +4,18 @@ spdPoleDances spdF
 
 package Property spdDoNothingPackage Auto
 
-string[] bodyParts
+string[] Property bodyParts Auto
 spdPerformance[] Property performances Auto
 ReferenceAlias[] Property poleAliases Auto
 Package[] Property walkPackages Auto
 spdDance[] dances
+spdDance[] strips
 spdPose[] poses
 spdTag[] tags
 string[] validTags
 spdActor[] actors
 actor[] refActors
-
+spdDance Property tmpStrip Auto
 
 
 ; ****************************************************************************************************************************************************************
@@ -22,6 +23,8 @@ actor[] refActors
 ; ************                                           Init Functions                                                                               ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
+
+; ((-
 
 Function reInit(spdPoleDances spd)
 	_doInit(spd)
@@ -137,6 +140,7 @@ debug.trace("SPD: Registry Init")
 debug.trace("SPD: Registry full init of performances, poses, dances, and tags")
 		; Full init
 		dances = new spdDance[16]
+		strips = new spdDance[16]
 		poses = new spdPose[16]
 		tags = new spdTag[64]
 		actors = new spdActor[16]
@@ -146,6 +150,7 @@ debug.trace("SPD: Registry full init of performances, poses, dances, and tags")
 	; Some of the items can be already there, do not re-init them
 	int countPerformances = 0
 	int countDances = 0
+	int countStrips = 0
 	int countPoses = 0
 	int countTags = 0
 	int countActors = 0
@@ -153,19 +158,19 @@ debug.trace("SPD: Registry full init of performances, poses, dances, and tags")
 	int i = allAliases.length
 	while i
 		i-=1
-;		if StringUtil.Find(allAliases[i].GetName(), "spdPerformance")!=-1
-;			spdPerformance p = allAliases[i] as spdPerformance
-;			int pos = performances.Find(None)
-;			if performances.Find(p)==-1 && pos!=-1
-;				performances[pos] = p
-;				performances[pos]._doInit(spdF, poleAliases[pos], walkPackages[pos])
-;				countPerformances += 1
-;			endIf
 		if StringUtil.Find(allAliases[i].GetName(), "spdDance")!=-1
 			spdDance d = allAliases[i] as spdDance
 			int pos = dances.Find(None)
 			if dances.Find(d)==-1 && pos!=-1
 				dances[pos] = d
+				countDances += 1
+			endIf
+		elseIf StringUtil.Find(allAliases[i].GetName(), "spdStrip")!=-1
+			spdDance d = allAliases[i] as spdDance
+			int pos = strips.Find(None)
+			if strips.Find(d)==-1 && pos!=-1
+				strips[pos] = d
+				d._setAsStrip()
 				countDances += 1
 			endIf
 		elseIf StringUtil.Find(allAliases[i].GetName(), "spdPose")!=-1
@@ -241,6 +246,7 @@ Function dumpErrors()
 	spdF.dumpErrors()
 endFunction
 
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -283,30 +289,30 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
-bool function _allocateActor(Actor a)
+spdActor function _allocateActor(Actor a)
 	if !a
 		spdF._addError(2, "Trying to allocate a null actor", "Registry", "allocateActor")
-		return true ; Bad actor
+		return none ; Bad actor
 	endIf
 	
 	if a.isOnMount() || a.isSwimming() || a.isFlying() || a.getRace().IsChildRace() || a.isChild() || a.isInCombat() || a.isDead() || a.IsUnconscious()
 		spdF._addError(3, "Trying to allocate a non valid actor: " + a.getDisplayName(), "Registry", "allocateActor")
-		return true ; Bad actor
+		return none ; Bad actor
 	endIf
 	if a.isInFaction(spdF.spdDancingFaction) && refActors.find(a)!=-1
 		spdF._addError(4, "The actor " + a.getDisplayName() + " is already allocated and dancing", "Registry", "allocateActor")
-		return true ; Already used
+		return none ; Already used
 	endIf
 	
 	; OK, set the actor and lock it
 	int pos = refActors.find(None)
 	if pos==-1
-		return true ; Too many actors
+		return none ; Too many actors
 	endIf
 	
 	refActors[pos] = a
 	actors[pos].setTo(a) ; The actor will be locked with the _lockActor call later
-	return false
+	return actors[pos]
 endFunction
 
 function _releaseDancer(Actor a)
@@ -444,7 +450,7 @@ int Function _getDancesNum(bool all)
 	return num
 endFunction
 
-spdDance Function _getDanceByIndex(int index)
+spdDance Function getDanceByIndex(int index)
 	return dances[index]
 endFunction
 
@@ -530,6 +536,34 @@ spdDance Function findDanceByPose(spdPose pose)
 endFunction
 
 spdDance Function findDanceByName(string name)
+	; Strip dances: "Strip:<[!]parts,...>,A"
+	if StringUtil.Find(name, "Strip:")!=-1
+		; It a strip
+		tmpStrip.parseStrips(spdF, name)
+		; Check if it is equal to one we have already
+		int i = strips.length
+		while i
+			i-=1
+			spdDance s = strips[i]
+			if s && s.inUse && s.compareStrip(tmpStrip)
+				; this one is already good
+				return s
+			endIf
+		endWhile
+		; Not found, allocate one
+		i=0
+		while i<strips.length
+			spdDance s = strips[i]
+			if s && !s.inUse
+				s.copyStripFrom(tmpStrip)
+				return s
+			endIf
+			i+=1
+		endWhile
+		spdF._addError(99, "No more strip slots available for performances", "Registry", "getDanceByName") ; FIXME fix the ID
+		return None
+	endIf
+
 	int i=dances.length
 	while i
 		i-=1
@@ -690,7 +724,7 @@ spdTag Function parseTags(string tagCode)
 		return none
 	endIf
 
-	if res._init(tagCode, validTags, bodyParts, spdF)
+	if res._init(tagCode, validTags, spdF)
 		return none
 	endIf
 	return res

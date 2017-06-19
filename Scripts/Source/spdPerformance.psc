@@ -84,6 +84,7 @@ endFunction
 bool isPerformanceValid = false
 bool isPerformancePlaying = false
 Actor dancer
+spdActor dancerC
 ObjectReference pole
 bool needPoleCreated
 bool poleCreated
@@ -173,7 +174,8 @@ Bool Function setBasicOption(Actor refDancer, ObjectReference refPole=none, floa
 		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setBasicOptions")
 		return true
 	endIf
-	if  registry._allocateActor(refDancer)
+	dancerC = registry._allocateActor(refDancer)
+	if !dancerC
 		return true ; The error is addded by the allocateActor
 	endIf
 	dancer = refDancer
@@ -242,7 +244,7 @@ bool Function setDancesString(string refDances)
 			spdF._addError(21, "The requested dances are not valid", "Performance", "setDancesString")
 			return true
 		endIf
-		spdDance d = registry.findDanceByName(parts[i]) ; It will get both actual dances and strips
+		spdDance d = registry.findDanceByName(parts[i]) ; It will get both actual Dances and Strips
 		if d!=None
 			count+=1
 		else
@@ -589,8 +591,7 @@ Function abort(bool rightNow=false)
 		_release()
 		return
 	endIf
-	; TODO
-	; Stop the current dance, and play the ending anim
+	; Stop the current dance, and play the ending anim (all will be done in the Ending state)
 	GoToState("Ending")
 endFunction
 
@@ -627,7 +628,7 @@ debug.trace("SPD: " + dancer.getDisplayName() + " has distance = " + dancer.getD
 			GoToState("Playing")
 			return
 		endIf
-		RegisterForSingleUpdate(0.5)
+		RegisterForSingleUpdate(0.25)
 	endEvent
 endState
 
@@ -640,6 +641,12 @@ state Playing
 		sendEvent("DanceChanging")
 		prevDance = -1 ; This will play right now the first dance
 debug.trace("SPD: " + dancer.getDisplayName() + " sending Start -> " + startingPose.startHKX)
+
+		; We need to handle strips, if any
+		if dances[0].isStrip
+			dancerC.doStripByDance(dances[0])
+			currentDance=1
+		endIf
 		Debug.SendAnimationEvent(dancer, startingPose.startHKX)
 		spdActor._removeWeapons(dancer)
 		RegisterForSingleUpdate(startingPose.startTime - 0.1)
@@ -688,6 +695,16 @@ debug.trace("SPD: " + dancer.getDisplayName() + " sending Start -> " + startingP
 				return
 			endIf
 			currentDance += 1
+			
+			; We need to handle strips, if any
+			if !dances[currentDance]
+				GoToState("Ending")
+				return
+			endIf
+			if dances[currentDance].isStrip
+				dancerC.doStripByDance(dances[currentDance])
+				currentDance+=1
+			endIf
 			sendEvent("DanceChanging")
 			RegisterForSingleUpdate(0.1)
 		elseIf duration - timeSpentP < 1.0

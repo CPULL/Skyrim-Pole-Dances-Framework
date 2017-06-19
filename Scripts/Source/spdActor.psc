@@ -146,3 +146,7 @@ Function redress(bool animate)
 		endIf
 	endWhile
 endFunction
+
+Function doStripByDance(spdDance d)
+	strip(d._AnimatedStrips(), d._stripSlots())
+endFunction

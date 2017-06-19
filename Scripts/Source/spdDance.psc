@@ -14,6 +14,8 @@ bool _cyclic
 bool _inUse
 spdTag _tag
 bool _isAStrip
+bool _animateStrip
+int[] _strips ; -1 to dress, 0 to ignore, 1 to strip
 
 string Property name
 	string function get()
@@ -135,3 +137,83 @@ bool Function _isTag(spdTag t)
 	return _tag==t
 endFunction
 
+Function _setAsStrip()
+	_isAStrip = true
+	_inUse = false
+	_strips = new int[32]
+endFunction
+
+bool Property isStrip
+	bool Function get()
+		return _isAStrip
+	endFunction
+endProperty
+
+bool Function _AnimatedStrips()
+	return _animateStrip
+endFunction
+
+int[] Function _stripSlots()
+	return _strips
+endFunction
+
+Function parseStrips(spdPoleDances spdF, String stripCode)
+	; "Strip:" [!]slot/bodypart| [!]slot/bodypart| ...| [!]slot/bodypart| [Animated]
+	int pos = StringUtil.find(stripCode, ":")
+	if pos==-1
+		return
+	endIf
+	String[] parts = StringUtil.split(StringUtil.subString(stripCode, pos + 1), "|")
+	int i = parts.length
+	while i
+		i-=1
+		bool dress = false
+		if StringUtil.substring(parts[i], 0, 1)=="!"
+			dress=true
+			parts[i] = StringUtil.substring(parts[i], 1)
+		endIf
+		if parts[i]=="Animated"
+			_animateStrip = true
+		else
+			int slot = spdF.registry.bodyParts.find(parts[i])
+			if slot==-1
+				spdF._addError(59, "Unknown part \"" + parts[i] + "\" for stripping dance", "spdDance", "parseStrips")
+			else
+				if slot>31
+					slot-=32
+				endIf
+				if dress
+					_strips[slot]=-1
+				else
+					_strips[slot]=1
+				endIf
+			endIf
+		endIf
+	endWhile
+endFunction
+
+bool Function compareStrip(spdDance tmp)
+	if _animateStrip!=tmp._AnimatedStrips()
+		return false
+	endIf
+	int[] tmpS = tmp._stripSlots()
+	int i=tmpS.length
+	while i
+		i-=1
+		if tmpS[i]!=_strips[i]
+			return false
+		endIf
+	endWhile
+	return true
+endFunction
+
+Function copyStripFrom(spdDance tmp)
+	_animateStrip=tmp._AnimatedStrips()
+	_inUse = true
+	int[] tmpS = tmp._stripSlots()
+	int i=tmpS.length
+	while i
+		i-=1
+		_strips[i] = tmpS[i]
+	endWhile
+endFunction

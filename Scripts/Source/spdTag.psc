@@ -145,7 +145,7 @@ endFunction
 
 
 ; Returns true in case of errors
-bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdPoleDances spd)
+bool Function _init(string tagCode, string[] validTags, spdPoleDances spd)
 	tags = new string[1]
 	tagNegatives = new Bool[1]
 	strip = new int[32]
@@ -294,7 +294,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 				if StringUtil.subString(tmpSlot, 0, 1)=="!"
 					tmpSlot = StringUtil.subString(tmpSlot, 1)
 				endIf
-				if bodyParts.find(slots[j])==-1
+				if spdF.registry.bodyParts.find(slots[j])==-1
 					spdF._addError(59, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
 				endIf
 			endWhile
@@ -308,7 +308,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 					tmpSlot = StringUtil.subString(tmpSlot, 1)
 					doNeg = true
 				endIf
-				int slot = bodyParts.find(slots[j])
+				int slot = spdF.registry.bodyParts.find(slots[j])
 				if slot>31
 					slot-=32
 				endIf
@@ -330,7 +330,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			j = slots.length
 			while j
 				j-=1
-				if bodyParts.find(slots[j])==-1
+				if spdF.registry.bodyParts.find(slots[j])==-1
 					spdF._addError(59, "Unknown part \"" + slots[j] + "\" for stripping tag", "spdTag", "init")
 				endIf
 			endWhile
@@ -338,7 +338,7 @@ bool Function _init(string tagCode, string[] validTags, string[] bodyParts, spdP
 			j = slots.length
 			while j
 				j-=1
-				int slot = bodyParts.find(slots[j])
+				int slot = spdF.registry.bodyParts.find(slots[j])
 				if slot>31
 					slot-=32
 				endIf

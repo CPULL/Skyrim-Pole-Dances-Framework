@@ -6,23 +6,24 @@
     - [X] Add "strip:<values>" type of tag
 	- [X] Add to the Dance definition its tags, and add a function in the init to add the tags to the anim
 	- [ ] Implement the Pose tag
-- [ ] **Framework**
+- [X] **Framework**
     - [X] Add a newPerformance() function (**CPU**)
-- [ ] **Performances**
+- [X] **Performances**
     - [X] Alter the performance to play with the different modes to define the animation (**CPU**)
 	    - [X] Only start pose and duration
 	    - [X] Sequence of Dances
 	    - [X] Sequence of Tags
 	- [x] Destroy the performance after it ends and return it to the pool
     - [X] Rename everywhere "Thread" with "Performance" (**CPU**)
-    - [ ] Implement the Stop method (**CPU**)
+    - [X] Implement the Stop method (**CPU**)
 - [ ] **Stripping**
-    - [ ] Add a way to control stripping during pole dances (**CPU**)
-    - [ ] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
+    - [X] Add a way to control stripping during pole dances (**CPU**)
+    - [X] Add some strip keyword to define when to strip during a step of a pole dance (animated or not, and defining the body slots to alter) (**CPU**)
 	    - [X] Tags
-		- [ ] Dances
+		- [X] Dances
 	- [X] Add strip functions inside the spdActor
-	- [ ] Call spdActor's strip functions inside the performances
+	- [X] Call spdActor's strip functions inside the performances
+	- [ ] Find better stripping anims, that will work with pole dances
 - [ ] **Documentation**
     - [ ] Complete the documentation of APIs (**CPU**, **Rydin**)
 	    - [ ] Main framework
@@ -35,13 +36,13 @@
 - [ ] **MCM**
     - [ ] Add a MCM to the framework (**CPU**)
     - [ ] Add a way to preview-poses in the Framework MCM (**CPU**)
-    - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
 - [ ] **Hooks**
     - [X] Add events in the playing of the performance
     - [ ] Add global events register functions
 - [ ] **Errors Management**
 	- [X] Complete errors documentation (**CPU**)
 	- [X] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
+	- [ ] Remove the errors in the array, and print them right away, but keep the "debug" option to avoid to spam the log
 - [ ] **Registry**
     - [X] Add code to find dances by name (**CPU**)
     - [ ] Add code to find dances by tags (**CPU**)
@@ -52,10 +53,12 @@
     - [ ] Convert the dances from 3DS format to HKX files (**Komotor**)
 	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
 - [ ] **Actors**
-    - [ ] Remove the local properties and call always the property from the main framework
+    - [X] Remove the local properties and call always the property from the main framework
 - [ ] **Test Tool**
+    - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
     - [X] Build a small test tool _Pole Dance Maker_ to quickly start a pole dance on actors or player (like MatchMaker)
 	- [ ] Add another spell to set a specific dance to be tested
+	- [ ] Add a MCM to set up the dance to be played
 - [ ] **Remote Future**
     - [ ] Add music
     - [ ] Add dances without a pole
