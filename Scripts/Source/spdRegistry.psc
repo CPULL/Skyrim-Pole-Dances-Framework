@@ -171,7 +171,7 @@ debug.trace("SPD: Registry full init of performances, poses, dances, and tags")
 			if strips.Find(d)==-1 && pos!=-1
 				strips[pos] = d
 				d._setAsStrip()
-				countDances += 1
+				countStrips += 1
 			endIf
 		elseIf StringUtil.Find(allAliases[i].GetName(), "spdPose")!=-1
 			spdPose p = allAliases[i] as spdPose
@@ -211,6 +211,7 @@ debug.trace("SPD: Registry full init of performances, poses, dances, and tags")
 	
 debug.trace("SPD: Found " + countPerformances + "/" + performances.length + " Performances")
 debug.trace("SPD: Found " + countDances + "/" + dances.length + " Dances")
+debug.trace("SPD: Found " + countStrips + "/" + strips.length + " Strip slots")
 debug.trace("SPD: Found " + countPoses + "/" + poses.length + " poses")
 debug.trace("SPD: Found " + countTags + "/" + tags.length + " tags")
 debug.trace("SPD: Found " + countActors + "/" + actors.length + " actors")
