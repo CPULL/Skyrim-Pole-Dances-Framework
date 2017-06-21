@@ -42,3 +42,4 @@ b -a,Tn fip3 FullIntro-toPose3.hkx
 b spdDance1 spdDance1.hkx
 b -a,Tn spdPose1_End spdPose1_End.hkx
 b -a,Tn spdPose1_Start spdPose1_Start.hkx
+b spdPose1_Anim spdPose1_Anim.hkx

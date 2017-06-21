@@ -23,7 +23,7 @@
 		- [X] Dances
 	- [X] Add strip functions inside the spdActor
 	- [X] Call spdActor's strip functions inside the performances
-	- [ ] Find better stripping anims, that will work with pole dances
+	- [ ] Create stripping anims, also with the use of just the OFA system to move just the hands while dancing
 - [ ] **Documentation**
     - [ ] Complete the documentation of APIs (**CPU**, **Rydin**)
 	    - [ ] Main framework
@@ -34,20 +34,23 @@
 	    - [ ] Examples
     - [ ] For all doc pages, add an index at begin, and use a single line (not two) to split the sections (**CPU**)
 - [ ] **MCM**
-    - [ ] Add a MCM to the framework (**CPU**)
-    - [ ] Add a way to preview-poses in the Framework MCM (**CPU**)
+    - [X] Add a MCM to the framework (**CPU**)
+    - [ ] Complete the MCM with all the options (**CPU**)
+    - [X] Add a way to preview poses in the Framework MCM (**CPU**)
+    - [X] Add a way to preview dances in the Framework MCM (**CPU**)
 - [ ] **Hooks**
     - [X] Add events in the playing of the performance
     - [ ] Add global events register functions
 - [ ] **Errors Management**
 	- [X] Complete errors documentation (**CPU**)
 	- [X] Probably errors on tags need more slots, some errors are using the same slot (authors and dances, and numbers for Sexy and Skill)
-	- [ ] Remove the errors in the array, and print them right away, but keep the "debug" option to avoid to spam the log
+	- [X] Remove the errors in the array, and print them right away, but keep the "debug" option to avoid to spam the log
+	- [ ] Fix all IDs that are at 99
 - [ ] **Registry**
     - [X] Add code to find dances by name (**CPU**)
     - [ ] Add code to find dances by tags (**CPU**)
     - [X] Add code to find poses by name (**CPU**)
-    - [ ] Add code to get a strip by a special pose name (**CPU**)
+    - [X] Add code to get a strip by a special dance name (**CPU**)
     - [ ] Add code to get a pose (animated) by a special pose name (**CPU**)
 - [ ] **Animations**
     - [ ] Convert the dances from 3DS format to HKX files (**Komotor**)
@@ -69,11 +72,10 @@
 ```
 FIXME Mode (just for CPU)
 ; FIXME Add a method to specify the next dance on the fly (to be used during events)
-; FIXME Complete the abort() function to be able to complete the current dance
 ; FIXME Make private all functions that should be private
 ; FIXME (spdActors) Add face expressions?
 ; FIXME 
-; FIXME The marker is not always correctly aligned
+; FIXME Add function to registry to set a custom pole (requires a Static object)
 ; FIXME 
 ; FIXME 
 ; FIXME 

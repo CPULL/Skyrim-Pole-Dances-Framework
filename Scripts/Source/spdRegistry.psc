@@ -243,10 +243,6 @@ Function completeEdit()
 	editing = false
 endFunction
 
-Function dumpErrors()
-	spdF.dumpErrors()
-endFunction
-
 ; -))
 
 ; ****************************************************************************************************************************************************************
@@ -394,8 +390,7 @@ spdPose Function findPoseByName(string poseName)
 	return none
 endFunction
 
-; Returns 1 in case there were errors
-int Function registerPose(string name, string poseAnimEvent, string startingAnimEvent, string endingAnimEvent, float startTime, float endTime)
+spdPose Function registerPose(string name, string poseAnimEvent, string startingAnimEvent, string endingAnimEvent, float startTime, float endTime)
 	; Allocate one, but check if we already have the name
 	int pos = -1
 	int i = poses.length
@@ -418,11 +413,11 @@ int Function registerPose(string name, string poseAnimEvent, string startingAnim
 	endIf
 	if pos==-1
 		spdF._addError(30, "No more slots available for Poses! (" + name + ")", "Registry", "registerPose")
-		return 1
+		return none
 	endIf
 	spdPose p = poses[pos]
 	p._init(name, poseAnimEvent, startingAnimEvent, endingAnimEvent, startTime, endTime)
-	return 0
+	return p
 endFunction
 
 ; -))
@@ -451,19 +446,18 @@ int Function _getDancesNum(bool all)
 	return num
 endFunction
 
-spdDance Function getDanceByIndex(int index)
+spdDance Function _getDanceByIndex(int index)
 	return dances[index]
 endFunction
 
 
-; Returns 1 in case there were errors
-int Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, string tag="", string preAnimEvent="", float preAnimDuration=0.0, string postAnimEvent="", float postAnimDuration=0.0)
+spdDance Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, string tag="")
 	; Allocate one, but check if we already have the name
 	int pos = -1
 	int i = dances.length
 	while i
 		i-=1
-		if dances[i] && dances[i].name==name
+		if dances[i] && dances[i].inUse && dances[i].name==name
 			pos = i
 			i=0
 		endIf
@@ -480,32 +474,29 @@ int Function registerDance(string name, string animEvent, string startPose, stri
 	endIf
 	if pos==-1
 		spdF._addError(31, "No more slots available for Dances! (" + name + ")", "Registry", "registerDance")
-		return 1
+		return None
 	endIf
+	
 	spdDance d = dances[pos]
 	spdPose sp = findPoseByName(startPose)
 	if sp==none
 		spdF._addError(32, "Start pose \"" + startPose + "\" for Dance \"" + name + "\" does not exist!", "Registry", "registerDance")
-		return 1
+		return None
 	endIf
 	spdPose ep = findPoseByName(endPose)
 	if ep==none
 		spdF._addError(33, "End pose \"" + endPose + "\" for Dance \"" + name + "\" does not exist!", "Registry", "registerDance")
-		return 1
+		return None
 	endIf
 	d._init(name, animEvent, sp, ep, duration)
-	if preAnimEvent!="" && preAnimDuration!=0.0 && postAnimEvent!="" && postAnimDuration!=0.0
-		d._initCycle(preAnimEvent, preAnimDuration, postAnimEvent, postAnimDuration)
-	elseIf preAnimEvent!="" || preAnimDuration!=0.0 || postAnimEvent!="" || postAnimDuration!=0.0
-		spdF._addError(33, "Not possible to specify only a sub-set of the cycle for a dance: \"" + name + "\"", "Registry", "registerDance") ; FIXME fix the ID
-	endIf
 	if tag
 		if d.setTags(tag)
-			return 1
+			return None
 		endIf
 	endIf
-	return 0
+	return d
 endFunction
+
 
 spdDance Function findDanceByPose(spdPose pose)
 	int count = 0
@@ -568,7 +559,7 @@ spdDance Function findDanceByName(string name)
 	int i=dances.length
 	while i
 		i-=1
-		if dances[i] && dances[i].name==name
+		if dances[i] && dances[i].inUse && dances[i].name==name
 			return dances[i]
 		endIf
 	endWhile

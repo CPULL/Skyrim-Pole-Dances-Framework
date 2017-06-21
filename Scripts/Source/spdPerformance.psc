@@ -46,14 +46,17 @@ Function _release()
 	ObjectReference marker = poleRef.getReference()
 	marker.delete()
 	
-	sentAnimEvent = ""
 	pole = None
 	poleCreated = false
 	needPoleCreated = false
 	int i=dances.length
 	while i
 		i-=1
+		if dances[i] && dances[i].inUse && dances[i].isStrip
+			dances[i]._releaseStrip()
+		endIf
 		dances[i] = none
+		dancesTime[i] = 0.0
 	endWhile
 	numDances = 0
 	i=tags.length
@@ -92,6 +95,7 @@ float duration
 float startTime
 spdPose startingPose
 spdDance[] dances
+float[] dancesTime
 int numDances
 spdTag[] tags
 int numTags
@@ -111,10 +115,6 @@ float prevWalkY
 
 int currentDance
 int prevDance
-float timeToWait
-float danceStartTime
-float performaceStartTime
-String sentAnimEvent
 
 ReferenceAlias poleRef
 Package walkPackage
@@ -137,6 +137,7 @@ Function _doInit(spdPoleDances s, ReferenceAlias refPole, Package refWalkPkg)
 	poleCreated = false
 	needPoleCreated = false
 	dances = new spdDance[32]
+	dancesTime = new Float[32]
 	numDances = 0
 	tags = new spdTag[32]
 	numTags = 0
@@ -441,6 +442,76 @@ bool Function setTagsArray(string[] refTags)
 endFunction
 
 
+bool Function setTimersString(string timers)
+	; Do nothing in case the performance is playing
+	if isPerformancePlaying
+		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setTimersString")
+		return true
+	endIf
+	string[] parts = StringUtil.Split(timers, ",")
+	if parts.length==0
+		spdF._addError(99, "The requested timers are not valid", "Performance", "setTimersString") ; FIXME
+		return true
+	endIf
+	int count = 0
+	int i = 0
+	string errs = ""
+	if numDances!=parts.length
+		spdF._addError(99, "The number of timers does not match the number of dances", "Performance", "setTimersString") ; FIXME
+		return true
+	endIf
+	
+	while i<parts.length
+		if parts[i]==""
+			spdF._addError(99, "The timer requested in position " + (i+1) + " is empty", "Performance", "setTimersString") ; FIXME
+		endIf
+		dancesTime[i] = 0.0
+		dancesTime[i] = parts[i] as float
+		i+=1
+	endWhile
+	return false
+endFunction
+
+bool Function setTimersArray(float[] timers)
+	; Do nothing in case the performance is playing
+	if isPerformancePlaying
+		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setTimersArray")
+		return true
+	endIf
+	int i = 0
+	while i<numDances
+		dancesTime[i] = 0.0
+		if i<timers.length
+			dancesTime[i] = timers[i]
+		endIf
+		if dancesTime[i] < 0.0
+			dancesTime[i] = 0.0
+		endIf
+		i+=1
+	endWhile
+	return false
+endFunction
+
+bool Function setTimer(int index, float timer)
+	; Do nothing in case the performance is playing
+	if isPerformancePlaying
+		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setTimer")
+		return true
+	endIf
+	if index<0 || index>=numDances
+		spdF._addError(99, "The timer cannot be set, because there is no dance in position " + index, "Performance", "setTimer") ; FIXME
+		return true
+	endIf
+	if timer<0.0
+		spdF._addError(99, "The timer cannot be set, only positive or zero durations are allowed (" + timer + ")", "Performance", "setTimer") ; FIXME
+		return true
+	endIf
+	dancesTime[index] = timer
+	return false
+endFunction
+
+
+
 
 bool function start(bool forceTransitions = true)
 	; If we miss the pole, create one
@@ -457,7 +528,7 @@ bool function start(bool forceTransitions = true)
 	if newAngle<0.0
 		newAngle+=360.0
 	endIf
-	marker.moveTo(pole, Math.sin(newAngle) * -60.0, Math.cos(newAngle) * -60.0, 0.0, true)
+	marker.moveTo(pole, Math.sin(newAngle) * -75.0, Math.cos(newAngle) * -75.0, 0.0, true)
 	marker.setAngle(0.0, 0.0, pole.getAngleZ())
 	poleRef.forceRefTo(marker)
 
@@ -473,8 +544,6 @@ bool function start(bool forceTransitions = true)
 	endIf
 
 	if startingPose && duration!=-1.0 && numDances==0 && numTags==0
-debug.trace("SPD: --> case start pose -> init")
-	
 		; Case startPose -> Find randomly dances (respect the sequence of poses) until the expected time is completed
 		spdDance d = registry.findDanceByPose(startingPose)
 		if !d
@@ -501,16 +570,16 @@ debug.trace("SPD: --> case start pose -> init")
 			numDances+=1
 		endWhile
 		duration = calculatedDuration
-debug.trace("SPD: --> case start pose -> end numDances=" + numDances)
 		
 	elseIf startingPose==None && numDances>0 && numTags==0
 		; Case dances -> Add transitions in case the dances are not in sequence and the param is true
 		if forceTransitions
 			int i = numDances
-			while i>0
+			while i>1
+				i-=1
 				spdDance next = dances[i]
 				spdDance prev = dances[i - 1]
-				if next.startPose != prev.endPose
+				if next && prev && next.startPose != prev.endPose
 					; Check if we have a transition dance
 					spdDance d = registry.findTransitionDance(prev.endPose, next.startPose)
 					if d
@@ -524,6 +593,20 @@ debug.trace("SPD: --> case start pose -> end numDances=" + numDances)
 					else
 						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
 					endIf
+				endIf
+			endWhile
+		endIf
+		; Find the start pose of the first anim and calculate the resulting duration
+		if dances[0]
+			startingPose = dances[0].startPose
+		endIf
+		if duration==-1.0
+			duration=0.0
+			int i=dances.length
+			while i
+				i-=1
+				if dances[i] && dances[i].inUse
+					duration += dances[i].duration
 				endIf
 			endWhile
 		endIf
@@ -562,6 +645,20 @@ debug.trace("SPD: --> case start pose -> end numDances=" + numDances)
 				endIf
 			endWhile
 		endIf
+		; Find the start pose of the first anim and calculate the resulting duration
+		if dances[0]
+			startingPose = dances[0].startPose
+		endIf
+		if duration==-1.0
+			duration=0.0
+			i=dances.length
+			while i
+				i-=1
+				if dances[i] && dances[i].inUse
+					duration += dances[i].duration
+				endIf
+			endWhile
+		endIf
 		
 	else
 		; Something wrong
@@ -580,6 +677,15 @@ debug.trace("SPD: --> case start pose -> end numDances=" + numDances)
 	isPerformancePlaying = true
 
 debug.trace("SPD: the pole dance should be starting")
+
+int k = 0
+while k<numDances
+	debug.trace("SPD: " + k + " - " + dances[k].name + " -> " + dances[k].hkx)
+	k+=1
+endWhile
+
+
+
 	GoToState("Walking")
 	return false
 endFunction
@@ -617,7 +723,7 @@ debug.trace("SPD: teleporting " + dancer.getDisplayName())
 
 debug.trace("SPD: " + dancer.getDisplayName() + " has distance = " + dancer.getDistance(pole) as int)
 		; Wait until the actor is close, then remove the package, then start the intro anim
-		if dancer.getDistance(pole) > 50
+		if dancer.getDistance(pole) > 75.0
 			if Math.abs(prevWalkX - dancer.x) < 2 && Math.abs(prevWalkY - dancer.y) < 2
 				stoppedTimes+=1
 				debug.trace("SPD: stopped " + stoppedTimes)
@@ -632,90 +738,117 @@ debug.trace("SPD: " + dancer.getDisplayName() + " has distance = " + dancer.getD
 	endEvent
 endState
 
+float totalExpectedPerformanceTime
+float performanceStartTime
+float currentDanceExpectedTime
+float currentDanceStartTime
+
+; FIXME performaceStartTime
+
 state Playing
 	Event OnBeginState()
-	debug.trace("SPD: " + dancer.getDisplayName() + " is dancing now")
 		sendEvent("PerformanceStarted")
 		registry._lockActor(dancer, registry.spdDoNothingPackage)
 		currentDance = 0
 		sendEvent("DanceChanging")
 		prevDance = -1 ; This will play right now the first dance
-debug.trace("SPD: " + dancer.getDisplayName() + " sending Start -> " + startingPose.startHKX)
 
-		; We need to handle strips, if any
-		if dances[0].isStrip
-			dancerC.doStripByDance(dances[0])
-			currentDance=1
-		endIf
+		; We need to handle strips, if any. And they can be more than one
+		while dances[currentDance] && dances[currentDance].isStrip
+debug.trace("SPD: handling strip")
+			dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
+			currentDance+=1
+ 		endWhile
 		Debug.SendAnimationEvent(dancer, startingPose.startHKX)
-		spdActor._removeWeapons(dancer)
-		RegisterForSingleUpdate(startingPose.startTime - 0.1)
-		performaceStartTime = Utility.getCurrentRealTime()
-		sendEvent("DanceChanged")
-		sendEvent("PerformanceStarted")
-		Utility.wait(0.1)
+		Utility.wait(0.2)
 		dancer.moveTo(pole, 0.0, 0.0, 0.0, false)
+		spdActor._removeWeapons(dancer)
+		Utility.waitMenuMode(startingPose.startTime - 0.1)
+		performanceStartTime = Utility.getCurrentRealTime()
+		totalExpectedPerformanceTime = duration
+		currentDanceStartTime = Utility.getCurrentRealTime()
+		if dancesTime[currentDance]!=0.0
+			currentDanceExpectedTime = dancesTime[currentDance]
+		else
+			currentDanceExpectedTime = dances[currentDance].duration
+		endIf
+		Debug.SendAnimationEvent(dancer, dances[currentDance].hkx)
+		RegisterForSingleUpdate(0.95)
+		
+debug.trace("SPD: " + dancer.getDisplayName() + " performance started for " + totalExpectedPerformanceTime + " with " + dances[currentDance].name + " danceExpTime=" + currentDanceExpectedTime)
+		
+		sendEvent("DanceChanged")
 	endEvent
 	
 	Event OnUpdate()
-		; Play the current dance and wait a little between re-checking
-		if currentDance!=prevDance && currentDance!=-1
-			; FIXME we should not resend the same animevent in case the previous one was cyclic
-			if sentAnimEvent && dances[currentDance].hkx!=sentAnimEvent && dances[currentDance].isCyclic
-				sentAnimEvent = dances[currentDance].hkx
-			else
-				sentAnimEvent = ""
-			endIf
-			if !sentAnimEvent
-	debug.trace("SPD: " + dancer.getDisplayName() + " sending Dance -> " + dances[currentDance].hkx)
-				Debug.sendAnimationEvent(dancer, dances[currentDance].hkx)
-				spdActor._removeWeapons(dancer)
-				prevDance = currentDance
-				sendEvent("DanceChanged")
-			endIf
-			timeToWait = dances[currentDance].duration
-			danceStartTime = Utility.getCurrentRealTime()
-		endIf
-		if timeToWait - timeSpentD < 0.1 && currentDance!=-1
-			timeToWait = dances[currentDance].duration
-			danceStartTime = Utility.getCurrentRealTime()
-		endIf
-		
-		float timeSpentP = Utility.getCurrentRealTime() - performaceStartTime
-		float timeSpentD = Utility.getCurrentRealTime() - danceStartTime
-		if timeToWait - timeSpentD < 0.1
-			timeToWait=0.0
-			timeSpentD=0.0
-		endIf
-		
-		if duration - timeSpentP < 0.5
-			; Do the next dance
-			if currentDance==numDances - 1
+		; check if we spent too much time
+		float remainingTimeForDance = currentDanceExpectedTime - (Utility.getCurrentRealTime() - currentDanceStartTime)
+debug.trace("SPD: index=" + currentDance + " remTimeDance=" + remainingTimeForDance)
+		if remainingTimeForDance < 0.1
+			; Time to change
+			prevDance = currentDance
+			currentDance+=1
+			if currentDance==numDances
+				; End the performance
+				currentDance-=1 ; To play the right ending anim
 				GoToState("Ending")
 				return
 			endIf
-			currentDance += 1
-			
-			; We need to handle strips, if any
 			if !dances[currentDance]
-				GoToState("Ending")
+				; We have a problem
+				debug.trace("SPD: the performance ended without a valid dance. Abnormal ending.")
+				_release()
 				return
 			endIf
-			if dances[currentDance].isStrip
-				dancerC.doStripByDance(dances[currentDance])
-				currentDance+=1
+			
+			bool onlyStripsAfter = true
+			int i = currentDance
+			while i<numDances
+				if !dances[i]
+					onlyStripsAfter = false ; weird case
+					i = 1000
+				endIf
+				if dances[i] && !dances[i].isStrip
+					onlyStripsAfter = false
+					i = 1000
+				endIf
+				i+=1
+			endWhile
+			if onlyStripsAfter
+				currentDance-=1
+				GoToState("EndByStripping")
+				return
 			endIf
-			sendEvent("DanceChanging")
-			RegisterForSingleUpdate(0.1)
-		elseIf duration - timeSpentP < 1.0
-			RegisterForSingleUpdate(duration - timeSpentP - 0.1)
-		elseIf timeToWait - timeSpentD < 0.1
-			RegisterForSingleUpdate(0.1)
-		elseIf timeToWait - timeSpentD < 1.0
-			RegisterForSingleUpdate(timeToWait - timeSpentD - 0.2)
-		else
+			
+			; Check if it is a strip
+			while dances[currentDance] && dances[currentDance].isStrip
+debug.trace("SPD: handling strip")
+				dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
+				currentDance+=1
+			endWhile
+			
+			currentDanceStartTime = Utility.getCurrentRealTime()
+			if dancesTime[currentDance]!=0.0
+				currentDanceExpectedTime = dancesTime[currentDance]
+			else
+				currentDanceExpectedTime = dances[currentDance].duration
+			endIf
+debug.trace("SPD: " + dancer.getDisplayName() + " sending Dance -> " + currentDance + " " + dances[currentDance].name + " -> " + dances[currentDance].hkx + " expTime=" + currentDanceExpectedTime)
+; In case of cyclic anims with start and end, we may want to play the intro event
+			Debug.sendAnimationEvent(dancer, dances[currentDance].hkx)
+			spdActor._removeWeapons(dancer)
+			prevDance = currentDance
+			sendEvent("DanceChanged")
 			RegisterForSingleUpdate(1.0)
+			
+		elseIf remainingTimeForDance < 1.0
+			; Small wait
+			RegisterForSingleUpdate(remainingTimeForDance - 0.05)
+		else
+			; Long wait
+			RegisterForSingleUpdate(0.95)
 		endIf
+
 	endEvent
 
 endState
@@ -739,6 +872,42 @@ debug.trace("SPD: " + dancer.getDisplayName() + " sending End -> " + dances[numD
 			spdF.removePole(pole)
 			pole = None
 		endIf
+		registry._unlockActor(dancer)
+		isPerformancePlaying = false
+		sendEvent("PerformanceEnded")
+		_release()
+	endEvent
+endState
+
+state EndByStripping
+	Event OnBeginState()
+		sendEvent("PerformanceEnding")
+		if dances[currentDance] && dances[currentDance].endPose
+debug.trace("SPD: " + dancer.getDisplayName() + " sending End -> " + dances[currentDance].endPose.endHKX)
+			Debug.SendAnimationEvent(dancer, dances[currentDance].endPose.endHKX)
+			spdActor._removeWeapons(dancer)
+			RegisterForSingleUpdate(dances[currentDance].endPose.endTime - 0.1)
+		else
+			RegisterForSingleUpdate(0.1) ; Quickly end in case of errors
+		endIf
+		currentDance+=1
+		
+	endEvent
+	
+	Event OnUpdate()
+		; Move the actor the the marker
+		dancer.moveTo(poleRef.getReference(), 0.0, 0.0, 0.0, false)
+		if poleCreated
+			debug.trace("SPD: removed pole by Ending")
+			spdF.removePole(pole)
+			pole = None
+		endIf
+		; Play all the remaining strips
+		while dances[currentDance] && dances[currentDance].isStrip
+debug.trace("SPD: handling strip")
+			dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
+			currentDance+=1
+		endWhile
 		registry._unlockActor(dancer)
 		isPerformancePlaying = false
 		sendEvent("PerformanceEnded")

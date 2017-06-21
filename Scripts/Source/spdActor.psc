@@ -32,6 +32,7 @@ Function _lock(Package pkg)
 	; Remove the controls in case is the player
 	if dancer==spdF.PlayerRef
 		Game.SetPlayerAIDriven(true)
+		Game.forceThirdPerson()
 	endIf
 	; Set the package
 	if currentPkg
@@ -42,7 +43,6 @@ Function _lock(Package pkg)
 	currentPkg = pkg
 	ActorUtil.addPackageOverride(dancer, pkg)
 	dancer.evaluatePackage()
-	debug.trace("SPD: Adding to " + dancer.getDisplayName() + " the package " + pkg)
 endFunction
 
 Function _removeWeapons(Actor a) Global
@@ -77,7 +77,8 @@ Function free()
 endFunction
 
 ; toStrip: -1 to dress, 0 to ignore, 1 to strip
-Function strip(bool animate, int[] toStrip)
+Function strip(bool animate, int[] toStrip, float time=0.0)
+	Float startT = Utility.getCurrentRealTime()
 	if animate
 		Debug.SendAnimationEvent(dancer, "Arrok_Undress_G1") ; FIXME use some better strip anims
 	endIf
@@ -116,6 +117,12 @@ Function strip(bool animate, int[] toStrip)
 			endIf
 		endIf
 	endWhile
+	if time!=0.0
+		float toWait = time - (Utility.getCurrentRealTime() - startT)
+		if toWait>0.0
+			Utility.waitMenuMode(toWait)
+		endIf
+	endIf
 endFunction
 
 Function redress(bool animate)
@@ -147,6 +154,6 @@ Function redress(bool animate)
 	endWhile
 endFunction
 
-Function doStripByDance(spdDance d)
-	strip(d._AnimatedStrips(), d._stripSlots())
+Function doStripByDance(spdDance d, float time)
+	strip(d._AnimatedStrips(), d._stripSlots(), time)
 endFunction

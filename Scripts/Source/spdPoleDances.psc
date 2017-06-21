@@ -152,6 +152,10 @@ endFunction
 ; ****************************************************************************************************************************************************************
 ; ((-
 
+
+int Property logMode Auto ; 0=Don't show anything, 1=show only errors in traces, 2=show logs and errors in traces, 3=MsgBox errors and traces for logs
+
+
 string[] Property errors Auto
 string[] Property errorSources Auto
 string[] Property errorMethods Auto
@@ -159,47 +163,27 @@ int[] Property errorIDs Auto
 int numErrors
 
 Function _addError(int id, string error, string source, string method)
-	if !errors || immediateDumps
-		debug.trace("SPD: [" + id + "] " + error + " [" + source + "]." + method)
+	; In case the errors go to the log, do a trace
+	; In case the errors for MsgBox, do it
+	; In case of just tracing (id==-1 or id==0), put them in traces just if we really need them (option on MCM)
+
+	if logMode==0
 		return
+	elseIf logMode==1
+		if id>0
+			debug.trace("SPD: [" + id + "] " + error + " [" + source + "]." + method)
+		endIf
+	elseIf logMode==2
+		debug.trace("SPD: [" + id + "] " + error + " [" + source + "]." + method)
+	elseIf logMode==3
+		if id>0
+			debug.messagebox("SPD: [" + id + "]\n" + error + "\n[" + source + "]." + method)
+		else
+			debug.trace("SPD: [" + id + "] " + error + " [" + source + "]." + method)
+		endIf
 	endIf
-	if numErrors == errors.length
-		dumpErrors()
-	endIf
-	errors[numErrors] = error
-	errorSources[numErrors] = source
-	errorMethods[numErrors] = method
-	errorIDs[numErrors] = id
-	numErrors+=1
 endFunction
 
-Function dumpErrors()
-	int i = 0
-	while i<numErrors
-		debug.trace("SPD: [" + errorIDs[i] + "] " + errors[i] + " [" + errorSources[i] + "]." + errorMethods[i])
-		i+=1
-	endWhile
-	while numErrors
-		numErrors-=1
-		errors[numErrors] = ""
-		errorSources[numErrors] = ""
-		errorMethods[numErrors] = ""
-	endWhile
-endFunction
-
-string function getLastError()
-	if numErrors==0
-		return ""
-	endIf
-	return errors[numErrors - 1]
-endFunction
-
-int function getLastErrorID()
-	if numErrors==0
-		return 0 ; no error
-	endIf
-	return errorIDs[numErrors - 1]
-endFunction
 
 ; -))
 

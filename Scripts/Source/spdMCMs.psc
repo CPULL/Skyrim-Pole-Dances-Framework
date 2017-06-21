@@ -8,6 +8,8 @@ string thePage
 spdPoleDances spdF
 spdRegistry reg
 
+string[] logModes
+
 event OnConfigInit()
 	opts = new int[128]
 	ids = new int[128]
@@ -19,6 +21,43 @@ event OnConfigOpen()
 	thePage=""
 	spdF = spdPoleDances.getInstance()
 	reg = spdF.registry
+	if PapyrusUtil.GetVersion()
+		; Scan all the files for previews and update the values of poses/dances to point to an empty one if the file is not found
+		string[] allDDS
+		string[] allSWF
+		allDDS = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\PosesPreview\\", ".dds")
+		allSWF = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\PosesPreview\\", ".swf")
+		int i = reg._getPosesNum(true)
+		while i
+			i-=1
+			spdPose p = reg._getPoseByIndex(i)
+			if p && p.inUse
+				if p.previewFile=="" || (allDDS.find(p.previewFile)==-1 && allSWF.find(p.previewFile)==-1)
+					; Preview file is missing
+					p.setPreview("")
+				endIf
+			endIf
+		endWhile
+		
+		allDDS = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\DancesPreview\\", ".dds")
+		allSWF = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\DancesPreview\\", ".swf")
+		i = reg._getDancesNum(true)
+		while i
+			i-=1
+			spdDance d = reg._getDanceByIndex(i)
+			if d && d.inUse
+				if d.previewFile=="" || (allDDS.find(d.previewFile)==-1 && allSWF.find(d.previewFile)==-1)
+					; Preview file is missing
+					d.setPreview("")
+				endIf
+			endIf
+		endWhile
+	endIf
+	logModes = new String[4]
+	logModes[0] = "No one"
+	logModes[1] = "Only errors in traces"
+	logModes[2] = "Logs and errors in traces"
+	logModes[3] = "MessageBoxes"
 endEvent
 
 event OnPageReset(string page)
@@ -28,6 +67,14 @@ event OnPageReset(string page)
 	endIf
 	UnloadCustomContent()
 	if page=="Debug"
+		AddTextOptionST("DebugModeMN", "Debug level", logModes[spdF.logMode])
+		AddEmptyOption()
+	
+		if PapyrusUtil.GetVersion()
+			AddTextOption("PapyrusUtil", "Ok", OPTION_FLAG_DISABLED)
+		else
+			AddTextOption("PapyrusUtil", "BAD!", OPTION_FLAG_DISABLED)
+		endIf
 		if PapyrusUtil.GetVersion()
 			AddTextOption("PapyrusUtil", "Ok", OPTION_FLAG_DISABLED)
 		else
@@ -50,7 +97,7 @@ Function generateDances()
 	if currentDance!=-1
 		spdDance d = reg._getDanceByIndex(ids[currentDance])
 		if d
-			LoadCustomContent("Skyrim Pole Dances/DancesPreview/" + d.name + ".swf", 0.0, 0.0)
+			LoadCustomContent("Skyrim Pole Dances/DancesPreview/" + d.previewFile, 0.0, 0.0)
 			Utility.waitMenuMode(3.0)
 			currentDance=-1
 			ForcePageReset()
@@ -80,7 +127,7 @@ Function generatePoses()
 	if currentPose!=-1
 		spdPose p = reg._getPoseByIndex(ids[currentPose])
 		if p
-			LoadCustomContent("Skyrim Pole Dances/PosesPreview/" + p.name + ".dds", 0.0, 0.0)
+			LoadCustomContent("Skyrim Pole Dances/PosesPreview/" + p.previewFile, 0.0, 0.0)
 			Utility.waitMenuMode(3.0)
 			currentPose=-1
 			ForcePageReset()
@@ -138,7 +185,7 @@ Event OnOptionHighlight(int opt)
 			if d.danceTags
 				msg += d.danceTags.print()
 			endIf
-			SetInfoText(msg)
+			SetInfoText(msg+"\nClick on a pose to see a preview of it for 3 seconds.")
 		endIf
 	
 	elseIf thePage=="Poses"
@@ -148,6 +195,7 @@ endEvent
 
 Event OnOptionSelect(int option)
 	currentPose=-1
+	currentDance=-1
 	if thePage=="Dances"
 		currentDance = opts.find(option)
 		if currentDance!=-1
@@ -162,4 +210,33 @@ Event OnOptionSelect(int option)
 		endIf
 	endIf
 endEvent
+
+
+
+
+
+state DebugModeMN
+	event OnMenuOpenST()
+		SetMenuDialogStartIndex(spdF.logMode)
+		SetMenuDialogDefaultIndex(1)
+		SetMenuDialogOptions(logModes)
+	endEvent
+
+	event OnMenuAcceptST(int index)
+		if index>-1 && index<logModes.length
+			spdF.logMode = index
+			SetMenuOptionValueST(logModes[index])
+		endIf
+	endEvent
+
+	event OnDefaultST()
+		spdF.logMode = 1
+		SetMenuOptionValueST(logModes[1])
+	endEvent
+
+	event OnHighlightST()
+		SetInfoText("Define what to put in the papyrus log in case of errors.\nWarning because the option MessageBoxes is really heavy and should be used only if papyrus.logs are not available")
+	endEvent
+endState
+
 

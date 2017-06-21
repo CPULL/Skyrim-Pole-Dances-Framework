@@ -7,6 +7,25 @@ string _animEventToEnd
 float _startTime
 float _endTime
 bool _inUse
+string _preview
+
+string Property previewFile
+	string function get()
+		return _preview
+	endFunction
+endProperty
+
+Function setPreview(string file)
+	if file!=""
+		_preview = file
+debug.trace("SPD: setting preview " + name + " -> " + file)
+	else
+debug.trace("SPD: empty preview " + name)
+		_preview = "NotAvailable.dds"
+	endIf
+endFunction
+
+
 
 string Property name
 	string function get()

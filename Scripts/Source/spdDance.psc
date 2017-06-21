@@ -16,12 +16,20 @@ spdTag _tag
 bool _isAStrip
 bool _animateStrip
 int[] _strips ; -1 to dress, 0 to ignore, 1 to strip
+string _preview
 
 string Property name
 	string function get()
 		return _name
 	endFunction
 endProperty
+
+string Property previewFile
+	string function get()
+		return _preview
+	endFunction
+endProperty
+
 
 string Property hkx
 	string function get()
@@ -71,13 +79,32 @@ Function _init(string dname, string animEvent, spdPose sp, spdPose ep, float len
 	_tag = None
 endFunction
 
-Function _initCycle(string preAnimEvent, float preAnimDuration, string postAnimEvent, float postAnimDuration)
-	_animEventBeforeCycle = preAnimEvent
-	_animEventAfterCycle = postAnimEvent
-	_lengthBeforeCycle = preAnimDuration
-	_lengthAfterCycle = postAnimDuration
-	_cyclic = true
+Function setCycle(bool isCyclic, string preAnimEvent="", float preAnimDuration=0.0, string postAnimEvent="", float postAnimDuration=0.0)
+	if isCyclic
+		_animEventBeforeCycle = preAnimEvent
+		_animEventAfterCycle = postAnimEvent
+		_lengthBeforeCycle = preAnimDuration
+		_lengthAfterCycle = postAnimDuration
+		_cyclic = true
+	else
+		_animEventBeforeCycle = ""
+		_animEventAfterCycle = ""
+		_lengthBeforeCycle = 0.0
+		_lengthAfterCycle = 0.0
+		_cyclic = false
+	endIf
 endFunction
+
+Function setPreview(string file)
+	if file!=""
+		_preview = file
+debug.trace("SPD: setting preview " + name + " -> " + file)
+	else
+debug.trace("SPD: empty preview " + name)
+		_preview = "NotAvailable.dds"
+	endIf
+endFunction
+
 
 
 
@@ -148,6 +175,13 @@ bool Property isStrip
 		return _isAStrip
 	endFunction
 endProperty
+
+Function _releaseStrip()
+	if !inUse || !_isAStrip
+		return
+	endIf
+	_inUse = false
+endFunction
 
 bool Function _AnimatedStrips()
 	return _animateStrip
