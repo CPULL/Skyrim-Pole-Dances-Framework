@@ -76,8 +76,7 @@ FIXME Mode (just for CPU)
 ; FIXME (spdActors) Add face expressions?
 ; FIXME 
 ; FIXME Add function to registry to set a custom pole (requires a Static object)
-; FIXME 
-; FIXME 
+; FIXME Change all the codes to have "spdf"
 ; FIXME 
 ; FIXME 
 
