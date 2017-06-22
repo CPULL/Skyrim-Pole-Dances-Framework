@@ -16,18 +16,23 @@ event OnConfigInit()
 endEvent
 
 event OnConfigOpen()
+debug.trace("Config open")
 	currentDance=-1
 	currentPose=-1
 	thePage=""
 	spdF = spdfPoleDances.getInstance()
 	reg = spdF.registry
-	if PapyrusUtil.GetVersion()
+	if PapyrusUtil.GetVersion() >= 33
 		; Scan all the files for previews and update the values of poses/dances to point to an empty one if the file is not found
 		string[] allDDS
 		string[] allSWF
 		allDDS = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\PosesPreview\\", ".dds")
 		allSWF = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\PosesPreview\\", ".swf")
 		int i = reg._getPosesNum(true)
+
+debug.trace(allSWF)
+debug.trace(allDDS)
+debug.trace(i)
 		while i
 			i-=1
 			spdfPose p = reg._getPoseByIndex(i)
@@ -42,6 +47,9 @@ event OnConfigOpen()
 		allDDS = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\DancesPreview\\", ".dds")
 		allSWF = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\DancesPreview\\", ".swf")
 		i = reg._getDancesNum(true)
+debug.trace(allSWF)
+debug.trace(allDDS)
+debug.trace(i)
 		while i
 			i-=1
 			spdfDance d = reg._getDanceByIndex(i)
@@ -58,6 +66,7 @@ event OnConfigOpen()
 	logModes[1] = "Only errors in traces"
 	logModes[2] = "Logs and errors in traces"
 	logModes[3] = "MessageBoxes"
+debug.trace("Config done")
 endEvent
 
 event OnPageReset(string page)
@@ -71,9 +80,13 @@ event OnPageReset(string page)
 		AddEmptyOption()
 	
 		if PapyrusUtil.GetVersion()
-			AddTextOption("PapyrusUtil", "Ok", OPTION_FLAG_DISABLED)
+			if PapyrusUtil.GetVersion()>=33
+				AddTextOption("PapyrusUtil V3.3", "Ok", OPTION_FLAG_DISABLED)
+			else
+				AddTextOption("PapyrusUtil V3.3", "BAD!", OPTION_FLAG_DISABLED)
+			endIf
 		else
-			AddTextOption("PapyrusUtil", "BAD!", OPTION_FLAG_DISABLED)
+			AddTextOption("PapyrusUtil V3.3", "MISSING!", OPTION_FLAG_DISABLED)
 		endIf
 	elseIf page=="Dances"
 		thePage = "Dances"

@@ -33,6 +33,7 @@ debug.trace("SPDF: init doInit")
 	
 	
 	registry._doInit(Self) ; This will just check stuff, and call the mod event to have other mods to add their own dances
+	registerPole(None) ; To clean up no more valid poles
 	
 	int modEvId = ModEvent.Create("SkyrimPoleDancesInitialized")
 	ModEvent.pushInt(modEvId, currentVersion)
@@ -45,14 +46,14 @@ Function _doUpdate()
 endFunction
 
 spdfPoleDances Function getInstance() Global
-	return Game.GetFormFromFile(0x0012C4, "Skyrim Pole Dances.esp") as spdfPoleDances
+	return Game.GetFormFromFile(0x0012C4, "Skyrim Pole Dances Framework.esp") as spdfPoleDances
 endFunction
 
 ; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
-; ************                                             Performances and QuickStart                                                                     ************
+; ************                                             Performances and QuickStart                                                                ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 ; ((-
@@ -113,10 +114,23 @@ ObjectReference Function placePole(ObjectReference loc = None, float distance = 
 	
 	float zAngle = ref.getAngleZ()
 	Static poleS
-	if whichPole==woodPole
-		poleS = spdfPoles[woodPole]
+	
+	if whichPole==-1
+		; -1 : get it random
+		int pos = spdfPoles.find(None)
+		poleS = spdfPoles[Utility.randomInt(0, pos - 1)]
+		if !poleS
+			poleS = spdfPoles[0]
+		endIf
 	else
-		poleS = spdfPoles[woodPole] ; Fallback
+		; 0<max : get it but only if existing (not null)
+		if whichPole<0 || whichPole>=spdfPoles.length
+			whichPole = 0
+		endIf
+		poleS = spdfPoles[whichPole]
+		if !poleS
+			poleS = spdfPoles[0]
+		endIf
 	endIf
 	ObjectReference res = loc.placeAtMe(poleS, 1, false, false)
 	float newAngle = zAngle + rotation
@@ -135,6 +149,36 @@ Function removePole(ObjectReference pole)
 	pole.disable(true)
 	pole.delete()
 endFunction
+
+Function registerPole(Static pole)
+	; First, check for non valid poles, and clean them up
+	int i=0
+	while i<spdfPoles.length
+		if !spdfPoles[i]
+			Static p = none
+			int j=i+1
+			while j<spdfPoles.length
+				if spdfPoles[j]
+					p = spdfPoles[j]
+					spdfPoles[j] = None
+					j=1000
+				endIf
+				j+=1
+			endWhile
+			spdfPoles[i] = p
+		endIf
+		i+=1
+	endWhile
+	if !pole || spdfPoles.find(pole)!=-1
+		return
+	endIf
+	int pos = spdfPoles.find(None)
+	if pos==-1
+		return
+	endIf
+	spdfPoles[pos] = pole
+endFunction
+
 
 ; -))
 

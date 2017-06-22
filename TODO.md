@@ -75,9 +75,7 @@ FIXME Mode (just for CPU)
 ; FIXME Make private all functions that should be private
 ; FIXME (spdActors) Add face expressions?
 ; FIXME 
-; FIXME Add function to registry to set a custom pole (requires a Static object)
-; FIXME Change all the codes to have "spdf"
-; FIXME 
+; FIXME Test if we can live with just PapyrusUtil and not the whole SexLab
 ; FIXME 
 
 

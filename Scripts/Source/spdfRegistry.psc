@@ -154,10 +154,24 @@ debug.trace("SPDF: Registry full init of performances, poses, dances, and tags")
 	int countPoses = 0
 	int countTags = 0
 	int countActors = 0
-	Alias[] allAliases = GetAliases()
+	Alias[] allAliases = spdF.GetAliases()
 	int i = allAliases.length
+	float progT = 100.0 / i
+	int incr = 0
+	int prog = 0
 	while i
 		i-=1
+		
+		if incr>=progT
+			if prog % 5 == 0 && prog<101
+				debug.trace("SPDF: Progress " + prog + "%")
+			endIf
+			incr=0
+			prog+=1
+		else
+			incr+=1
+		endIf
+		
 		if StringUtil.Find(allAliases[i].GetName(), "spdfDance")!=-1
 			spdfDance d = allAliases[i] as spdfDance
 			int pos = dances.Find(None)
@@ -165,7 +179,7 @@ debug.trace("SPDF: Registry full init of performances, poses, dances, and tags")
 				dances[pos] = d
 				countDances += 1
 			endIf
-		elseIf StringUtil.Find(allAliases[i].GetName(), "spdStrip")!=-1
+		elseIf StringUtil.Find(allAliases[i].GetName(), "spdfStrip")!=-1
 			spdfDance d = allAliases[i] as spdfDance
 			int pos = strips.Find(None)
 			if strips.Find(d)==-1 && pos!=-1
@@ -222,7 +236,6 @@ debug.trace("SPDF: Found " + countActors + "/" + actors.length + " actors")
 	ModEvent.pushInt(modEvId, spdF.getVersion())
 	ModEvent.pushForm(modEvId, Self)
 	ModEvent.send(modEvId)
-debug.trace("SPDF: Registry end")
 endFunction
 
 bool editing = false
@@ -378,12 +391,12 @@ endFunction
 
 spdfPose Function findPoseByName(string poseName)
 	if !poseName
-		return poses[0] ; Fixme get a random one
+		return None
 	endIf
 	int i=poses.length
 	while i
 		i-=1
-		if poses[i] && poses[i].name==poseName
+		if poses[i] && poses[i].inUse && poses[i].name==poseName
 			return poses[i]
 		endIf
 	endWhile
@@ -746,6 +759,23 @@ Function registerForGlobalHooks(string eventName)
 	return
 endFunction
 
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                            Poles                                                                                       ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+; ((-
+
+
+; -))
+
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                            Utilities                                                                                   ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+; ((-
+
 
 spdfDance[] Function allocateDances(int count)
 	if count<10
@@ -822,7 +852,7 @@ endFunction
 
 
 
-; FIXME add better formatting
+; -))
 
 
 
