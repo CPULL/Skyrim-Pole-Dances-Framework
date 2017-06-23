@@ -53,15 +53,16 @@
     - [X] Add code to get a strip by a special dance name (**CPU**)
     - [ ] Add code to get a pose (animated) by a special pose name (**CPU**)
 - [ ] **Animations**
-    - [ ] Convert the dances from 3DS format to HKX files (**Komotor**)
-	- [ ] Build at least one test dance anim (3DS and HKX) (**Komotor**)
+    - [X] Convert the dances from 3DS format to HKX files (**Komotor**)
+	- [X] Build at least one test dance anim (3DS and HKX) (**Komotor**)
+	- [ ] Learn 3DS and do your onw anims, asshole (**CPU**)
 - [ ] **Actors**
     - [X] Remove the local properties and call always the property from the main framework
 - [ ] **Test Tool**
-    - [ ] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
+    - [X] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
     - [X] Build a small test tool _Pole Dance Maker_ to quickly start a pole dance on actors or player (like MatchMaker)
 	- [ ] Add another spell to set a specific dance to be tested
-	- [ ] Add a MCM to set up the dance to be played
+	- [X] Add a MCM to set up the dance to be played
 - [ ] **Remote Future**
     - [ ] Add music
     - [ ] Add dances without a pole
@@ -75,7 +76,7 @@ FIXME Mode (just for CPU)
 ; FIXME Make private all functions that should be private
 ; FIXME (spdActors) Add face expressions?
 ; FIXME 
-; FIXME Test if we can live with just PapyrusUtil and not the whole SexLab
+; FIXME 
 ; FIXME 
 
 

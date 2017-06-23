@@ -11,7 +11,7 @@ Event RegisterDances(int version, Form reg)
 	r.beginEdit("spdDancesBase")
 	
 	int errors = 0
-	spdfPose myPose = r.registerPose("Pose 1", "IdleForceDefaultState", "spdPose1_Start", "IdleForceDefaultState", 6.0, 1.0)
+	spdfPose myPose = r.registerPose("Pose 1", "spdfPose1_Anim", "spdfPose1_Start", "spdfPose1_End", 6.0, 5.0)
 	if !myPose
 		errors+=1
 	else

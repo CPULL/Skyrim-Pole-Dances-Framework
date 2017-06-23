@@ -606,13 +606,13 @@ spdfDance Function findRandomDance()
 			; Grab the next valid one and swap
 			int j=i+1
 			while j<dances.length
-				spdfDance o = dances[j]
-				if d && d.inUse
+				if dances[j] && dances[j].inUse
 					spdfDance tmp = d
 					dances[i] = dances[j]
 					dances[j] = tmp
 					j = 100000
 				endIf
+				j+=1
 			endWhile
 		endIf
 		i+=1

@@ -254,6 +254,9 @@ Function parseStrips(spdfPoleDances spdF, String stripCode)
 			endIf
 		endIf
 	endWhile
+	
+	; FIXME generate a name
+	_name = "Strip..."
 endFunction
 
 bool Function compareStrip(spdfDance tmp)

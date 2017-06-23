@@ -579,7 +579,7 @@ bool function start(bool forceTransitions = true)
 				i-=1
 				spdfDance next = dances[i]
 				spdfDance prev = dances[i - 1]
-				if next && prev && next.startPose != prev.endPose
+				if next && prev && next.startPose != prev.endPose && !prev.isStrip && !next.isStrip
 					; Check if we have a transition dance
 					spdfDance d = registry.findTransitionDance(prev.endPose, next.startPose)
 					if d
