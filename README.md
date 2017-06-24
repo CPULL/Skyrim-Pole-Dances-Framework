@@ -14,7 +14,7 @@ A set of sub-animations will be defined, and the framework will allow playing th
 
 # Skyrim Pole Dances Framework
 This mod is a framework to implement (complex) pole dances in Skyrim.<br>
-Its identification code (three letters for all objects and scripts) is _spd_
+Its identification code (four letters for all objects and scripts) is _spdf_
 
 It provides APIs (similar to SexLab APIs) to handle the dances with just a few calls.
 
