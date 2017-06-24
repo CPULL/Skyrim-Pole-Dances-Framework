@@ -28,11 +28,7 @@ debug.trace("Config open")
 		string[] allSWF
 		allDDS = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\PosesPreview\\", ".dds")
 		allSWF = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\PosesPreview\\", ".swf")
-		int i = reg._getPosesNum(true)
-
-debug.trace(allSWF)
-debug.trace(allDDS)
-debug.trace(i)
+		int i = reg.getPosesNum(0)
 		while i
 			i-=1
 			spdfPose p = reg._getPoseByIndex(i)
@@ -46,10 +42,7 @@ debug.trace(i)
 		
 		allDDS = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\DancesPreview\\", ".dds")
 		allSWF = MiscUtil.FilesInFolder("Data\\Interface\\Skyrim Pole Dances\\DancesPreview\\", ".swf")
-		i = reg._getDancesNum(true)
-debug.trace(allSWF)
-debug.trace(allDDS)
-debug.trace(i)
+		i = reg.getDancesNum(0)
 		while i
 			i-=1
 			spdfDance d = reg._getDanceByIndex(i)
@@ -76,18 +69,8 @@ event OnPageReset(string page)
 	endIf
 	UnloadCustomContent()
 	if page=="Debug"
-		AddTextOptionST("DebugModeMN", "Debug level", logModes[spdF.logMode])
-		AddEmptyOption()
-	
-		if PapyrusUtil.GetVersion()
-			if PapyrusUtil.GetVersion()>=33
-				AddTextOption("PapyrusUtil V3.3", "Ok", OPTION_FLAG_DISABLED)
-			else
-				AddTextOption("PapyrusUtil V3.3", "BAD!", OPTION_FLAG_DISABLED)
-			endIf
-		else
-			AddTextOption("PapyrusUtil V3.3", "MISSING!", OPTION_FLAG_DISABLED)
-		endIf
+		thePage = "Debug"
+		generateDebug()
 	elseIf page=="Dances"
 		thePage = "Dances"
 		generateDances()
@@ -100,6 +83,30 @@ event OnPageReset(string page)
 	endIf
 endEvent
 
+Function generateDebug()
+	SetTitleText("Pole Dances Framework - Debug page")
+	SetCursorFillMode(TOP_TO_BOTTOM)
+	AddTextOptionST("DebugModeMN", "Debug level", logModes[spdF.logMode])
+	AddEmptyOption()
+
+	if PapyrusUtil.GetVersion()
+		if PapyrusUtil.GetVersion()>=33
+			AddTextOption("PapyrusUtil V3.3", "Ok", OPTION_FLAG_DISABLED)
+		else
+			AddTextOption("PapyrusUtil V3.3", "BAD!", OPTION_FLAG_DISABLED)
+		endIf
+	else
+		AddTextOption("PapyrusUtil V3.3", "MISSING!", OPTION_FLAG_DISABLED)
+	endIf
+	SetCursorPosition(1)
+	AddTextOption("Performances (in use)", reg.getPerformancesNum(1) + "/" + reg.getPerformancesNum(0))
+	AddTextOption("Actors (in use)", reg.getActorsNum(1) + "/" + reg.getActorsNum(0))
+	AddTextOption("Dances", reg.getDancesNum(1) + "/" + reg.getDancesNum(0))
+	AddTextOption("Poses", reg.getPosesNum(1) + "/" + reg.getPosesNum(0))
+	AddTextOption("Strip Slots", reg.getStripsNum(1) + "/" + reg.getStripsNum(0))
+	AddTextOption("Poles", reg.getPolesNum(1) + "/" + reg.getPolesNum(0))
+
+endFunction
 
 Function generateDances()
 	if currentDance!=-1
@@ -116,11 +123,11 @@ Function generateDances()
 	UnloadCustomContent()
 	cleanOptions()
 	SetCursorFillMode(LEFT_TO_RIGHT)
-	AddHeaderOption("Dances: " + reg._getDancesNum(false) + "/" + reg._getDancesNum(true))
+	AddHeaderOption("Dances: " + reg.getDancesNum(1) + "/" + reg.getDancesNum(1))
 	SetCursorPosition(2)
 	int i = 0
 	int num = 0
-	while i<reg._getDancesNum(true)
+	while i<reg.getDancesNum(0)
 		spdfDance d = reg._getDanceByIndex(i)
 		if d && d.inUse
 			opts[num] = AddTextOption(d.name, "")
@@ -146,11 +153,11 @@ Function generatePoses()
 	UnloadCustomContent()
 	cleanOptions()
 	SetCursorFillMode(LEFT_TO_RIGHT)
-	AddHeaderOption("Poses: " + reg._getPosesNum(false) + "/" + reg._getPosesNum(true))
+	AddHeaderOption("Poses: " + reg.getPosesNum(1) + "/" + reg.getPosesNum(0))
 	SetCursorPosition(2)
 	int i = 0
 	int num = 0
-	while i<reg._getPosesNum(true)
+	while i<reg.getPosesNum(0)
 		spdfPose p = reg._getPoseByIndex(i)
 		if p && p.inUse
 			opts[num] = AddTextOption(p.name, "")

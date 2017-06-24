@@ -259,6 +259,28 @@ Function parseStrips(spdfPoleDances spdF, String stripCode)
 	_name = "Strip..."
 endFunction
 
+Function setStripValues(int[] vals, bool asAnimated, float time)
+	if !_isAStrip
+		return
+	endIf
+	int i = vals.length
+	while i
+		i-=1
+		if vals[i]==0
+			_strips[i] = 0
+		elseIf vals[i]==1
+			_strips[i] = 1
+		elseIf vals[i]==0
+			_strips[i] = -1
+		endIf
+	endWhile
+	
+	_animateStrip = asAnimated
+	_length = time
+	_inUse = true
+endFunction
+
+
 bool Function compareStrip(spdfDance tmp)
 	if _animateStrip!=tmp._AnimatedStrips()
 		return false

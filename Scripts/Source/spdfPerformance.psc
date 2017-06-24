@@ -764,7 +764,7 @@ float currentDanceStartTime
 state Playing
 	Event OnBeginState()
 		sendEvent("PerformanceStarted")
-		registry._lockActor(dancer, registry.spdfDoNothingPackage)
+		registry._lockActor(dancer, spdF.spdfDoNothingPackage)
 		currentDance = 0
 		sendEvent("DanceChanging")
 		prevDance = -1 ; This will play right now the first dance
@@ -882,6 +882,8 @@ debug.trace("SPDF: " + dancer.getDisplayName() + " sending End -> " + dances[num
 	endEvent
 	
 	Event OnUpdate()
+		; Move back to the marker
+		dancer.moveTo(pole)
 		if poleCreated
 			debug.trace("SPDF: removed pole by Ending")
 			spdF.removePole(pole)

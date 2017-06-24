@@ -1,9 +1,6 @@
 Scriptname spdfRegistry extends Quest
 
 spdfPoleDances spdF
-
-package Property spdfDoNothingPackage Auto
-
 string[] Property bodyParts Auto
 spdfPerformance[] Property performances Auto
 ReferenceAlias[] Property poleAliases Auto
@@ -16,6 +13,7 @@ string[] validTags
 spdfActor[] actors
 actor[] refActors
 spdfDance Property tmpStrip Auto
+Static[] Property spdfPoles Auto
 
 
 ; ****************************************************************************************************************************************************************
@@ -85,7 +83,7 @@ debug.trace("SPDF: Registry Init")
 	bodyParts[37] = "35"
 	bodyParts[38] = "36"
 	bodyParts[39] = "37"
-	bodyParts[30] = "38"
+	bodyParts[40] = "38"
 	bodyParts[41] = "39"
 	bodyParts[42] = "40"
 	bodyParts[43] = "41"
@@ -156,14 +154,14 @@ debug.trace("SPDF: Registry full init of performances, poses, dances, and tags")
 	int countActors = 0
 	Alias[] allAliases = spdF.GetAliases()
 	int i = allAliases.length
-	float progT = 100.0 / i
+	float progT = 50.0 / i
 	int incr = 0
 	int prog = 0
 	while i
 		i-=1
 		
 		if incr>=progT
-			if prog % 5 == 0 && prog<101
+			if prog % 10 == 0 && prog<101
 				debug.trace("SPDF: Progress " + prog + "%")
 			endIf
 			incr=0
@@ -364,30 +362,13 @@ endFunction
 
 ; ((- Poses
 
-int Function _getPosesNum(bool all)
-	if all
-		return poses.length
-	endIf
-	int num = 0
-	int i = poses.length
-	while i
-		i-=1
-		if poses[i] && poses[i].inUse
-			num+=1
-		endIf
-	endWhile
-	return num
-endFunction
-
 spdfPose Function _getPoseByIndex(int index)
 	return poses[index]
 endFunction
 
-
 spdfPose Function findRandomStartPose()
 	return poses[Utility.randomInt(0, poses.length - 1)]
 endFunction
-
 
 spdfPose Function findPoseByName(string poseName)
 	if !poseName
@@ -443,21 +424,6 @@ endFunction
 
 ; ((-
 
-
-int Function _getDancesNum(bool all)
-	if all
-		return dances.length
-	endIf
-	int num = 0
-	int i = dances.length
-	while i
-		i-=1
-		if dances[i] && dances[i].inUse
-			num+=1
-		endIf
-	endWhile
-	return num
-endFunction
 
 spdfDance Function _getDanceByIndex(int index)
 	return dances[index]
@@ -617,7 +583,7 @@ spdfDance Function findRandomDance()
 		endIf
 		i+=1
 	endWhile
-	int numValid = _getDancesNum(false)
+	int numValid = getDancesNum(1)
 	; Pick one randomly
 	if numValid == 0
 		return None
@@ -652,17 +618,129 @@ spdfDance Function findTransitionDance(spdfPose prev, spdfPose next)
 endFunction
 
 
+spdfDance Function allocateStrip()
+	int i = strips.length
+	while i
+		i-=1
+		spdfDance s = strips[i]
+		if s && !s.inUse
+			s.copyStripFrom(s) ; Just to set it in use
+			return s
+		endIf
+	endWhile
+	return none ; no strips available
+endFunction
+
 ; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
-; ************                                                                                                                                        ************
+; ************                                         Counting Functions                                                                             ************
 ; ************                                                                                                                                        ************
 ; ****************************************************************************************************************************************************************
 
-; registration functions
+; ((-
+; Mode: 0=All, 1=In use, -1=Not used
 
 
+int function getPerformancesNum(int mode=0)
+	int count=0
+	int i=performances.length
+	while i
+		i-=1
+		if mode==0 && performances[i]
+			count+=1
+		elseIf mode==1 && performances[i] && performances[i].inUse
+			count+=1
+		elseIf mode==-1 && performances[i] && !performances[i].inUse
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+int function getActorsNum(int mode=0)
+	int count=0
+	int i=actors.length
+	while i
+		i-=1
+		if mode==0 && actors[i]
+			count+=1
+		elseIf mode==1 && actors[i] && actors[i].inUse
+			count+=1
+		elseIf mode==-1 && actors[i] && !actors[i].inUse
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+int function getDancesNum(int mode=0)
+	int count=0
+	int i=dances.length
+	while i
+		i-=1
+		if mode==0 && dances[i]
+			count+=1
+		elseIf mode==1 && dances[i] && dances[i].inUse
+			count+=1
+		elseIf mode==-1 && dances[i] && !dances[i].inUse
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+int function getPosesNum(int mode=0)
+	int count=0
+	int i=poses.length
+	while i
+		i-=1
+		if mode==0 && poses[i]
+			count+=1
+		elseIf mode==1 && poses[i] && poses[i].inUse
+			count+=1
+		elseIf mode==-1 && poses[i] && !poses[i].inUse
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+int function getStripsNum(int mode=0)
+	int count=0
+	int i=strips.length
+	while i
+		i-=1
+		if mode==0 && strips[i]
+			count+=1
+		elseIf mode==1 && strips[i] && strips[i].inUse
+			count+=1
+		elseIf mode==-1 && strips[i] && !strips[i].inUse
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+int function getPolesNum(int mode=0)
+	if mode==0
+		return spdfPoles.length
+	endIf
+	int count=0
+	int i=spdfPoles.length
+	while i
+		i-=1
+		if mode==1 && spdfPoles[i]
+			count+=1
+		elseIf mode==-1 && !spdfPoles[i]
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************
@@ -739,6 +817,81 @@ endFunction
 
 ; -))
 ; TODO
+
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                             Poles                                                                                      ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+
+; ((-
+Function _registerPole(Static pole)
+	; First, check for non valid poles, and clean them up
+	int i=0
+	while i<spdfPoles.length
+		if !spdfPoles[i]
+			Static p = none
+			int j=i+1
+			while j<spdfPoles.length
+				if spdfPoles[j]
+					p = spdfPoles[j]
+					spdfPoles[j] = None
+					j=1000
+				endIf
+				j+=1
+			endWhile
+			spdfPoles[i] = p
+		endIf
+		i+=1
+	endWhile
+	if !pole || spdfPoles.find(pole)!=-1
+		return
+	endIf
+	int pos = spdfPoles.find(None)
+	if pos==-1
+		return
+	endIf
+	spdfPoles[pos] = pole
+endFunction
+
+Function _unregisterPole(Static pole)
+	if pole==spdfPoles[0]
+		return ; Cannot remove the basic pole
+	endIf
+	int pos = spdfPoles.find(pole)
+	if pos!=-1
+		int i=pos
+		while i<spdfPoles.length - 1
+			spdfPoles[i] = spdfPoles[i + 1]
+			i+=1
+		endWhile
+		spdfPoles[spdfPoles.length - 1] = None
+	endIf
+endFunction
+
+
+Static Function getRandomPole()
+	int num = getPolesNum(1)
+	Static p = spdfPoles[Utility.randomInt(0, num - 1)]
+	if !p
+		p = spdfPoles[0]
+	endIf
+	return p
+endFunction
+
+Static Function _getPoleByIndex(int index)
+	Static p = none
+	if index>-1 && index<spdfPoles.length
+		p = spdfPoles[index]
+	endIf
+	if !p
+		p = spdfPoles[0]
+	endIf
+	return p
+endFunction
+
+
+; -))
 
 ; ****************************************************************************************************************************************************************
 ; ************                                                                                                                                        ************

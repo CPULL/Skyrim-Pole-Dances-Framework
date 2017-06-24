@@ -7,7 +7,7 @@ Actor dancer
 spdfPoleDances spdF
 Package currentPkg
 Form[] slots
-
+bool _inUse
 
 Function _doInit(spdfPoleDances spd)
 	spdF = spd
@@ -15,10 +15,17 @@ Function _doInit(spdfPoleDances spd)
 	free()
 endFunction
 
+bool Property inUse
+	bool Function get()
+		return _inUse
+	endFunction
+endProperty
+
 Function setTo(Actor a)
 	if !a
 		return
 	endIf
+	_inUse = true
 	dancer = a
 	ForceRefTo(a)
 	a.addToFaction(spdF.spdfDancingFaction)
@@ -80,6 +87,7 @@ Function free()
 	endIf
 	dancer = none
 	clear()
+	_inUse = false
 endFunction
 
 ; toStrip: -1 to dress, 0 to ignore, 1 to strip

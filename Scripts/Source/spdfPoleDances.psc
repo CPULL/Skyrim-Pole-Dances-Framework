@@ -4,7 +4,6 @@ Scriptname spdfPoleDances Extends Quest
 ; ((- Properties
 
 spdfRegistry Property registry Auto
-Static[] Property spdfPoles Auto
 Actor Property PlayerRef Auto
 Package Property spdfDoNothingPackage Auto
 Faction Property spdfDancingFaction Auto
@@ -117,19 +116,12 @@ ObjectReference Function placePole(ObjectReference loc = None, float distance = 
 	
 	if whichPole==-1
 		; -1 : get it random
-		int pos = spdfPoles.find(None)
-		poleS = spdfPoles[Utility.randomInt(0, pos - 1)]
-		if !poleS
-			poleS = spdfPoles[0]
-		endIf
+		poleS = registry.getRandomPole()
 	else
 		; 0<max : get it but only if existing (not null)
-		if whichPole<0 || whichPole>=spdfPoles.length
-			whichPole = 0
-		endIf
-		poleS = spdfPoles[whichPole]
+		poleS = registry._getPoleByIndex(whichPole)
 		if !poleS
-			poleS = spdfPoles[0]
+			poleS = registry._getPoleByIndex(0)
 		endIf
 	endIf
 	ObjectReference res = loc.placeAtMe(poleS, 1, false, false)
@@ -151,33 +143,17 @@ Function removePole(ObjectReference pole)
 endFunction
 
 Function registerPole(Static pole)
-	; First, check for non valid poles, and clean them up
-	int i=0
-	while i<spdfPoles.length
-		if !spdfPoles[i]
-			Static p = none
-			int j=i+1
-			while j<spdfPoles.length
-				if spdfPoles[j]
-					p = spdfPoles[j]
-					spdfPoles[j] = None
-					j=1000
-				endIf
-				j+=1
-			endWhile
-			spdfPoles[i] = p
-		endIf
-		i+=1
-	endWhile
-	if !pole || spdfPoles.find(pole)!=-1
-		return
-	endIf
-	int pos = spdfPoles.find(None)
-	if pos==-1
-		return
-	endIf
-	spdfPoles[pos] = pole
+	registry._registerPole(pole)
 endFunction
+
+Function unregisterPole(Static pole)
+	registry._unregisterPole(pole)
+endFunction
+
+
+
+; FIXME move to the registry
+
 
 
 ; -))

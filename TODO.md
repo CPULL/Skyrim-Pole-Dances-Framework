@@ -61,8 +61,9 @@
 - [ ] **Test Tool**
     - [X] Add a test mod (__DanceMaker__) to test the dances (**CPU**)
     - [X] Build a small test tool _Pole Dance Maker_ to quickly start a pole dance on actors or player (like MatchMaker)
-	- [ ] Add another spell to set a specific dance to be tested
+	- [ ] Add another spell to place a pole with a visual feedback
 	- [X] Add a MCM to set up the dance to be played
+	- [ ] When playing a dance (self or target) use what is defined (if any) inside the MCM (dances, pose, tags)
 - [ ] **Remote Future**
     - [ ] Add music
     - [ ] Add dances without a pole
