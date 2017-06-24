@@ -124,12 +124,12 @@ ObjectReference Function placePole(ObjectReference loc = None, float distance = 
 			poleS = registry._getPoleByIndex(0)
 		endIf
 	endIf
-	ObjectReference res = loc.placeAtMe(poleS, 1, false, false)
+	ObjectReference res = ref.placeAtMe(poleS, 1, false, false)
 	float newAngle = zAngle + rotation
 	if newAngle>360.0
 		newAngle-=360.0
 	endIf
-	res.moveTo(loc, Math.sin(newAngle) * distance, Math.cos(newAngle) * distance, 0.0, false)
+	res.moveTo(ref, Math.sin(newAngle) * distance, Math.cos(newAngle) * distance, 0.0, false)
 	res.setAngle(0.0, 0.0, ref.getAngleZ())
 	return res
 endFunction

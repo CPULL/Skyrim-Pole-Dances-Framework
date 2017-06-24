@@ -255,8 +255,7 @@ Function parseStrips(spdfPoleDances spdF, String stripCode)
 		endIf
 	endWhile
 	
-	; FIXME generate a name
-	_name = "Strip..."
+	_name = generateStripName()
 endFunction
 
 Function setStripValues(int[] vals, bool asAnimated, float time)
@@ -270,11 +269,12 @@ Function setStripValues(int[] vals, bool asAnimated, float time)
 			_strips[i] = 0
 		elseIf vals[i]==1
 			_strips[i] = 1
-		elseIf vals[i]==0
+		elseIf vals[i]==2
 			_strips[i] = -1
 		endIf
 	endWhile
 	
+	_name = generateStripName()
 	_animateStrip = asAnimated
 	_length = time
 	_inUse = true
@@ -305,4 +305,64 @@ Function copyStripFrom(spdfDance tmp)
 		i-=1
 		_strips[i] = tmpS[i]
 	endWhile
+	_name = generateStripName()
 endFunction
+
+
+string Function generateStripName()
+debug.trace("SPDF: strips: " + _strips)
+
+	; Check if we have a full strip or a full redress
+	bool fullStrip=true
+	bool fullDress=true
+	int i=_strips.length
+	while i
+		i-=1
+		if _strips[i]!=1
+			fullStrip=false
+		elseIf _strips[i]!=-1
+			fullDress=false
+		endIf
+	endWhile
+	if fullStrip
+		return "Strip all"
+	elseIf fullDress
+		return "Redress all"
+	endIf
+	
+	spdfPoleDances spdF = spdfPoleDances.getInstance()
+	string res="Strip:"
+	i=0
+	bool doneOne=false
+	while i<_strips.length
+		if _strips[i]==1
+			if doneOne
+				res+=","
+			endIf
+			res+=spdF.registry.bodyParts[i]
+			doneOne=true
+		elseIf _strips[i]==-1
+			if doneOne
+				res+=","
+			endIf
+			res+="!"+spdF.registry.bodyParts[i]
+		endIf
+		i+=1
+	endWhile
+	return res
+endFunction
+
+Function getStrips(int[] dest)
+	int i=_strips.length
+	while i
+		i-=1
+		if _strips[i]==1
+			dest[i] = 1
+		elseIf _strips[i]==-1
+			dest[i] = 2
+		elseIf _strips[i]==0
+			dest[i] = 0
+		endIf
+	endWhile
+endFunction
+

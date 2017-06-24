@@ -341,6 +341,54 @@ bool Function setDancesArray(string[] refDances)
 	return false
 endFunction
 
+bool Function setDancesObject(spdfDance[] refDances)
+	; Do nothing in case the performance is playing
+	if isPerformancePlaying
+		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setDancesArray")
+		return true
+	endIf
+	if !refDances || refDances.length==0
+		spdF._addError(21, "The requested dances are not valid", "Performance", "setDancesArray")
+		return true
+	endIf
+	int count = 0
+	int i = 0
+	string errs = ""
+	while i<refDances.length
+		spdfDance d = refDances[i]
+		if d!=None
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	if count==0
+		spdF._addError(22, "No one of the requested dances is valid", "Performance", "setDancesArray")
+		return true
+	endIf
+	; Now allocate the array and fill it
+	numDances = count
+	i = 0
+	count = 0
+	while i<numDances
+		spdfDance d = refDances[i]
+		if d!=None
+			dances[count] = d
+			count+=1
+		endIf
+		i+=1
+	endWhile
+	; Clean the other stuff
+	startingPose = None
+	while numTags
+		numTags-=1
+		tags[numTags] = None
+	endWhile
+	isValid() ; To recalculate
+	return false
+endFunction
+
+
+
 bool Function setTagsString(string refTags)
 	; Do nothing in case the performance is playing
 	if isPerformancePlaying
@@ -772,23 +820,31 @@ state Playing
 		; We need to handle strips, if any. And they can be more than one
 		while dances[currentDance] && dances[currentDance].isStrip
 debug.trace("SPDF: handling strip")
-			dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
+			if dancesTime[currentDance]==0.0
+				dancerC.doStripByDance(dances[currentDance], dances[currentDance].duration)
+			else
+				dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
+			endIf
 			currentDance+=1
  		endWhile
-		Debug.SendAnimationEvent(dancer, startingPose.startHKX)
-		Utility.wait(0.2)
-		dancer.moveTo(pole, 0.0, 0.0, 0.0, false)
-		spdfActor._removeWeapons(dancer)
-		Utility.waitMenuMode(startingPose.startTime - 0.1)
+		if startingPose
+			Debug.SendAnimationEvent(dancer, startingPose.startHKX)
+			Utility.wait(0.2)
+			dancer.moveTo(pole, 0.0, 0.0, 0.0, false)
+			spdfActor._removeWeapons(dancer)
+			Utility.waitMenuMode(startingPose.startTime - 0.1)
+		endIf
 		performanceStartTime = Utility.getCurrentRealTime()
 		totalExpectedPerformanceTime = duration
 		currentDanceStartTime = Utility.getCurrentRealTime()
 		if dancesTime[currentDance]!=0.0
 			currentDanceExpectedTime = dancesTime[currentDance]
-		else
+		elseIf dances[currentDance]
 			currentDanceExpectedTime = dances[currentDance].duration
 		endIf
-		Debug.SendAnimationEvent(dancer, dances[currentDance].hkx)
+		if dances[currentDance]
+			Debug.SendAnimationEvent(dancer, dances[currentDance].hkx)
+		endIf
 		RegisterForSingleUpdate(0.95)
 		
 debug.trace("SPDF: " + dancer.getDisplayName() + " performance started for " + totalExpectedPerformanceTime + " with " + dances[currentDance].name + " danceExpTime=" + currentDanceExpectedTime)
@@ -883,7 +939,7 @@ debug.trace("SPDF: " + dancer.getDisplayName() + " sending End -> " + dances[num
 	
 	Event OnUpdate()
 		; Move back to the marker
-		dancer.moveTo(pole)
+		dancer.moveTo(poleRef.getReference(), 0.0, 0.0, 0.0, false)
 		if poleCreated
 			debug.trace("SPDF: removed pole by Ending")
 			spdF.removePole(pole)
