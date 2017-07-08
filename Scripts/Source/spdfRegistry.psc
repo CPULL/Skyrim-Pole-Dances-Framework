@@ -6,13 +6,13 @@ spdfPerformance[] Property performances Auto
 ReferenceAlias[] Property poleAliases Auto
 Package[] Property walkPackages Auto
 spdfDance[] dances
-spdfDance[] strips
+spdfStrip[] strips
 spdfPose[] poses
 spdfTag[] tags
 string[] validTags
 spdfActor[] actors
 actor[] refActors
-spdfDance Property tmpStrip Auto
+spdfStrip Property tmpStrip Auto
 Static[] Property spdfPoles Auto
 
 
@@ -24,13 +24,26 @@ Static[] Property spdfPoles Auto
 
 ; ((-
 
+Function _stopAll()
+	; Stop all performances
+	int i = performances.length
+	while i
+		i-=1
+		spdfPerformance p = performances[i]
+		if p
+			p.abort(true)
+		endIf
+	endWhile
+	; Clean all temporary strips and tags ( TODO )
+endFunction
+
 Function reInit(spdfPoleDances spd)
-	_doInit(spd)
+	_doInit(spd, true)
 endFunction
 
 ; Init function (DoInit, called by OnGameStart and OnInit of main quest)
 ; This will just check stuff, and call the mod event to have other mods to add their own dances
-function _doInit(spdfPoleDances spd)
+function _doInit(spdfPoleDances spd, bool force=false)
 	; TODO
 
 debug.trace("SPDF: Registry Init")
@@ -134,102 +147,113 @@ debug.trace("SPDF: Registry Init")
 	
 	
 	; Poses, Dances, Tags initialization
-	if !dances
-debug.trace("SPDF: Registry full init of performances, poses, dances, and tags")
+	if !dances || force
 		; Full init
 		dances = new spdfDance[16]
-		strips = new spdfDance[16]
+		strips = new spdfStrip[16]
 		poses = new spdfPose[16]
 		tags = new spdfTag[64]
 		actors = new spdfActor[16]
 		refActors = new actor[16]
 	endIf
 	
-	; Some of the items can be already there, do not re-init them
-	int countPerformances = 0
-	int countDances = 0
-	int countStrips = 0
-	int countPoses = 0
-	int countTags = 0
-	int countActors = 0
+	; Count the items, in case the num is not what was expected (is less) then scan the aliases
 	Alias[] allAliases = spdF.GetAliases()
-	int i = allAliases.length
-	float progT = 50.0 / i
-	int incr = 0
-	int prog = 0
-	while i
-		i-=1
+	int count = getDancesNum(0) + getStripsNum(0) + getPosesNum(0) +  getTagsNum(0) + getActorsNum(0)
+	if force || allAliases.length > count + 2 ; PlayerRef and tmpStrip
+		; Some of the items can be already there, do not re-init them
+		int countPerformances = 0
+		int countDances = 0
+		int countStrips = 0
+		int countPoses = 0
+		int countTags = 0
+		int countActors = 0
+		int i = allAliases.length
+		float progT = i / 9.9
+		float incr = i / 100.0
+		float prog = 0.0
+		int tot = 0
+		while i
+			i-=1
+
+			
+			prog+=incr
+			if prog>progT
+				tot+=1
+				if tot<11
+					spdF._addError(0, "Init Progress " + tot*10 + "%", "Registry", "Init")
+				endIf
+				prog=0.0
+			endIf
+			
+			if StringUtil.Find(allAliases[i].GetName(), "spdfDance")!=-1
+				spdfDance d = allAliases[i] as spdfDance
+				int pos = dances.Find(None)
+				if dances.Find(d)==-1 && pos!=-1
+					dances[pos] = d
+					countDances += 1
+					d._preInit(1)
+				endIf
+			elseIf StringUtil.Find(allAliases[i].GetName(), "spdfStrip")!=-1
+				spdfStrip s = allAliases[i] as spdfStrip
+				int pos = strips.Find(None)
+				if strips.Find(s)==-1 && pos!=-1
+					strips[pos] = s
+					s._preInit(3)
+					countStrips += 1
+				endIf
+			elseIf StringUtil.Find(allAliases[i].GetName(), "spdfPose")!=-1
+				spdfPose p = allAliases[i] as spdfPose
+				int pos = poses.Find(None)
+				if poses.Find(p)==-1 && pos!=-1
+					poses[pos] = p
+					p._preInit(2)
+					countPoses += 1
+				endIf
+			elseIf StringUtil.Find(allAliases[i].GetName(), "spdfTag")!=-1
+				spdfTag t = allAliases[i] as spdfTag
+				int pos = tags.Find(None)
+				if tags.Find(t)==-1 && pos!=-1
+					tags[countTags] = t
+					tags[countTags]._doInit(spdF)
+					countTags += 1
+				endIf
+			elseIf StringUtil.Find(allAliases[i].GetName(), "spdfActor")!=-1
+				spdfActor t = allAliases[i] as spdfActor
+				int pos = actors.Find(None)
+				if actors.Find(t)==-1 && pos!=-1
+					actors[countActors] = t
+					actors[countActors]._doInit(spdF)
+					countActors += 1
+				endIf
+			endIf
+		endWhile
 		
-		if incr>=progT
-			if prog % 10 == 0 && prog<101
-				debug.trace("SPDF: Progress " + prog + "%")
+		; Re-init performances
+		i = performances.length
+		while i
+			i-=1
+			if performances[i]
+				performances[i]._doInit(spdF, poleAliases[i], walkPackages[i])
+				countPerformances += 1
 			endIf
-			incr=0
-			prog+=1
-		else
-			incr+=1
-		endIf
+		endWhile
 		
-		if StringUtil.Find(allAliases[i].GetName(), "spdfDance")!=-1
-			spdfDance d = allAliases[i] as spdfDance
-			int pos = dances.Find(None)
-			if dances.Find(d)==-1 && pos!=-1
-				dances[pos] = d
-				countDances += 1
-			endIf
-		elseIf StringUtil.Find(allAliases[i].GetName(), "spdfStrip")!=-1
-			spdfDance d = allAliases[i] as spdfDance
-			int pos = strips.Find(None)
-			if strips.Find(d)==-1 && pos!=-1
-				strips[pos] = d
-				d._setAsStrip()
-				countStrips += 1
-			endIf
-		elseIf StringUtil.Find(allAliases[i].GetName(), "spdfPose")!=-1
-			spdfPose p = allAliases[i] as spdfPose
-			int pos = poses.Find(None)
-			if poses.Find(p)==-1 && pos!=-1
-				poses[pos] = p
-				countPoses += 1
-			endIf
-		elseIf StringUtil.Find(allAliases[i].GetName(), "spdfTag")!=-1
-			spdfTag t = allAliases[i] as spdfTag
-			int pos = tags.Find(None)
-			if tags.Find(t)==-1 && pos!=-1
-				tags[countTags] = t
-				tags[countTags]._doInit(spdF)
-				countTags += 1
-			endIf
-		elseIf StringUtil.Find(allAliases[i].GetName(), "spdfActor")!=-1
-			spdfActor t = allAliases[i] as spdfActor
-			int pos = actors.Find(None)
-			if actors.Find(t)==-1 && pos!=-1
-				actors[countActors] = t
-				actors[countActors]._doInit(spdF)
-				countActors += 1
-			endIf
+		if tot<10
+			spdF._addError(0, "Init Progress 100%", "Registry", "Init")
 		endIf
-	endWhile
 	
-	; Re-init performances
-	i = performances.length
-	while i
-		i-=1
-		if performances[i]
-			performances[i]._doInit(spdF, poleAliases[i], walkPackages[i])
-			countPerformances += 1
-		endIf
-	endWhile
-	
-debug.trace("SPDF: Found " + countPerformances + "/" + performances.length + " Performances")
-debug.trace("SPDF: Found " + countDances + "/" + dances.length + " Dances")
-debug.trace("SPDF: Found " + countStrips + "/" + strips.length + " Strip slots")
-debug.trace("SPDF: Found " + countPoses + "/" + poses.length + " poses")
-debug.trace("SPDF: Found " + countTags + "/" + tags.length + " tags")
-debug.trace("SPDF: Found " + countActors + "/" + actors.length + " actors")
+		spdF._addError(0, "Found " + countPerformances + "/" + performances.length + " Performances", "Registry", "doInit")
+		spdF._addError(0, "Found " + countDances + "/" + dances.length + " Dances", "Registry", "doInit")
+		spdF._addError(0, "Found " + countStrips + "/" + strips.length + " Strip slots", "Registry", "doInit")
+		spdF._addError(0, "Found " + countPoses + "/" + poses.length + " poses", "Registry", "doInit")
+		spdF._addError(0, "Found " + countTags + "/" + tags.length + " tags", "Registry", "doInit")
+		spdF._addError(0, "Found " + countActors + "/" + actors.length + " actors", "Registry", "doInit")
+	endIf
 	
 	; Send the event to register other poses and dances from mods
 	editing = false
+	spdF._addError(0, "Sending event to register Dances, Strips, and Poses", "Registry", "Init")
 	int modEvId = ModEvent.Create("SkyrimPoleDancesRegistryUpdated")
 	ModEvent.pushInt(modEvId, spdF.getVersion())
 	ModEvent.pushForm(modEvId, Self)
@@ -277,7 +301,7 @@ endFunction
 spdfPerformance Function _allocatePerformance()
 	int i = 0
 	while i<performances.length
-		if !performances[i].inUse
+		if performances[i].inUse==0
 			performances[i]._allocate()
 			return performances[i]
 		endIf
@@ -377,14 +401,14 @@ spdfPose Function findPoseByName(string poseName)
 	int i=poses.length
 	while i
 		i-=1
-		if poses[i] && poses[i].inUse && poses[i].name==poseName
+		if poses[i] && poses[i].inUse>0 && poses[i].name==poseName
 			return poses[i]
 		endIf
 	endWhile
 	return none
 endFunction
 
-spdfPose Function registerPose(string name, string poseAnimEvent, string startingAnimEvent, string endingAnimEvent, float startTime, float endTime)
+spdfPose Function registerPose(string name, string poseAnimEvent, float len, string startingAnimEvent, string endingAnimEvent, float startTime, float endTime)
 	; Allocate one, but check if we already have the name
 	int pos = -1
 	int i = poses.length
@@ -399,7 +423,7 @@ spdfPose Function registerPose(string name, string poseAnimEvent, string startin
 		i = poses.length
 		while i
 			i-=1
-			if poses[i] && !poses[i].inUse
+			if poses[i] && poses[i].inUse==0
 				pos = i
 				i = 0
 			endIf
@@ -410,7 +434,7 @@ spdfPose Function registerPose(string name, string poseAnimEvent, string startin
 		return none
 	endIf
 	spdfPose p = poses[pos]
-	p._init(name, poseAnimEvent, startingAnimEvent, endingAnimEvent, startTime, endTime)
+	p._init(name, poseAnimEvent, len, startingAnimEvent, endingAnimEvent, startTime, endTime)
 	return p
 endFunction
 
@@ -424,19 +448,17 @@ endFunction
 
 ; ((-
 
-
 spdfDance Function _getDanceByIndex(int index)
 	return dances[index]
 endFunction
 
-
-spdfDance Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, string tag="")
+spdfDance Function registerDance(string name, string animEvent, string startPose, string endPose, float duration, string tag="", bool asTransition=false)
 	; Allocate one, but check if we already have the name
 	int pos = -1
 	int i = dances.length
 	while i
 		i-=1
-		if dances[i] && dances[i].inUse && dances[i].name==name
+		if dances[i] && dances[i].inUse>0 && dances[i].name==name
 			pos = i
 			i=0
 		endIf
@@ -445,7 +467,7 @@ spdfDance Function registerDance(string name, string animEvent, string startPose
 		i = dances.length
 		while i
 			i-=1
-			if dances[i] && !dances[i].inUse
+			if dances[i] && dances[i].inUse==0
 				pos = i
 				i = 0
 			endIf
@@ -467,7 +489,7 @@ spdfDance Function registerDance(string name, string animEvent, string startPose
 		spdF._addError(33, "End pose \"" + endPose + "\" for Dance \"" + name + "\" does not exist!", "Registry", "registerDance")
 		return None
 	endIf
-	d._init(name, animEvent, sp, ep, duration)
+	d._init(name, animEvent, sp, ep, duration, asTransition)
 	if tag
 		if d.setTags(tag)
 			return None
@@ -475,7 +497,6 @@ spdfDance Function registerDance(string name, string animEvent, string startPose
 	endIf
 	return d
 endFunction
-
 
 spdfDance Function findDanceByPose(spdfPose pose)
 	int count = 0
@@ -506,17 +527,17 @@ spdfDance Function findDanceByPose(spdfPose pose)
 	return res[Utility.randomInt(0, res.length - 1)]
 endFunction
 
-spdfDance Function findDanceByName(string name)
+spdfBase Function findDanceByName(string name)
 	; Strip dances: "Strip:<[!]parts,...>,A"
 	if StringUtil.Find(name, "Strip:")!=-1
 		; It a strip
-		tmpStrip.parseStrips(spdF, name)
+		tmpStrip._parseStrips(spdF, name)
 		; Check if it is equal to one we have already
 		int i = strips.length
 		while i
 			i-=1
-			spdfDance s = strips[i]
-			if s && s.inUse && s.compareStrip(tmpStrip)
+			spdfStrip s = strips[i]
+			if s && s.inUse>0 && s.compareStrip(tmpStrip)
 				; this one is already good
 				return s
 			endIf
@@ -524,8 +545,8 @@ spdfDance Function findDanceByName(string name)
 		; Not found, allocate one
 		i=0
 		while i<strips.length
-			spdfDance s = strips[i]
-			if s && !s.inUse
+			spdfStrip s = strips[i]
+			if s && s.inUse==0
 				s.copyStripFrom(tmpStrip)
 				return s
 			endIf
@@ -538,7 +559,7 @@ spdfDance Function findDanceByName(string name)
 	int i=dances.length
 	while i
 		i-=1
-		if dances[i] && dances[i].inUse && dances[i].name==name
+		if dances[i] && dances[i].inUse>0 && dances[i].name==name
 			return dances[i]
 		endIf
 	endWhile
@@ -552,7 +573,7 @@ spdfDance Function findDanceByTags(spdfTag tag)
 	int i=dances.length
 	while i
 		i-=1
-		if dances[i] && dances[i].inUse && dances[i].hasTags(tag)
+		if dances[i] && dances[i].inUse>0 && dances[i].hasTags(tag)
 			res[numValid] = dances[i]
 			numValid+=1
 		endIf
@@ -568,11 +589,11 @@ spdfDance Function findRandomDance()
 	int i=0
 	while i<dances.length
 		spdfDance d = dances[i]
-		if !d || !d.inUse
+		if !d || d.inUse==0
 			; Grab the next valid one and swap
 			int j=i+1
 			while j<dances.length
-				if dances[j] && dances[j].inUse
+				if dances[j] && dances[j].inUse==1
 					spdfDance tmp = d
 					dances[i] = dances[j]
 					dances[j] = tmp
@@ -596,7 +617,7 @@ spdfDance Function findTransitionDance(spdfPose prev, spdfPose next)
 	int i=0
 	while i<dances.length && num<16
 		spdfDance d = dances[i]
-		if d && d.inUse && d.startPose==prev && d.endPose==next
+		if d && d.inUse==1 && d.startPose==prev && d.endPose==next
 			num+=1
 		endIf
 		i+=1
@@ -608,7 +629,7 @@ spdfDance Function findTransitionDance(spdfPose prev, spdfPose next)
 	i=0
 	while i<dances.length && num<16
 		spdfDance d = dances[i]
-		if d && d.inUse && d.startPose==prev && d.endPose==next
+		if d && d.inUse==1 && d.startPose==prev && d.endPose==next
 			num-=1
 			valids[num] = d
 		endIf
@@ -618,12 +639,12 @@ spdfDance Function findTransitionDance(spdfPose prev, spdfPose next)
 endFunction
 
 
-spdfDance Function allocateStrip()
+spdfStrip Function allocateStrip()
 	int i = strips.length
 	while i
 		i-=1
-		spdfDance s = strips[i]
-		if s && !s.inUse
+		spdfStrip s = strips[i]
+		if s && s.inUse==0
 			s.copyStripFrom(s) ; Just to set it in use
 			return s
 		endIf
@@ -740,6 +761,70 @@ int function getPolesNum(int mode=0)
 	return count
 endFunction
 
+int function getTagsNum(int mode=0)
+	int count=0
+	int i=tags.length
+	while i
+		i-=1
+		if mode==0 && tags[i]
+			count+=1
+		elseIf mode==1 && tags[i] && tags[i].inUse
+			count+=1
+		elseIf mode==-1 && tags[i] && !tags[i].inUse
+			count+=1
+		endIf
+	endWhile
+	return count
+endFunction
+
+; -))
+
+; ****************************************************************************************************************************************************************
+; ************                                                                                                                                        ************
+; ************                                             Strips                                                                                     ************
+; ************                                                                                                                                        ************
+; ****************************************************************************************************************************************************************
+
+; ((- Strips
+
+spdfStrip Function _getStripByIndex(int index)
+	return strips[index]
+endFunction
+
+spdfStrip Function registerStrip(string name, string animEvent="", float len=0.0, float preLen=0.0, string poseName="", bool isOFA=false)
+	; Allocate one, but check if we already have the name, in case replace
+	int pos = -1
+	int i = strips.length
+	while i
+		i-=1
+		if strips[i] && strips[i].inUse>0 && !strips[i].isTemporary && strips[i].name==name
+			pos = i
+			i=0
+		endIf
+	endWhile
+	if pos==-1
+		i = strips.length
+		while i
+			i-=1
+			if strips[i] && strips[i].inUse==0
+				pos = i
+				i = 0
+			endIf
+		endWhile
+	endIf
+	if pos==-1
+		spdF._addError(99, "No more slots available for Strips! (" + name + ")", "Registry", "registerStrip")
+		return None
+	endIf
+	
+	spdfStrip s = strips[pos]
+	s._init(name, animEvent, len, preLen, poseName, isOFA)
+	return s
+endFunction
+
+
+
+
 ; -))
 
 ; ****************************************************************************************************************************************************************
@@ -750,7 +835,7 @@ endFunction
 
 ; ((- tags
 
-Function cleanUpTags() ; FIXME call this when releasing a performance
+Function cleanUpTags()
 	; Go for all tags
 	int i = tags.length
 	while i
@@ -762,9 +847,9 @@ Function cleanUpTags() ; FIXME call this when releasing a performance
 			int j = dances.length
 			while j && !used
 				j-=1
-				spdfDance d = dances[i]
+				spdfDance d = dances[j]
 				if d && d.inUse
-					if d._isTag(t)
+					if d._isTagExactly(t)
 						used = true
 						j=0
 					endIf
@@ -773,7 +858,7 @@ Function cleanUpTags() ; FIXME call this when releasing a performance
 			j = performances.length
 			while j && !used
 				j-=1
-				spdfPerformance p = performances[i]
+				spdfPerformance p = performances[j]
 				if p && p.inUse && p._isTagUsed(t)
 					used = true
 					j=0
@@ -993,6 +1078,25 @@ spdfDance[] Function allocateDances(int count)
 		return new spdfDance[30] ; FIXME in future handle more dances, right now it is nonsense
 	endIf
 endFunction
+
+string Function getVersionString()
+	; MM.mm.bbp
+	string res = ""
+	int v = spdF.getVersion()
+	String patch = StringUtil.AsChar(64 + v % 10)
+	if patch!="@"
+		res = patch
+	endIf
+	string build = (v / 10) % 100
+	res = build+res
+	string min = (v / 1000) % 100
+	res = min+"."+res
+	string maj = (v / 100000) % 100
+	res = maj+"."+res
+	return "V" + res
+endFunction
+
+
 
 
 

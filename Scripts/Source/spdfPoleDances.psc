@@ -20,7 +20,7 @@ int Property logMode Auto ; 0=Don't show anything, 1=show only errors in traces,
 ; ((- Main functions
 
 int Function getVersion()
-	return 1
+	return 10
 endFunction
 
 Function _doInit()
@@ -173,6 +173,9 @@ Function _addError(int id, string error, string source, string method)
 	; In case the errors for MsgBox, do it
 	; In case of just tracing (id==-1 or id==0), put them in traces just if we really need them (option on MCM)
 
+	logMode=2
+	
+	
 	if logMode==0
 		return
 	elseIf logMode==1

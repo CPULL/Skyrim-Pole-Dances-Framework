@@ -1,4 +1,4 @@
-Version V0.01
+Version V0.0.2
 
 ' Format:
 '			<type> [-<option,option,...>] <AnimEvent> <AnimFile> [<AnimObject> ...]		(FNIS Animation)
@@ -36,7 +36,11 @@ Version V0.01
 ' <VersionNumber>	e.g. V5.0
 '
 
-b spdfDance1 spdfDance1.hkx
+b spdfDanceKom1 spdfDanceKom1.hkx
+b spdfDanceCPU1 spdfDanceCPU1.hkx
+b spdfDanceCPU2 spdfDanceCPU2.hkx
 b -a,Tn spdfPose1_End spdfPose1_End.hkx
 b -a,Tn spdfPose1_Start spdfPose1_Start.hkx
 b spdfPose1_Anim spdfPose1_Anim.hkx
+b spdfStrip1_Pose1 spdfStrip1_Pose1.hkx
+b spdfTransition_P1_to_P3 spdfTransition_P1_to_P3.hkx

@@ -1,17 +1,18 @@
 Scriptname spdfActor extends ReferenceAlias
 
-; FIXME 
-; FIXME 
-
 Actor dancer
 spdfPoleDances spdF
 Package currentPkg
 Form[] slots
+string ofaHKX
+spdfStrip ofaS
 bool _inUse
 
 Function _doInit(spdfPoleDances spd)
 	spdF = spd
 	slots = new Form[34]
+	ofaHKX=""
+	ofaS = None
 	free()
 endFunction
 
@@ -86,32 +87,76 @@ Function free()
 		endIf
 	endIf
 	dancer = none
+	ofaHKX=""
+	ofaS = None
 	clear()
 	_inUse = false
 endFunction
 
 ; toStrip: -1 to dress, 0 to ignore, 1 to strip
-Function strip(bool animate, int[] toStrip, float time=0.0)
-	Float startT = Utility.getCurrentRealTime()
-	if animate
-		Debug.SendAnimationEvent(dancer, "Arrok_Undress_G1") ; FIXME use some better strip anims
+Function strip(spdfStrip s)
+	float startT = Utility.getCurrentRealTime()
+	float toWait = 0.0
+	if s.isOFA
+		; In case we receive many, we should wait until we complete the prev one (at least the pre-strip part)
+		while ofaHKX!=""
+			Utility.wait(0.1)
+		endWhile
+	
+		; In case it is OFA, send the event, but don't do the actual strip
+		ofaS = s
+		Debug.SendAnimationEvent(dancer, s.hkx)
+		toWait = s.preStripDuration - (Utility.getCurrentRealTime() - startT)
+debug.trace("Sending strip anim event: " + s.HKX + " toWait=" + toWait)
+		if toWait>0.0
+			ofaHKX = s.hkx
+			RegisterForSingleUpdate(toWait)
+			return
+		endIf
+		ofaHKX = ""
+		executeStrip(s)
+		
+	else
+		; In case is !OFA, do the strip (and stop active)
+		ofaHKX = ""
+		if s.hkx
+			Debug.SendAnimationEvent(dancer, s.hkx)
+		endIf
+		if s.preStripDuration>0.0
+			toWait = s.preStripDuration - (Utility.getCurrentRealTime() - startT)
+			if toWait>0.0
+				Utility.waitMenuMode(toWait)
+			endIf
+		endIf
+		executeStrip(s)
+		; Now wait for the remaining time
+		toWait = s.duration - s.preStripDuration - (Utility.getCurrentRealTime() - startT)
+		if toWait>0.0
+			Utility.waitMenuMode(toWait)
+		endIf
 	endIf
+endFunction
 
+function executeStrip(spdfStrip s)
 	Form item
 	; Strip weapons
-	; Right hand
-	item = dancer.GetEquippedObject(1)
-	if item && !item.hasKeyword(spdF.spdfNoStrip)
-		slots[33] = item
-		dancer.UnequipItemEX(item, 1, false)
+	if s.stripWeapons
+		; Right hand
+		item = dancer.GetEquippedObject(1)
+		if item && !item.hasKeyword(spdF.spdfNoStrip)
+			slots[33] = item
+			dancer.UnequipItemEX(item, 1, false)
+		endIf
+		; Left hand
+		item = dancer.GetEquippedObject(0)
+		if item && !item.hasKeyword(spdF.spdfNoStrip)
+			slots[32] = item
+			dancer.UnequipItemEX(item, 2, false)
+		endIf
 	endIf
-	; Left hand
-	item = dancer.GetEquippedObject(0)
-	if item && !item.hasKeyword(spdF.spdfNoStrip)
-		slots[32] = item
-		dancer.UnequipItemEX(item, 2, false)
-	endIf
+	
 	; Strip armors
+	int[] toStrip = s.stripSlots()
 	int i = 32
 	while i
 		i -= 1
@@ -131,45 +176,12 @@ Function strip(bool animate, int[] toStrip, float time=0.0)
 			endIf
 		endIf
 	endWhile
-	if time!=0.0
-		float toWait = time - (Utility.getCurrentRealTime() - startT)
-		if toWait>0.0
-			Utility.waitMenuMode(toWait)
-		endIf
-	else
-		Utility.waitMenuMode(1.0)
-	endIf
 endFunction
+	
 
-Function redress(bool animate)
-	if animate
-		Debug.SendAnimationEvent(dancer, "Arrok_Undress_G1") ; FIXME use some better strip anims
-	endIf
-
-	Form item
-	; Re-get Right weapon
-	item = slots[33]
-	if item
-		slots[33] = None
-		dancer.equipItemEX(item, 1, false)
-	endIf
-	; Re-get Left weapon
-	item = slots[32]
-	if item
-		slots[32] = None
-		dancer.equipItemEX(item, 2, false)
-	endIf
-	; Re-equip armors
-	int i = 32
-	while i
-		i -= 1
-		if slots[i]
-			dancer.equipItem(item, false, true)
-			slots[i] = None
-		endIf
-	endWhile
-endFunction
-
-Function doStripByDance(spdfDance d, float time)
-	strip(d._AnimatedStrips(), d._stripSlots(), time)
-endFunction
+Event OnUpdate()
+	executeStrip(ofaS)
+	ofaS = None
+	ofaHKX = ""
+	; No need to wait more for the OFA anims
+endEvent

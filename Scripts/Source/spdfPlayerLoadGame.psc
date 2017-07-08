@@ -3,7 +3,7 @@ Scriptname spdfPlayerLoadGame extends ReferenceAlias
 spdfPoleDances spdF = None
 
 Event OnInit()
-	Utility.wait(2.0)
+	Utility.wait(0.9)
 	if !spdF
 		spdF = spdfPoleDances.getInstance()
 		spdF._doInit()

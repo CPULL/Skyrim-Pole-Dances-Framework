@@ -1,41 +1,21 @@
-Scriptname spdfPose Extends ReferenceAlias
+Scriptname spdfPose Extends spdfBase
 
-string _name
-string _animEvent
+; ******************************************************************************************************************
+; ****                                                                                                          ****
+; ****    spdfPose - Object used to store the definition of a Pose, it is used by Dances                        ****
+; ****                                                                                                          ****
+; ****                                                                                                          ****
+; ****                                                                                                          ****
+; ******************************************************************************************************************
+
+
+; ((- ---------------------------------------------------------------- Pose specific Properties, getters and setters ----------------------------------------------------------------
+
 string _animEventToStart
 string _animEventToEnd
-float _startTime
-float _endTime
-bool _inUse
-string _preview
+float _startDuration
+float _endDuration
 
-string Property previewFile
-	string function get()
-		return _preview
-	endFunction
-endProperty
-
-Function setPreview(string file)
-	if file!=""
-		_preview = file
-	else
-		_preview = "spdfPoseNotAvailable.dds"
-	endIf
-endFunction
-
-
-
-string Property name
-	string function get()
-		return _name
-	endFunction
-endProperty
-
-string Property hkx
-	string function get()
-		return _animEvent
-	endFunction
-endProperty
 
 string Property startHKX
 	string function get()
@@ -49,31 +29,24 @@ string Property endHKX
 	endFunction
 endProperty
 
-float Property startTime
+float Property startDuration
 	float function get()
-		return _startTime
+		return _startDuration
 	endFunction
 endProperty
 
-float Property endTime
+float Property endDuration
 	float function get()
-		return _endTime
+		return _endDuration
 	endFunction
 endProperty
 
-bool Property inUse
-	bool Function get()
-		return _inUse
-	endFunction
-endProperty
 
-Function _init(string pname, string hkx, string hkxS, string hkxE, float st, float et)
-	_name = pname
-	_animEvent = hkx
-	_animEventToStart = hkxS
-	_animEventToEnd = hkxE
-	_startTime = st
-	_endTime = et
-	_inUse = true
+Function _init(string pname, string animEvent, float len, string startAnimEvent, string endAnimEvent, float startTime, float endTime)
+	_baseInit(pname, 2, animEvent, len, 1)
+	_animEventToStart = startAnimEvent
+	_animEventToEnd = endAnimEvent
+	_startDuration = startTime
+	_endDuration = endTime
 endFunction
 

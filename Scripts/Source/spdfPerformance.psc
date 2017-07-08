@@ -33,18 +33,19 @@ Function _release()
 	currentDance = -1
 	if dancer
 		registry._releaseDancer(dancer)
-		debug.trace("SPDF: Performance of " + dancer.getDisplayName() + " ended")
-	else
-		debug.trace("SPDF: Performance ended, the dancer was not here")
+		spdF._addError(0, "Performance of " + dancer.getDisplayName() + " ended", "Performance", "Release")
+	elseIf inUse
+		spdF._addError(0, "Performance ended, the dancer was not here", "Performance", "Release")
 	endIf
 	dancer = none
 	if pole && poleCreated
-		debug.trace("SPDF: removed pole by Release")
 		spdF.removePole(pole)
 		pole = None
 	endIf
 	ObjectReference marker = poleRef.getReference()
-	marker.delete()
+	if marker
+		marker.delete()
+	endIf
 	
 	pole = None
 	poleCreated = false
@@ -52,8 +53,8 @@ Function _release()
 	int i=dances.length
 	while i
 		i-=1
-		if dances[i] && dances[i].inUse && dances[i].isStrip
-			dances[i]._releaseStrip()
+		if dances[i] && dances[i].inUse==1 && dances[i].isStrip
+			(dances[i] as spdfStrip)._releaseStrip()
 		endIf
 		dances[i] = none
 		dancesTime[i] = 0.0
@@ -65,6 +66,7 @@ Function _release()
 		tags[i] = none
 	endWhile
 	numTags = 0
+	registry.cleanUpTags()
 	isPerformancePlaying = false
 	isPerformanceValid = false
 	i = performanceStartingHooks.length
@@ -94,7 +96,7 @@ bool poleCreated
 float duration
 float startTime
 spdfPose startingPose
-spdfDance[] dances
+spdfBase[] dances
 float[] dancesTime
 int numDances
 spdfTag[] tags
@@ -136,7 +138,7 @@ Function _doInit(spdfPoleDances s, ReferenceAlias refPole, Package refWalkPkg)
 	pole = None
 	poleCreated = false
 	needPoleCreated = false
-	dances = new spdfDance[32]
+	dances = new spdfBase[32]
 	dancesTime = new Float[32]
 	numDances = 0
 	tags = new spdfTag[32]
@@ -156,6 +158,7 @@ Function _doInit(spdfPoleDances s, ReferenceAlias refPole, Package refWalkPkg)
 	poseUsedHooks = new string[4]
 	performanceEndingHooks = new string[4]
 	performanceEndedHooks = new string[4]
+	ofasList = new spdfStrip[8]
 endFunction
 
 
@@ -245,7 +248,7 @@ bool Function setDancesString(string refDances)
 			spdF._addError(21, "The requested dances are not valid", "Performance", "setDancesString")
 			return true
 		endIf
-		spdfDance d = registry.findDanceByName(parts[i]) ; It will get both actual Dances and Strips
+		spdfBase d = registry.findDanceByName(parts[i]) ; It will get both actual Dances and Strips
 		if d!=None
 			count+=1
 		else
@@ -269,7 +272,7 @@ bool Function setDancesString(string refDances)
 	i = 0
 	count = 0
 	while i<numDances
-		spdfDance d = registry.findDanceByName(parts[i]) ; It will get both actual dances and strips
+		spdfBase d = registry.findDanceByName(parts[i]) ; It will get both actual dances and strips
 		if d!=None
 			dances[count] = d
 			count+=1
@@ -300,7 +303,7 @@ bool Function setDancesArray(string[] refDances)
 	int i = 0
 	string errs = ""
 	while i<refDances.length
-		spdfDance d = registry.findDanceByName(refDances[i]) ; It will get both actual dances and strips
+		spdfBase d = registry.findDanceByName(refDances[i]) ; It will get both actual dances and strips
 		if d!=None
 			count+=1
 		else
@@ -324,7 +327,7 @@ bool Function setDancesArray(string[] refDances)
 	i = 0
 	count = 0
 	while i<numDances
-		spdfDance d = registry.findDanceByName(refDances[i]) ; It will get both actual dances and strips
+		spdfBase d = registry.findDanceByName(refDances[i]) ; It will get both actual dances and strips
 		if d!=None
 			dances[count] = d
 			count+=1
@@ -341,7 +344,7 @@ bool Function setDancesArray(string[] refDances)
 	return false
 endFunction
 
-bool Function setDancesObject(spdfDance[] refDances)
+bool Function setDancesObject(spdfBase[] refDances)
 	; Do nothing in case the performance is playing
 	if isPerformancePlaying
 		spdF._addError(11, "Cannot change a performance while it is playing", "spdPerformance", "setDancesArray")
@@ -355,7 +358,7 @@ bool Function setDancesObject(spdfDance[] refDances)
 	int i = 0
 	string errs = ""
 	while i<refDances.length
-		spdfDance d = refDances[i]
+		spdfBase d = refDances[i]
 		if d!=None
 			count+=1
 		endIf
@@ -370,7 +373,7 @@ bool Function setDancesObject(spdfDance[] refDances)
 	i = 0
 	count = 0
 	while i<numDances
-		spdfDance d = refDances[i]
+		spdfBase d = refDances[i]
 		if d!=None
 			dances[count] = d
 			count+=1
@@ -569,14 +572,14 @@ bool function start(bool forceTransitions = true)
 	else
 		poleCreated = false
 	endIf
+
 	; Create the marker for the pole
-	
 	ObjectReference marker = dancer.placeAtMe(spdF.spdfMarker, 1, false, false)
-	float newAngle = pole.GetAngleZ() - 18.237
+	float newAngle = pole.GetAngleZ() - 12.26
 	if newAngle<0.0
 		newAngle+=360.0
 	endIf
-	marker.moveTo(pole, Math.sin(newAngle) * -75.0, Math.cos(newAngle) * -75.0, 0.0, true)
+	marker.moveTo(pole, Math.sin(newAngle) * -100.0, Math.cos(newAngle) * -100.0, 0.0, true)
 	marker.setAngle(0.0, 0.0, pole.getAngleZ())
 	poleRef.forceRefTo(marker)
 
@@ -621,32 +624,37 @@ bool function start(bool forceTransitions = true)
 		
 	elseIf startingPose==None && numDances>0 && numTags==0
 		; Case dances -> Add transitions in case the dances are not in sequence and the param is true
+		
 		if forceTransitions
 			int i = numDances
 			while i>1
 				i-=1
-				spdfDance next = dances[i]
-				spdfDance prev = dances[i - 1]
-				if next && prev && next.startPose != prev.endPose && !prev.isStrip && !next.isStrip
-					; Check if we have a transition dance
-					spdfDance d = registry.findTransitionDance(prev.endPose, next.startPose)
-					if d
-						int j = numDances
-						while j > i+1
-							j-=1
-							dances[j] = dances[j - 1]
-						endWhile
-						dances[i] = d
-						numDances+=1
-					else
-						if prev.endPose && next.startPose
-							spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
-						elseIf prev.endPose
-							spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose from dance \"" + next.name + "\"", "Performance", "start")
-						elseIf next.startPose
-							spdF._addError(45, "Could not find an intermediate dance starting with pose from dance \"" + prev.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
+				spdfBase next = dances[i]
+				spdfBase prev = dances[i - 1]
+				if next && prev && next.isDance && prev.isDance
+					if (next as spdfDance).startPose != (prev as spdfDance).endPose && !prev.isStrip && !next.isStrip
+						; Check if we have a transition dance
+						spdfDance d = registry.findTransitionDance((prev as spdfDance).endPose, (next as spdfDance).startPose)
+						if d
+							numDances+=1
+							int j = numDances
+							while j > i+1
+								j-=1
+								dances[j] = dances[j - 1]
+								dancesTime[j] = dancesTime[j - 1]
+							endWhile
+							dances[i] = d
+							dancesTime[i] = d.duration
 						else
-							spdF._addError(45, "Could not find an intermediate dance starting with pose from dance \"" + prev.name + "\" and starting with pose from dance \"" + next.name + "\"", "Performance", "start")
+							if (prev as spdfDance).endPose && (next as spdfDance).startPose
+								spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + (prev as spdfDance).endPose.name + "\" and starting with pose \"" + (next as spdfDance).startPose.name + "\"", "Performance", "start")
+							elseIf (prev as spdfDance).endPose
+								spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + (prev as spdfDance).endPose.name + "\" and starting with pose from dance \"" + next.name + "\"", "Performance", "start")
+							elseIf (next as spdfDance).startPose
+								spdF._addError(45, "Could not find an intermediate dance starting with pose from dance \"" + prev.name + "\" and starting with pose \"" + (next as spdfDance).startPose.name + "\"", "Performance", "start")
+							else
+								spdF._addError(45, "Could not find an intermediate dance starting with pose from dance \"" + prev.name + "\" and starting with pose from dance \"" + next.name + "\"", "Performance", "start")
+							endIf
 						endIf
 					endIf
 				endIf
@@ -655,8 +663,8 @@ bool function start(bool forceTransitions = true)
 		; Find the start pose of the first anim and calculate the resulting duration
 		int i = 0
 		while i<numDances && !startingPose
-			if dances[i]
-				startingPose = dances[i].startPose
+			if dances[i] && dances[i].isDance
+				startingPose = (dances[i] as spdfDance).startPose
 			endIf
 			i+=1
 		endWhile
@@ -665,7 +673,7 @@ bool function start(bool forceTransitions = true)
 			i=dances.length
 			while i
 				i-=1
-				if dances[i] && dances[i].inUse
+				if dances[i] && dances[i].inUse==1
 					if dancesTime[i]!=0.0
 						duration += dancesTime[i]
 					else
@@ -679,7 +687,7 @@ bool function start(bool forceTransitions = true)
 		; Case tags -> Find the dances (try to respect the transitions in case the param is true)
 		int i=0
 		while i<numTags
-			spdfDance d = registry.findDanceByTags(tags[i])
+			spdfBase d = registry.findDanceByTags(tags[i])
 			if !d
 				spdF._addError(46, "Could not find a dance for tags \"" + tags[i].print() + "\"", "Performance", "start")
 				return true
@@ -690,11 +698,11 @@ bool function start(bool forceTransitions = true)
 		if forceTransitions
 			i = numDances
 			while i>0
-				spdfDance next = dances[i]
-				spdfDance prev = dances[i - 1]
-				if next.startPose != prev.endPose
+				spdfBase next = dances[i]
+				spdfBase prev = dances[i - 1]
+				if next.isDance && prev.isDance && (next as spdfDance).startPose != (prev as spdfDance).endPose
 					; Check if we have a transition dance
-					spdfDance d = registry.findTransitionDance(prev.endPose, next.startPose)
+					spdfDance d = registry.findTransitionDance((prev as spdfDance).endPose, (next as spdfDance).startPose)
 					if d
 						int j = numDances
 						while j > i+1
@@ -704,7 +712,7 @@ bool function start(bool forceTransitions = true)
 						dances[i] = d
 						numDances+=1
 					else
-						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + prev.endPose.name + "\" and starting with pose \"" + next.startPose.name + "\"", "Performance", "start")
+						spdF._addError(45, "Could not find an intermediate dance starting with pose \"" + (prev as spdfDance).endPose.name + "\" and starting with pose \"" + (next as spdfDance).startPose.name + "\"", "Performance", "start")
 					endIf
 				endIf
 			endWhile
@@ -712,8 +720,8 @@ bool function start(bool forceTransitions = true)
 		; Find the start pose of the first anim and calculate the resulting duration
 		i = 0
 		while i<numDances && !startingPose
-			if dances[i]
-				startingPose = dances[i].startPose
+			if dances[i] && dances[i].isDance
+				startingPose = (dances[i] as spdfDance).startPose
 			endIf
 			i+=1
 		endWhile
@@ -722,7 +730,7 @@ bool function start(bool forceTransitions = true)
 			i=dances.length
 			while i
 				i-=1
-				if dances[i] && dances[i].inUse
+				if dances[i] && dances[i].inUse==1
 					if dancesTime[i]!=0.0
 						duration += dancesTime[i]
 					else
@@ -738,6 +746,16 @@ bool function start(bool forceTransitions = true)
 		_release()
 		return true
 	endIf
+	
+	; fill the timers with the default in case they are zero
+	int i = dances.length
+	while i
+		i-=1
+		spdfBase b = dances[i]
+		if b && dancesTime[i] == 0.0
+			dancesTime[i] = b.duration
+		endIf
+	endWhile
 
 	sendEvent("PerformanceStarting")
 	
@@ -762,6 +780,8 @@ Function abort(bool rightNow=false)
 		return
 	endIf
 	; Stop the current dance, and play the ending anim (all will be done in the Ending state)
+	
+debug.tracestack("SPDF aborting performance")	
 	GoToState("Ending")
 endFunction
 
@@ -807,119 +827,399 @@ float performanceStartTime
 float currentDanceExpectedTime
 float currentDanceStartTime
 
-; FIXME performaceStartTime
+
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+spdfBase Function getNextStep(spdfBase from=None) ; Will return it without changing the current one
+	if from
+		int i = currentDance
+		while i<dances.length - 1
+			spdfBase b = dances[i]
+			if b==from
+				return dances[i+1]
+			endIf
+			i+=1
+		endWhile
+		return None
+	
+	else
+		return dances[nextDance]
+	endIf
+endFunction
+
+spdfBase Function moveToNextStep() ; Return the next step and move the current to the next
+debug.trace("moveToNextStep=" + nextDance + " d[n]=" + dances[nextDance] + " all=" + dances)
+	currentDance=nextDance
+	return dances[currentDance]
+endFunction
+
+Function addToOFAs(spdfStrip s)
+	int i=0
+	while i<ofasList.length
+		if !ofasList[i]
+			ofasList[i] = s
+			return
+		endIf
+		i+=1
+	endWhile
+endFunction
+
+spdfStrip Function getFirstOFA()
+	spdfStrip res = ofasList[0]
+	if !res
+		return None
+	endIf
+	int i=0
+	while i<ofasList.length - 1
+		ofasList[i] = ofasList[i + 1]
+		i+=1
+	endWhile
+	ofasList[ofasList.length - 1] = None
+	return res
+endFunction
+
+Function insertNextStep(spdfBase toInsert)
+	; FIXME to be implemented for real only in Playing state
+	spdF._addError(99, "Cannot insert a step in a Performance that is not playing", "spdPerformance", "insertNextStep") ; FIXME
+endFunction
+
+Function replaceNextStep(spdfBase toInsert)
+	; FIXME to be implemented for real only in Playing state
+	spdF._addError(99, "Cannot replace a step in a Performance that is not playing", "spdPerformance", "replaceNextStep") ; FIXME
+endFunction
+
+spdfDance Function getLastDance()
+	int i = dances.length
+	while i
+		i-=1
+		if dances[i] && dances[i].isDance
+			return dances[i] as spdfDance
+		endIf
+	endWhile
+	return None
+endFunction
+
+bool Function isLastDance()
+	; no one of the remaining base objects should be a dance or a pose
+	bool isLast = true
+	int i = currentDance + 1
+	while i<dances.length
+		spdfBase b = dances[i]
+		if b && (b.isDance || b.isPose)
+			isLast = false
+			i = 1000
+		endIf
+		i+=1
+	endWhile
+	
+if isLast
+	debug.trace("Found SPDF last dance in pos=" + currentDance + " b="+dances[currentDance].name)
+endIf
+	
+	return isLast
+endFunction
+
+
+float currentStepStartTime
+int currentStatus
+spdfStrip[] ofasList
+int nextDance
+bool wasFirstEvent
+; ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 
 state Playing
 	Event OnBeginState()
 		sendEvent("PerformanceStarted")
 		registry._lockActor(dancer, spdF.spdfDoNothingPackage)
-		currentDance = 0
-		sendEvent("DanceChanging")
-		prevDance = -1 ; This will play right now the first dance
-
-		; We need to handle strips, if any. And they can be more than one
-		while dances[currentDance] && dances[currentDance].isStrip
-debug.trace("SPDF: handling strip")
-			if dancesTime[currentDance]==0.0
-				dancerC.doStripByDance(dances[currentDance], dances[currentDance].duration)
-			else
-				dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
-			endIf
-			currentDance+=1
- 		endWhile
-		if startingPose
-			Debug.SendAnimationEvent(dancer, startingPose.startHKX)
-			Utility.wait(0.2)
-			dancer.moveTo(pole, 0.0, 0.0, 0.0, false)
-			spdfActor._removeWeapons(dancer)
-			Utility.waitMenuMode(startingPose.startTime - 0.1)
-		endIf
-		performanceStartTime = Utility.getCurrentRealTime()
-		totalExpectedPerformanceTime = duration
-		currentDanceStartTime = Utility.getCurrentRealTime()
-		if dancesTime[currentDance]!=0.0
-			currentDanceExpectedTime = dancesTime[currentDance]
-		elseIf dances[currentDance]
-			currentDanceExpectedTime = dances[currentDance].duration
-		endIf
-		if dances[currentDance]
-			Debug.SendAnimationEvent(dancer, dances[currentDance].hkx)
-		endIf
-		RegisterForSingleUpdate(0.95)
-		
-debug.trace("SPDF: " + dancer.getDisplayName() + " performance started for " + totalExpectedPerformanceTime + " with " + dances[currentDance].name + " danceExpTime=" + currentDanceExpectedTime)
-		
-		sendEvent("DanceChanged")
+		currentDance = -1
+		currentStatus = -1 ; -1=not defined, 0=playing start pose anim, 1=playing pre of dance, 2=playing main dance, 3=playing end of dance, 4=playing end pose anim
+		nextDance = 0
+		wasFirstEvent = true
+		RegisterForSingleUpdate(0.05)
 	endEvent
+
+	Function insertNextStep(spdfBase toInsert)
+		if !toInsert
+			return
+		endIf
+		int i = dances.length
+		while i>currentDance + 1
+			i-=1
+			dances[i] = dances[i + 1]
+		endWhile
+		dances[currentDance + 1] = toInsert
+	endFunction
+
+	Function replaceNextStep(spdfBase toInsert)
+		if !toInsert
+			return
+		endIf
+		dances[currentDance + 1] = toInsert
+	endFunction
 	
 	Event OnUpdate()
-		; check if we spent too much time
-		float remainingTimeForDance = currentDanceExpectedTime - (Utility.getCurrentRealTime() - currentDanceStartTime)
-		if remainingTimeForDance < 0.1
-			; Time to change
-			prevDance = currentDance
-			currentDance+=1
-			if currentDance==numDances
-				; End the performance
-				currentDance-=1 ; To play the right ending anim
-				GoToState("Ending")
-				return
-			endIf
-			if !dances[currentDance]
-				; We have a problem
-				debug.trace("SPDF: the performance ended without a valid dance. Abnormal ending.")
-				_release()
-				return
-			endIf
-			
-			bool onlyStripsAfter = true
-			int i = currentDance
-			while i<numDances
-				if !dances[i]
-					onlyStripsAfter = false ; weird case
-					i = 1000
-				endIf
-				if dances[i] && !dances[i].isStrip
-					onlyStripsAfter = false
-					i = 1000
-				endIf
-				i+=1
-			endWhile
-			if onlyStripsAfter
-				currentDance-=1
-				GoToState("EndByStripping")
-				return
-			endIf
-			
-			; Check if it is a strip
-			while dances[currentDance] && dances[currentDance].isStrip
-debug.trace("SPDF: handling strip")
-				dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
-				currentDance+=1
-			endWhile
-			
-			currentDanceStartTime = Utility.getCurrentRealTime()
-			if dancesTime[currentDance]!=0.0
-				currentDanceExpectedTime = dancesTime[currentDance]
-			else
-				currentDanceExpectedTime = dances[currentDance].duration
-			endIf
-debug.trace("SPDF: " + dancer.getDisplayName() + " sending Dance -> " + currentDance + " " + dances[currentDance].name + " -> " + dances[currentDance].hkx + " expTime=" + currentDanceExpectedTime)
-; In case of cyclic anims with start and end, we may want to play the intro event
-			Debug.sendAnimationEvent(dancer, dances[currentDance].hkx)
-			spdfActor._removeWeapons(dancer)
-			prevDance = currentDance
-			sendEvent("DanceChanged")
-			RegisterForSingleUpdate(1.0)
-			
-		elseIf remainingTimeForDance < 1.0
-			; Small wait
-			RegisterForSingleUpdate(remainingTimeForDance - 0.05)
-		else
-			; Long wait
-			RegisterForSingleUpdate(0.95)
-		endIf
+		; If the current dance and the next dance are the same we are playing and we just need to check the time and wait
+		; If the current dance and the next dance are different we need to pick the next one
+		; next one can be:
+		; - Dance: play it, but check if we have an OFA stip just after
+		; - Pose: play and check for OFA strips
+		; - Strip:
+		; - - if OFA and preceeded by a Dance or Pose, ignore
+		; - - if !OFA play it
 
+		if currentDance!=nextDance
+			
+			; Grab the new one
+			spdfBase b = moveToNextStep() ; This will do "currentDance=nextDance"
+if b
+debug.trace("currD="+currentDance + " b=" + b+ " D="+b.isDance + " S=" + b.isStrip + " P=" + b.isPose)
+endIf
+			if b && b.isDance
+				spdfDance d = b as spdfDance
+				String animEvent = ""
+				; We need to send the animevent, it can be a pre or also a startPose
+				if wasFirstEvent
+					if d.startPose
+						Debug.SendAnimationEvent(dancer, d.startPose.startHKX)
+						currentStatus=0
+						Utility.waitMenuMode(0.4)
+					endIf
+					dancer.moveTo(pole, 0.0, 0.0, 0.0, false)
+					dancer.setAngle(0.0, 0.0, pole.getAngleZ())
+					spdfActor._removeWeapons(dancer)
+					wasFirstEvent = false
+				elseIf d.startHKX && d.startDuration!=0.0
+					animEvent=d.startHKX
+					currentStatus=1
+				else
+					animEvent=d.HKX
+					currentStatus=2
+				endIf
+				
+				; We need to check if the next (can be many) is a OFA strip, in this case we should play them during the anim
+				spdfBase n = getNextStep()
+				while n && n.isStrip && (n as spdfStrip).isOFA
+					addToOFAs(n as spdfStrip)
+					n = getNextStep(n)
+				endWhile
+				
+				; Send the event and init the time
+				currentStepStartTime = Utility.getCurrentRealTime()
+				Debug.SendAnimationEvent(dancer, animEvent)
+				RegisterForSingleUpdate(0.1)
+				
+			elseIf b && b.isStrip
+				spdfStrip s = b as spdfStrip
+				if s.isOFA
+debug.trace("SPDF SPDF ----> OFA")				
+					; Skip it, and get the next one. But we have to put it in the OFAs or it will be skipped
+					addToOFAs(s)
+					nextDance+=1
+					RegisterForSingleUpdate(0.01)
+				else
+					; Play it (sync mode)
+					dancerC.strip(s)
+					currentStatus=-1
+					nextDance+=1
+					RegisterForSingleUpdate(0.01)
+				endIf
+				
+			elseIf b && b.isPose
+				spdfPose p = b as spdfPose
+				; We need to check if the next (can be many) is a OFA strip, in this case we should play them during the anim
+				spdfBase n = getNextStep()
+				while n && n.isStrip && (n as spdfStrip).isOFA
+					addToOFAs(n as spdfStrip)
+					n = getNextStep(n)
+				endWhile
+				
+				; Play the pose for the specified amount of time, and consider OFAs after this step
+				currentStepStartTime = Utility.getCurrentRealTime()
+				Debug.SendAnimationEvent(dancer, p.HKX)
+				currentStatus = 2 ; Poses do not have intro
+				if wasFirstEvent
+					dancer.moveTo(pole, 0.0, 0.0, 0.0, false)
+					dancer.setAngle(0.0, 0.0, pole.getAngleZ())
+					spdfActor._removeWeapons(dancer)
+					wasFirstEvent = false
+				endIf
+				RegisterForSingleUpdate(0.1)
+
+			else
+				; If we are here there is nothing more to play
+debug.trace("SPDF SPDF SPDF ending because nothing to do currD=" + currentDance)
+				GoToState("Ending")
+			endIf
+			
+		
+		else
+			; Just the normal advancement
+			spdfBase b = dances[currentDance]
+			if b && b.isDance
+				spdfDance d = b as spdfDance
+			
+debug.trace("SPDF d=\"" + d.name + "\" stat="+currentStatus + " step=" + currentDance)
+				if currentStatus==0 ; We are playing a start pose anim
+					float timeToDo = d.startPose.startDuration - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						; Switch
+						if d.startHKX && d.startDuration!=0.0
+							Debug.sendAnimationEvent(dancer, d.startHKX)
+							currentStatus=1
+						else
+							Debug.sendAnimationEvent(dancer, d.HKX)
+							currentStatus=2
+						endIf
+						currentStepStartTime = Utility.getCurrentRealTime()
+						RegisterForSingleUpdate(0.1)
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+				
+				elseIf currentStatus==1 ; We are playing a pre dance
+					float timeToDo = d.startDuration - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						; Switch
+						currentStatus=2
+						Debug.sendAnimationEvent(dancer, d.HKX)
+						currentStepStartTime = Utility.getCurrentRealTime()
+						RegisterForSingleUpdate(0.1)
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+					
+				elseIf currentStatus==2 ; We are playing the main dance
+					float timeToDo = dancesTime[currentDance] - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						; Switch if needed, or jump to the next step
+						if d.endHKX!="" && d.endDuration!=0.0
+							currentStatus=3
+							Debug.sendAnimationEvent(dancer, d.endHKX)
+							currentStepStartTime = Utility.getCurrentRealTime()
+						elseIf isLastDance()
+							; Play the anim and then end pose anim, then play the strips
+							currentStatus=4
+							Debug.sendAnimationEvent(dancer, d.endPose.endHKX)
+							currentStepStartTime = Utility.getCurrentRealTime()
+							RegisterForSingleUpdate(0.05)
+						else
+							nextDance+=1
+						endIf
+						RegisterForSingleUpdate(0.01)
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+				
+				elseIf currentStatus==3 ; We are playing the post dance
+					float timeToDo = d.endDuration - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						if isLastDance()
+							; Play the anim and then end pose anim, then play the strips
+							currentStatus=4
+	debug.trace("SPDF: " + dancer.getDisplayName() + " sending End -> " + d.endPose.endHKX)
+							Debug.sendAnimationEvent(dancer, d.endPose.endHKX)
+							currentStepStartTime = Utility.getCurrentRealTime()
+							RegisterForSingleUpdate(0.05)
+						else
+							nextDance+=1
+						endIf
+						RegisterForSingleUpdate(0.01)
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+					
+				elseIf currentStatus==4 ; We are playing the exit pose (probaly not here)
+	debug.trace("Playing end pose anim exp="+d.endPose.name)
+					float timeToDo = d.endPose.endDuration - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						nextDance+=1
+						RegisterForSingleUpdate(0.01)
+						dancer.moveTo(poleRef.getReference(), 0.0, 0.0, 0.0, false)
+						dancer.setAngle(0.0, 0.0, poleRef.getReference().getAngleZ())
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+				endIf
+				
+				spdfStrip s = getFirstOFA()
+				if s
+					dancerC.strip(s) ; This will play in async mode
+				endIf
+				
+			elseIf b && b.isStrip
+				spdfStrip s = b as spdfStrip
+				if !s.isOFA
+						dancerC.strip(s)
+				endIf
+				nextDance+=1
+				RegisterForSingleUpdate(0.01)
+				
+			elseIf b && b.isPose
+				spdfPose p = b as spdfPose
+				if currentStatus == 2
+					float timeToDo = dancesTime[currentDance] - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						; Switch if needed, or jump to the next step
+						if isLastDance()
+							; Play the anim and then end pose anim, then play the strips
+							currentStatus=4
+							Debug.sendAnimationEvent(dancer, p.endHKX)
+							currentStepStartTime = Utility.getCurrentRealTime()
+							RegisterForSingleUpdate(0.05)
+						else
+							nextDance+=1
+						endIf
+						RegisterForSingleUpdate(0.01)
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+				elseIf currentStatus==4
+	debug.trace("Playing end pose anim")
+					float timeToDo = p.endDuration - (Utility.getCurrentRealTime() - currentStepStartTime)
+					if timeToDo<0.1
+						nextDance+=1
+						RegisterForSingleUpdate(0.01)
+						dancer.moveTo(poleRef.getReference(), 0.0, 0.0, 0.0, false)
+					elseIf timeToDo<1.0
+						; Wait remaining time
+						RegisterForSingleUpdate(timeToDo - 0.05)
+					else
+						RegisterForSingleUpdate(1.0)
+					endIf
+				endIf
+				
+				spdfStrip s = getFirstOFA()
+				if s
+					dancerC.strip(s) ; This will play in async mode
+				endIf
+			
+			else
+				; Ending because nothing else to do
+debug.trace("SPDF SPDF SPDF ending because nothing to do currD=" + currentDance)
+				GoToState("Ending")
+			endIf
+		endIf
 	endEvent
 
 endState
@@ -927,60 +1227,24 @@ endState
 state Ending
 	Event OnBeginState()
 		sendEvent("PerformanceEnding")
-		if dances[numDances - 1] && dances[numDances - 1].endPose
-debug.trace("SPDF: " + dancer.getDisplayName() + " sending End -> " + dances[numDances - 1].endPose.endHKX)
-			Debug.SendAnimationEvent(dancer, dances[numDances - 1].endPose.endHKX)
-			spdfActor._removeWeapons(dancer)
-			RegisterForSingleUpdate(dances[numDances - 1].endPose.endTime - 0.1)
-		else
-			RegisterForSingleUpdate(0.5) ; Quickly end in case of errors
-		endIf
+		int i = currentDance
+		while i<dances.length
+			spdfBase b = dances[i]
+			if b && b.isStrip && !(b as spdfStrip).isOFA
+				dancerC.strip(b as spdfStrip)
+			endIf
+			i+=1
+		endWhile
+		RegisterForSingleUpdate(0.1)
 	endEvent
 	
 	Event OnUpdate()
 		; Move back to the marker
 		dancer.moveTo(poleRef.getReference(), 0.0, 0.0, 0.0, false)
 		if poleCreated
-			debug.trace("SPDF: removed pole by Ending")
 			spdF.removePole(pole)
 			pole = None
 		endIf
-		registry._unlockActor(dancer)
-		isPerformancePlaying = false
-		sendEvent("PerformanceEnded")
-		_release()
-	endEvent
-endState
-
-state EndByStripping
-	Event OnBeginState()
-		sendEvent("PerformanceEnding")
-		if dances[currentDance] && dances[currentDance].endPose
-debug.trace("SPDF: " + dancer.getDisplayName() + " sending End -> " + dances[currentDance].endPose.endHKX)
-			Debug.SendAnimationEvent(dancer, dances[currentDance].endPose.endHKX)
-			spdfActor._removeWeapons(dancer)
-			RegisterForSingleUpdate(dances[currentDance].endPose.endTime - 0.1)
-		else
-			RegisterForSingleUpdate(0.1) ; Quickly end in case of errors
-		endIf
-		currentDance+=1
-		
-	endEvent
-	
-	Event OnUpdate()
-		; Move the actor the the marker
-		dancer.moveTo(poleRef.getReference(), 0.0, 0.0, 0.0, false)
-		if poleCreated
-			debug.trace("SPDF: removed pole by Ending")
-			spdF.removePole(pole)
-			pole = None
-		endIf
-		; Play all the remaining strips
-		while dances[currentDance] && dances[currentDance].isStrip
-debug.trace("SPDF: handling strip")
-			dancerC.doStripByDance(dances[currentDance], dancesTime[currentDance])
-			currentDance+=1
-		endWhile
 		registry._unlockActor(dancer)
 		isPerformancePlaying = false
 		sendEvent("PerformanceEnded")
